@@ -39,4 +39,18 @@ World progresses
 
 ## 현재 상태
 
-현재는 설계 문서만 존재한다. 애플리케이션 구현과 의존성 설치는 아직 시작하지 않았다. 다음 단계는 [로드맵의 M0](docs/ROADMAP.md#m0-repositoryfoundation)이며, 확정된 Python 3.12 기반 기술 기준으로 저장소 규약과 최소 골격을 만든다.
+M0 Repository/Foundation 골격이 구현되어 있다. 아직 simulation clock, scheduler, EventBus, Action 계약과 도메인 기능은 없으며, 다음 구현 범위는 [로드맵의 M1](docs/ROADMAP.md#m1-deterministic-simulation-kernel)이다.
+
+## 개발 환경과 검증
+
+Python 3.12 이상에서 개발용 의존성을 설치하고 M0 품질 gate를 실행한다.
+
+```text
+python -m pip install -e ".[dev]"
+ruff check .
+ruff format --check .
+mypy
+pytest
+```
+
+기능 또는 계약을 변경할 때는 같은 변경에서 관련 테스트와 문서를 갱신한다. milestone 범위를 바꾸는 변경은 `docs/ROADMAP.md`, 논리 계약은 `docs/API.md`, 상태·저장 소유권은 `docs/ERD.md`, 계층과 의존 방향은 `docs/ARCHITECTURE.md`, 검증 규칙은 `docs/TEST_STRATEGY.md`에 반영한다.

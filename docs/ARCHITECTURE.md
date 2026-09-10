@@ -154,3 +154,20 @@ MemoryPolicy는 NoMemory, recent/episodic, reflection 등 실험 조건을 교�
 - SQLAlchemy/Alembic은 실제 persistence 및 migration 요구가 구체화되는 마일스톤에서 도입 여부를 결정한다.
 
 snapshot 주기와 concrete LLM provider 같은 나머지 선택은 해당 마일스톤까지 연기하며 위 경계와 결정론 불변식을 바꾸지 않는다.
+
+## 10. M0 패키지 의존 규칙
+
+M0의 물리 패키지는 다음 단방향 의존을 사용한다.
+
+```text
+bootstrap (composition root) → adapters → core contracts
+                            ↘ core kernel
+```
+
+- `journeymap.core`는 Python 표준 라이브러리와 Core 내부 계약만 import한다. `sqlite3`, infrastructure adapter, composition root, HTTP/LLM/ORM package를 import하지 않는다.
+- `journeymap.adapters`는 Core가 정의한 port를 구현하며 구체 기술을 소유한다. M0 SQLite adapter는 연결 수명주기만 구현하고 도메인 schema를 선제 정의하지 않는다.
+- `journeymap.bootstrap`만 구체 adapter와 Core를 조립한다.
+- 향후 domain module은 자신의 상태와 규칙을 소유하고 metadata에 직접 dependency를 선언한다. registry는 시작 전에 누락, 중복과 순환 dependency를 거부한다.
+- architecture test가 위 역방향 import와 금지된 runtime dependency를 검사한다.
+
+코드 변경 시 관련 테스트와 함께 계약·상태 소유권·계층·milestone 범위에 영향을 받는 문서를 같은 변경에서 갱신한다.

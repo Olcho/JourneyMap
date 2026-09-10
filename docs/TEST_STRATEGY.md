@@ -104,6 +104,7 @@ Property 예: 음수 inventory 불가, 실패한 transfer의 양쪽 balance 불�
 
 ## 6. Milestone별 gate
 
+- **M0:** 빈 module registry로 in-process kernel boot/close, SQLite adapter 수명주기, module dependency 검증, Core dependency rule, pytest/Ruff/mypy 실행
 - **M1:** RNG, clock, scheduler, EventBus ordering과 replay kernel
 - **M2:** movement invariant와 invalid MOVE atomicity
 - **M3:** Knowledge Leak/Authority test
