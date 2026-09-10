@@ -146,7 +146,7 @@ erDiagram
 - **Event:** `(run_id, event_sequence)` unique. `source_kind/source_ref`로 ActionRequest, ScheduledEvent 또는 자연 발생 trigger를 구분한다. 발생한 사실과 transition 결과만 기록하며 미래 예약을 Event로 가장하지 않는다.
 - **Observation:** Controller에 실제 전달된 immutable envelope을 그대로 보존한다. actor, simulation time, ordering, schema와 digest를 포함한다.
 - **ActionRequest:** Actor/Controller가 제출한 정규화된 행동 의도만 보존한다. actor와 Observation 관계는 필수이며 ScheduledEvent나 자연 발생 World Event를 넣지 않는다. 거부된 요청도 삭제하지 않는다.
-- **ActionResult:** 모든 요청과 1:1이며 `SUCCEEDED`, `REJECTED`, `FAILED` 같은 status와 안정적 reason code를 가진다. 실패 시 mutation 여부는 반드시 none이다.
+- **ActionResult:** 정상 처리된 요청과 1:1이며 `SUCCEEDED`, `REJECTED`, `FAILED` 같은 status와 안정적 reason code를 가진다. 실패 시 해당 action의 성공 mutation은 없다. duration 동안 독립적으로 commit된 system mutation과 경과 시간은 유지한다. 예상 밖 engine 오류는 결과를 조작하지 않고 예외로 전파한다.
 - **KnowledgeRecord:** actor별 주장/사실 인식의 출처, 획득 시각, 확신도와 정정 계보를 가진다. 동일 subject에 대한 상충 지식을 허용할 수 있으며 World Truth와 FK로 동일시하지 않는다.
 
 LLM trial 분석에는 별도 **ControllerInvocation** 레코드를 둘 수 있다. `controller_trace_id`, model/provider, prompt version, parameters, memory policy/version, Observation ID, raw response 참조, parse status와 ActionRequest ID를 보존한다. provider 비밀값이나 인증정보는 저장하지 않는다.
@@ -164,6 +164,8 @@ LLM trial 분석에는 별도 **ControllerInvocation** 레코드를 둘 수 있�
 
 - actor action과 system event는 서로 다른 handler를 사용하지만, 각 engine transition은 validation 이후 canonical mutation, 결과 provenance, Event append와 직접 유발된 Knowledge update를 공통 transaction/mutation boundary에서 commit한다.
 - invalid Action은 ActionRequest와 REJECTED ActionResult만 기록하고 domain state/Event를 부분 생성하지 않는다. 감사 Event가 필요하면 domain Event와 분리된 명시적 기록 정책을 사용한다.
+- M2 시작 거부의 비교 기준은 제출 tick까지 due system event를 처리한 뒤의 상태다. 완료 조건 실패는 FAILED 결과만 추가하고 이미 경과한 시간·독립적인 system commit을 rollback하지 않는다.
+
 - FK만으로 정보 권한을 표현하지 않는다. Observation 생성 query 자체가 actor scope를 강제한다.
 - replay 비교용 state digest는 연구 log와 비결정적 metadata를 제외한 canonical state의 정규화 직렬화로 계산한다.
 
@@ -177,3 +179,18 @@ M1은 위 논리 모델 중 RunManifest, ScheduledEvent, Event, 최소 ActionReq
 - 최소 ActionRequest도 필수 `based_on_observation_id`를 보존한다. Observation record와 FK 검증은 M3 이전에 임시 구현하지 않으며 M1에서는 opaque identifier 계약만 강제한다.
 - M1 state digest는 canonical state만 포함하고 future schedule, Event log, RNG bookkeeping과 run metadata는 포함하지 않는다. replay report는 Event ordering, handler results, logical time과 RNG draw count를 별도로 비교할 수 있다.
 - 구체 persistence schema, first-class research record 저장과 transaction projection은 해당 record 수명주기 요구가 구체화되는 milestone에서 추가한다.
+
+## 8. M2 실제 in-memory 상태
+
+아래 값은 기존 canonical JSON state에 저장한다. 위 논리 ERD를 SQLite schema로 구현한 것은 아니다.
+
+| 소유자 / canonical 경로 | record |
+|---|---|
+| Core `entities[entity_id]` | `{entity_id, entity_type}` |
+| movement `movement.locations[location_id]` | `{location_id}` |
+| movement `movement.routes[route_id]` | `{route_id, origin, destination, traversal_cost, passable}` |
+| movement `movement.positions[actor_id]` | `{actor_id, location_id}` |
+
+identity는 비어 있지 않은 문자열이며 run 안에서 안정적이다. initial state builder는 중복 ID와 잘못된 location 참조를 거부한다. Route는 단방향이고 traversal_cost는 양의 정수 tick, passable은 bool이다. MOVE handler는 raw canonical record도 시작과 완료에 다시 검증한다. Entity에는 위치를 넣지 않으며, runtime 위치 변경은 movement가 만든 TransitionPlan을 공통 mutation boundary에서 적용한다.
+
+ActionTiming의 duration과 검증 데이터는 canonical state에 저장하지 않는 파생 값이다. ActionResult는 `started_at`, `resolved_at`, `status`, `reason_code`를 추가하고 실패일 때 `transition=None`으로 기록한다. 실패는 domain Event나 deterministic ID를 소비하지 않는다. state digest에는 Entity와 movement 상태가 포함되며 timing·clock·scheduler·Event·결과 log는 포함되지 않는다. 이 값들은 replay에서 별도로 비교한다.

@@ -106,9 +106,13 @@ Property 예: 음수 inventory 불가, 실패한 transfer의 양쪽 balance 불�
 
 - **M0:** 빈 module registry로 in-process kernel boot/close, SQLite adapter 수명주기, module dependency 검증, Core dependency rule, pytest/Ruff/mypy 실행
 - **M1:** logical clock 역행 거부, SplitMix64 고정 sequence/draw count/64-bit seed normalization, canonical serialization/digest와 unsupported value 거부, scheduler `(due_time, priority, insertion_sequence)`, EventBus stable subscriber ordering/synchronous dispatch/commit 후 실패 의미, action/system handler 분리와 필수 opaque Observation reference, 실패 resolution의 state/clock/RNG/Event/identity/scheduler 무변경, versioned schedule + recorded ActionRequest replay의 동일 handler result/deterministic ID/Event ordering/final digest
-- **M2:** movement invariant와 invalid MOVE atomicity
+- **M2:** 최소 Entity identity와 movement 소유권, Location/단방향 Route/ActorPosition, MOVE/WAIT v1 payload, 존재·연결·통행·양의 정수 비용 검증, 시작 거부 시 state digest/clock/RNG/ID/scheduler/domain Event 불변, duration 중/동일 완료 tick system ordering, 완료 조건 실패 시 경과 시간/system commit 유지와 action 성공 mutation/Event 미생성, 성공·REJECTED·FAILED를 섞은 replay 결과/ID/Event/digest 동일, timed context 격리·재진입 금지·중간 system 오류의 M1 의미 유지
 - **M3:** Knowledge Leak/Authority test
 - **M4:** Alderwick Bridge Integration 전체
 - **M5–M6:** 정보 전달과 cross-module 원자성
 - **M7:** versioned contract/conformance suite
 - **M8:** 엔진 gate 전부 + LLM 기록 완전성 + 24시간 smoke experiment
+
+M2 자동화는 `tests/test_movement.py`, `tests/test_timed_actions.py`, `tests/test_architecture.py`에 있다. 폐쇄는 test-only system handler로 표현하며 Alderwick/bridge 시나리오는 만들지 않는다. 원자성은 제출 tick까지 독립적인 세계 진행 이후 action 시작 상태를 기준으로 검사한다. 완료 tick에서 폐쇄/재개, 유효한 비용 변경, endpoint 변경, actor/position/location 변경도 검증한다. Perception/Observation/Knowledge 정보 누출과 실제 Controller 권한 검증은 M3 gate이며 아직 구현된 테스트로 간주하지 않는다.
+
+M2 감사 테스트는 제출 tick 이후 거부 상태를 독립적으로 진행한 control kernel과 비교한다. start validation, timing 계산, completion validation, resolve, pre-commit state/Event 직렬화에 예외를 주입하여 state/digest/clock/RNG/ID/scheduler/Event 보존과 이후 중복 소비가 없음을 검사한다. non-timed/timed action의 commit 후 subscriber 실패도 비교한다. 완료 tick의 여러 system event가 포함된 mixed replay는 ReplayReport뿐 아니라 kernel의 전체 RngSnapshot도 비교한다. self-route와 임의 entity_type은 현재 계약의 허용 사례로 검사한다.

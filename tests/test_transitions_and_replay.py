@@ -322,6 +322,7 @@ def test_failed_resolution_cannot_mutate_state_rng_or_event_log() -> None:
             payload={"amount": 1},
         )
     )
+    assert result.transition is not None
     assert result.transition.transition_id == "run-replay:transition:00000001"
     assert result.emitted_event_ids == (
         "run-replay:event:00000001",
@@ -418,6 +419,7 @@ def test_failed_system_resolution_does_not_consume_the_scheduled_input() -> None
             payload={"amount": 1},
         )
     )
+    assert result.transition is not None
     assert result.transition.transition_id == "run-replay:transition:00000001"
     assert result.emitted_event_ids == (
         "run-replay:event:00000001",
@@ -599,8 +601,12 @@ def test_replay_repeats_handler_results_event_order_and_digest() -> None:
         "run-replay:transition:00000004",
         "run-replay:transition:00000004",
     ]
-    assert [result.transition.sequence for result in first.action_results] == [3, 4]
-    assert [result.transition.transition_id for result in first.action_results] == [
+    transitions = []
+    for result in first.action_results:
+        assert result.transition is not None
+        transitions.append(result.transition)
+    assert [transition.sequence for transition in transitions] == [3, 4]
+    assert [transition.transition_id for transition in transitions] == [
         "run-replay:transition:00000003",
         "run-replay:transition:00000004",
     ]

@@ -185,3 +185,17 @@ bootstrap (composition root) → adapters → core contracts
 - replay는 불변 RunManifest/initial state, versioned ScenarioSchedule, tuple에 기록된 ActionRequest 순서와 종료 tick으로 매번 새 kernel을 구성한다. ScenarioSchedule은 `(scenario_id, scenario_version)`이 manifest와 일치해야 한다. report에는 wall-clock timestamp, filesystem path, object repr나 environment metadata를 넣지 않으며 handler 결과, deterministic identity, Event ordering과 final state digest를 함께 비교한다.
 
 M1의 event/state 기록은 in-memory kernel과 ReplayReport에만 존재한다. 구체 SQLite record schema와 snapshot 정책은 해당 persistence 요구가 명확해지는 후속 milestone까지 추가하지 않는다.
+
+## 12. M2 Entity와 timed action
+
+- `core.entities.Entity(entity_id, entity_type)`는 run-local 최소 identity다. canonical `entities` 값은 ID별 identity record이며 위치나 도메인 속성을 포함하지 않는다.
+- `modules.movement`가 `Location`, 단방향 `Route`, `ActorPosition`, 초기 상태 builder, MOVE handler와 `movement` canonical 값을 소유한다. ModuleRegistry에는 `MovementModule`을, ActionRegistry에는 해당 module의 `register_actions`로 MOVE v1을 명시적으로 등록한다. WAIT v1은 도메인 상태가 없는 `core.actions.WaitHandler`를 명시적으로 등록한다. 자동 plugin discovery나 범용 ECS는 없다.
+- 기존 `ActionHandler`의 validate/resolve와 `TransitionPlan`을 유지한다. 선택적인 `TimedActionHandler`는 `prepare(request, ValidationContext) -> ActionTiming`과 `validate_completion(request, ActionTiming, ValidationContext)`를 추가한다. prepare는 start validation 뒤에 실행하며 RNG 없이 양의 정수 duration과 복사된 JSON 검증 데이터를 만든다. timing은 파생된 일시적 값이며 canonical state나 scheduler input이 아니다.
+- kernel은 M1처럼 제출 tick까지 due system event를 먼저 처리한 뒤 시작 검증을 수행한다. 시작 검증/prepare 실패는 `REJECTED`이고 추가 시간을 소비하지 않는다. 원자성 비교 기준은 제출 tick까지 독립적인 세계 진행이 끝난 시점이다. 미래 제출 tick까지의 진행과 그 이전 system commit은 action의 성공 mutation이 아니다.
+- 시작에 성공하면 `started_at + duration`까지 기존 advance 로직을 사용한다. 완료 tick을 포함한 system input을 `(due_time, priority, insertion_sequence)` 순서로 모두 처리한 뒤 완료 검증을 한다. 이후 resolve는 최신 state 복사본과 최신 RNG의 clone으로 TransitionPlan을 만들며 기존 공통 commit 함수가 이를 적용한다. action type별 kernel 분기는 없다.
+- 완료 검증 실패는 `FAILED`다. 경과 시간과 독립적으로 commit된 system state/RNG/Event/ID를 유지하고 action 자체의 mutation/Event/transition ID는 만들지 않는다. 실패 결과는 request ID로 연결되므로 별도 ID sequence를 소비하지 않는다. 성공은 `SUCCEEDED`와 기존 transition identity를 기록한다.
+- MOVE는 시작 시 actor/position/route/location, origin 일치, 현재 passability와 양의 정수 cost를 확인한다. 완료 시 이를 다시 확인하고 시작 시 origin/destination과도 비교한다. 유효한 cost 변경은 확정된 duration을 바꾸지 않으며, 폐쇄 후 완료 전에 다시 열렸다면 현재 passability를 기준으로 성공할 수 있다. 이동 중간 위치는 없고 완료 성공 시에만 ActorPosition을 변경한다.
+- 전체 submit/advance 동안 handler와 subscriber의 kernel mutation API 재진입을 금지한다. 예상된 `ActionValidationError`만 연구 결과로 변환한다. 예상 밖 handler 결함이나 EventDeliveryError는 기존처럼 전파하고, 이미 commit된 세계는 유지한다. 중단된 timed action의 자동 재개/재시도 runtime은 없다.
+- 단일 동기 action을 끝낸 뒤 다음 요청을 받는다. 다음 `submitted_at`은 현재 tick 이상이어야 하고 replay 종료 tick은 마지막 완료 tick 이상이어야 한다. duration·completion tick은 입력에서 결정적으로 파생되므로 ReplayInput을 확장하지 않는다.
+
+M3의 Perception/Observation/Knowledge, Controller 권한 subsystem과 M4 시나리오는 추가하지 않는다. `based_on_observation_id`는 계속 opaque reference다.

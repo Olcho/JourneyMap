@@ -36,8 +36,12 @@ Exit: 같은 fixture/seed/input을 반복해 동일 Event ordering과 digest를 
 - 최소 Entity identity와 movement-owned position
 - Location/Route/passability, MOVE/WAIT
 - ActionRegistry dispatch와 atomic validation/resolution
+- 시작 검증 → 확정된 duration 동안 system event 처리 → 완료 검증/commit
+- REJECTED와 elapsed-time FAILED 구분, system commit 보존, 동일 tick system 우선 ordering과 replay
 
 Exit: 유효·무효 이동, 시간 비용, route 폐쇄와 invalid action atomicity가 검증된다.
+
+구현 완료: 최소 Entity와 movement-owned 모델, MOVE/WAIT 및 위 exit criteria를 자동화했다. route 폐쇄는 test fixture로만 구현했다. 다음 구현 범위는 M3다.
 
 ## M3 Perception + Knowledge
 
