@@ -198,4 +198,24 @@ M1의 event/state 기록은 in-memory kernel과 ReplayReport에만 존재한다.
 - 전체 submit/advance 동안 handler와 subscriber의 kernel mutation API 재진입을 금지한다. 예상된 `ActionValidationError`만 연구 결과로 변환한다. 예상 밖 handler 결함이나 EventDeliveryError는 기존처럼 전파하고, 이미 commit된 세계는 유지한다. 중단된 timed action의 자동 재개/재시도 runtime은 없다.
 - 단일 동기 action을 끝낸 뒤 다음 요청을 받는다. 다음 `submitted_at`은 현재 tick 이상이어야 하고 replay 종료 tick은 마지막 완료 tick 이상이어야 한다. duration·completion tick은 입력에서 결정적으로 파생되므로 ReplayInput을 확장하지 않는다.
 
-M3의 Perception/Observation/Knowledge, Controller 권한 subsystem과 M4 시나리오는 추가하지 않는다. `based_on_observation_id`는 계속 opaque reference다.
+위 M2 kernel의 `based_on_observation_id`는 계속 opaque reference다. M3 live 권한 검증은 아래 별도 application 계층이 담당한다.
+
+## 13. M3 Perception / Observation / Knowledge 경계
+
+물리 의존 방향은 `bootstrap → application → core + modules`다. `core.observations`는 도메인 중립 PerceptionContext/Observation과 contributor callable 계약, `core.controller`는 GamePort와 제한된 ControllerActionResult를 정의한다. Core는 application이나 knowledge 의미를 import하지 않는다. `application.perception`이 trusted filtering을 조립하며 `modules.movement.perception`은 자기 위치의 allowlist projection을 소유한다. movement는 knowledge를 import하지 않는다.
+
+Perception은 현재 snapshot에서 actor의 존재와 identity를 확인하고 자신의 유효한 `location_id`만 추출한다. Entity/position/location record의 추가 필드, 다른 actor 위치, route graph/passability와 보이지 않는 사실을 복사하지 않는다. Observation을 요청한다고 시간을 진행하거나 due system event를 실행하지 않는다. 현재까지 commit된 truth만 읽는다.
+
+Contributor 입력은 `PerceptionContext(run_id, actor_id, simulation_time, perceived, known)`이다. 기본 `perceived`는 `self: {entity_id, entity_type}`, `movement: {location_id}`이며 position이 없으면 movement는 빈 object다. `known`은 해당 actor의 명시적 기존 KnowledgeRecord JSON 목록인 `{records: [...]}`다. 이 context에는 raw world/module record, store/query handle, scheduler, future event, RNG/seed, Event log, 다른 actor 지식, Research capability가 없다. 신뢰된 초기 지식 작성자는 actor에게 허용된 주장과 source만 제공해야 한다.
+
+`ObservationPipeline.register`는 `(priority, module_id, contributor_id)`를 완전 정렬 key로 사용하고 중복 key를 거부한다. contributor는 매번 분리된 context만 받아 JSON section을 반환한다. 등록 목록 snapshot을 정렬해 순서대로 실행하고, 출력도 즉시 canonical 검증·복사한다. context나 다른 출력의 mutation alias가 없으며 실패하면 record와 sequence를 소비하지 않는다. contributor는 trusted formatter이며 추론 엔진이 아니다. 외부 secret이나 서비스 handle을 closure로 주입하지 않는 것은 composition의 책임이다.
+
+ObservationHistory는 run별 성공한 generation 순서대로 append한다. envelope은 frozen이며 content는 내부 canonical JSON 문자열로 보관하고 매 조회에 새 JSON 값을 반환한다. contributor가 받은 임시 context의 nested container는 수정 가능하지만 이후 contributor/Observation에 영향을 주지 않는다. record/sequence는 kernel canonical state, RNG, scheduler 및 transition/event sequence와 독립적이다.
+
+`modules.knowledge`는 KnowledgeRecord와 별도 in-memory 초기 ledger를 소유한다. 이 ledger는 canonical World Truth에 포함하지 않으며 kernel state digest에도 포함하지 않는다. 명시적 source와 stable ID를 가진 초기 입력만 허용하고, 지식 부재는 UNKNOWN인 빈 조회 결과다. 상충 주장과 supersession 계보를 함께 보존하며 truth를 참조해 기존 주장을 rewrite하지 않는다. confidence·추론·runtime append·직접 관찰 projection은 구현하지 않았다. 따라서 M3는 EventBus subscriber 또는 Observation builder에서 canonical mutation을 시도하지 않는다. M4/M5 runtime 지식 갱신은 검증된 handler와 공통 transaction boundary에 포함해야 하며 별도 mutable store를 임의로 갱신해서는 안 된다.
+
+SimulationApplication은 kernel을 Controller에 전달하지 않고 actor를 고정한 두 callback으로 GamePort를 구성한다. 별도 ResearchView는 kernel과 application history를 읽으며 GamePort/Observation에는 ResearchView를 넣지 않는다. 이 경계는 신뢰된 Python application에서의 API/capability 분리다. private field·closure·traceback introspection 또는 악성 Python 실행을 막는 sandbox가 아니다.
+
+Live submit은 run/actor/실제 Observation의 소유권과 현재 제출 tick을 검증한다. kernel은 기존 opaque provenance를 유지하며 recorded ActionRequest-only replay에 Observation history를 요구하지 않는다. application ActionTrace는 정규화된 live 요청마다 별도의 attempt sequence와 request/result를 보존한다. 기존 kernel에는 ActionRequest history가 없으므로 직접 trusted kernel/replay 경로의 request는 M1/M2처럼 호출자의 ReplayInput이 소유한다. system input은 action trace를 만들지 않는다.
+
+Core는 `ActionHandlerNotFoundError(HandlerNotFoundError)` 하위 타입을 kernel의 최초 actor handler 조회 실패에만 사용한다. ActionRegistry/SystemEventRegistry 자체는 기존 `HandlerNotFoundError`를 유지한다. 따라서 등록된 handler 내부 조회 오류나 system dispatch 결함이 live Game에서 `UNKNOWN_ACTION`으로 오인되지 않는다. 기존 상위 예외 catch와 메시지는 유지하며 더 큰 예외 계층은 추가하지 않았다. kernel submit 변경은 이 좁은 예외 변환뿐이며 dispatch 순서, 시간 진행, commit, scheduler, RNG, EventBus와 ReplayInput/Report 의미는 그대로다.
