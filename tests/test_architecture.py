@@ -7,12 +7,17 @@ from pathlib import Path
 REPOSITORY_ROOT = Path(__file__).parents[1]
 CORE_ROOT = REPOSITORY_ROOT / "src" / "journeymap" / "core"
 FORBIDDEN_CORE_IMPORTS = {
+    "datetime",
     "fastapi",
     "journeymap.adapters",
     "journeymap.bootstrap",
     "openai",
+    "random",
+    "secrets",
     "sqlalchemy",
     "sqlite3",
+    "time",
+    "uuid",
 }
 
 

@@ -39,7 +39,7 @@ World progresses
 
 ## 현재 상태
 
-M0 Repository/Foundation 골격이 구현되어 있다. 아직 simulation clock, scheduler, EventBus, Action 계약과 도메인 기능은 없으며, 다음 구현 범위는 [로드맵의 M1](docs/ROADMAP.md#m1-deterministic-simulation-kernel)이다.
+M1 Deterministic Simulation Kernel까지 구현되어 있다. 논리 clock, seeded RNG, deterministic scheduler, synchronous EventBus, 분리된 action/system-event dispatch, 공통 mutation 경계와 최소 replay harness를 포함한다. 아직 Entity, Location, movement와 그 밖의 도메인 기능은 없으며, 다음 구현 범위는 [로드맵의 M2](docs/ROADMAP.md#m2-entity--spatial-movement)다.
 
 ## 개발 환경과 검증
 

@@ -171,3 +171,17 @@ bootstrap (composition root) → adapters → core contracts
 - architecture test가 위 역방향 import와 금지된 runtime dependency를 검사한다.
 
 코드 변경 시 관련 테스트와 함께 계약·상태 소유권·계층·milestone 범위에 영향을 받는 문서를 같은 변경에서 갱신한다.
+
+## 11. M1 결정적 커널 규칙
+
+- simulation time은 wall clock과 무관한 0 이상의 정수 tick이다. tick의 현실 시간 단위는 scenario가 정하며 Core는 해석하지 않는다.
+- RNG는 run seed로 초기화되는 명시적 SplitMix64 구현을 사용하고 draw count를 추적한다. handler resolution은 복제된 RNG를 사용하며 transition commit에 성공할 때만 원본 RNG state에 반영한다.
+- scheduler는 `(due_time, priority, insertion_sequence)`로 정렬한다. 같은 tick에 system input과 recorded actor action이 있으면 미리 enqueue된 due system input을 모두 먼저 처리한다. handler/subscriber 실행 중 kernel mutation API 재진입은 거부하므로 system handler가 같은 tick event를 직접 추가할 수 없다. 같은 tick input은 transition 시작 전에 enqueue해야 하며 그 경우에도 위 정렬을 따른다.
+- EventBus는 in-process synchronous callback만 제공하며 `(priority, module_id, subscriber_id)` 순서로 호출한다. 각 subscriber에는 저장된 envelope과 payload가 분리된 복사본을 전달하며 subscriber는 kernel mutation API에 재진입할 수 없다. commit 뒤 subscriber가 예외를 내면 이후 subscriber와 남은 Event delivery를 중단하고 event ID와 subscriber ordering key가 있는 `EventDeliveryError`를 호출자에게 전달한다. `advance_to`는 그 commit tick에서 중단되며 이미 commit된 state/Event/handler result와 소비된 ScheduledEvent는 rollback하거나 다음 호출에서 재실행하지 않는다.
+- actor action과 system event는 각각 `ActionRegistry`, `SystemEventRegistry`의 정확한 `(type, schema_version)` key로 dispatch한다. M1 `ActionRequest`는 필수 opaque Observation reference를 포함한 최소 actor-intent envelope일 뿐 Observation 자체나 action type별 domain payload 의미를 정의하지 않는다. `ScheduledEvent`는 ActionRequest로 변환하지 않는다.
+- validate/resolve context에는 canonical state의 분리된 복사본만 전달한다. 두 handler 경로 모두 `TransitionPlan`을 반환하고 동일한 commit 함수만 top-level canonical JSON state, RNG state, transition sequence와 Event sequence를 변경한다.
+- transition이 commit 전에 실패하면 canonical state, logical clock, RNG, Event/transition sequence, handler result/outcome과 scheduler queue/counter를 바꾸지 않는다. 실패한 ScheduledEvent는 queue head에 남고 예외는 즉시 호출자에게 전달되므로 한 번의 `advance_to` 호출에서 tight retry하지 않는다. 다음 명시적 호출은 같은 event를 다시 한 번 시도한다. 이미 성공한 앞선 transition이나 commit 이후 Event delivery 실패는 이 rollback 규칙의 대상이 아니다.
+- transition/event ID는 wall clock이나 UUID가 아닌 run-local sequence에서 준비하고 transition commit 시 함께 소비한다. Event envelope은 source, transition, causation과 correlation을 기록한다. state digest는 future schedule, Event log와 연구 metadata를 제외한 canonical JSON state를 UTF-8, key 정렬, compact JSON으로 직렬화한 SHA-256이다. canonical state는 string-key JSON object와 JSON scalar/list/object만 허용하고 non-finite float, set, bytes, tuple, custom object와 non-string mapping key는 거부한다.
+- replay는 불변 RunManifest/initial state, versioned ScenarioSchedule, tuple에 기록된 ActionRequest 순서와 종료 tick으로 매번 새 kernel을 구성한다. ScenarioSchedule은 `(scenario_id, scenario_version)`이 manifest와 일치해야 한다. report에는 wall-clock timestamp, filesystem path, object repr나 environment metadata를 넣지 않으며 handler 결과, deterministic identity, Event ordering과 final state digest를 함께 비교한다.
+
+M1의 event/state 기록은 in-memory kernel과 ReplayReport에만 존재한다. 구체 SQLite record schema와 snapshot 정책은 해당 persistence 요구가 명확해지는 후속 milestone까지 추가하지 않는다.

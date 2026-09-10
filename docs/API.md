@@ -143,3 +143,18 @@ ScenarioHarness.advanceTo(simulationTime) -> TransitionResults
 - 에러 문자열이 아니라 machine-readable reason code를 실험 데이터로 사용한다.
 - Observation과 actor-visible ActionResult에 debug detail을 섞지 않는다.
 - API 직렬화 순서는 결과 의미에 영향을 주지 않지만 digest 계산 시 canonical serialization을 사용한다.
+
+## 7. M1 내부 커널 계약
+
+M1은 외부 transport나 완성된 Game API를 구현하지 않는다. 다음 Python in-process 계약만 제공한다.
+
+```text
+SimulationKernel.schedule(ScheduledEventSpec)
+SimulationKernel.advance_to(logical_tick) -> SystemEventOutcome[]
+SimulationKernel.submit_action(ActionRequest) -> ActionResult
+ReplayHarness.run(ReplayInput) -> ReplayReport
+```
+
+M1 `ActionRequest`는 run/actor/request identity, 필수 `basedOnObservationId`, 제출 tick, action type/schema version, canonical JSON payload와 correlation을 가진 최소 replay envelope이다. M1은 이 필드를 비어 있지 않은 opaque reference로 보존해 actor intent가 Observation에 기반한다는 계약을 약화하지 않는다. 실제 Observation envelope·perception·저장소는 M3 범위이므로 M1은 가짜 Observation을 만들거나 참조의 존재·actor 권한·staleness를 검증하지 않는다. 구체 action payload, reason code, idempotency와 최종 compatibility 정책은 M7에서 확정한다.
+
+ScheduledEvent는 versioned ScenarioSchedule의 system input이며 `SystemEventRegistry`로만 전달된다. 같은 문자열 type을 ActionRegistry와 SystemEventRegistry에 각각 등록할 수 있지만 두 dispatch path는 교차하지 않는다. 두 handler는 validation과 resolution 동안 canonical state를 직접 받지 않고 복사본과 transactional RNG만 받으며, 성공한 TransitionPlan만 공통 mutation 경계에서 적용된다.

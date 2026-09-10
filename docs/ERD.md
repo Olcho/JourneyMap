@@ -166,3 +166,14 @@ LLM trial 분석에는 별도 **ControllerInvocation** 레코드를 둘 수 있�
 - invalid Action은 ActionRequest와 REJECTED ActionResult만 기록하고 domain state/Event를 부분 생성하지 않는다. 감사 Event가 필요하면 domain Event와 분리된 명시적 기록 정책을 사용한다.
 - FK만으로 정보 권한을 표현하지 않는다. Observation 생성 query 자체가 actor scope를 강제한다.
 - replay 비교용 state digest는 연구 log와 비결정적 metadata를 제외한 canonical state의 정규화 직렬화로 계산한다.
+
+## 7. M1 구현 범위
+
+M1은 위 논리 모델 중 RunManifest, ScheduledEvent, Event, 최소 ActionRequest/ActionResult와 system handler outcome에 대응하는 in-process envelope만 구현한다. 아직 concrete SQLite table이나 domain state table을 만들지 않는다.
+
+- canonical state는 module state를 수용할 수 있는 JSON object이나 M1에는 domain key 의미가 없다.
+- handler에는 canonical object 자체가 아니라 분리된 snapshot을 전달하고, 성공한 TransitionPlan만 공통 mutation 경계에서 반영한다.
+- Event와 handler 결과는 run-local deterministic sequence 및 source/causation/correlation으로 연결된다.
+- 최소 ActionRequest도 필수 `based_on_observation_id`를 보존한다. Observation record와 FK 검증은 M3 이전에 임시 구현하지 않으며 M1에서는 opaque identifier 계약만 강제한다.
+- M1 state digest는 canonical state만 포함하고 future schedule, Event log, RNG bookkeeping과 run metadata는 포함하지 않는다. replay report는 Event ordering, handler results, logical time과 RNG draw count를 별도로 비교할 수 있다.
+- 구체 persistence schema, first-class research record 저장과 transaction projection은 해당 record 수명주기 요구가 구체화되는 milestone에서 추가한다.

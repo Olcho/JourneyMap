@@ -105,7 +105,7 @@ Property 예: 음수 inventory 불가, 실패한 transfer의 양쪽 balance 불�
 ## 6. Milestone별 gate
 
 - **M0:** 빈 module registry로 in-process kernel boot/close, SQLite adapter 수명주기, module dependency 검증, Core dependency rule, pytest/Ruff/mypy 실행
-- **M1:** RNG, clock, scheduler, EventBus ordering과 replay kernel
+- **M1:** logical clock 역행 거부, SplitMix64 고정 sequence/draw count/64-bit seed normalization, canonical serialization/digest와 unsupported value 거부, scheduler `(due_time, priority, insertion_sequence)`, EventBus stable subscriber ordering/synchronous dispatch/commit 후 실패 의미, action/system handler 분리와 필수 opaque Observation reference, 실패 resolution의 state/clock/RNG/Event/identity/scheduler 무변경, versioned schedule + recorded ActionRequest replay의 동일 handler result/deterministic ID/Event ordering/final digest
 - **M2:** movement invariant와 invalid MOVE atomicity
 - **M3:** Knowledge Leak/Authority test
 - **M4:** Alderwick Bridge Integration 전체
