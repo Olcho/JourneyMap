@@ -1,6 +1,8 @@
 """Technology-independent deterministic simulation kernel contracts."""
 
+from journeymap.core.actions import WaitHandler
 from journeymap.core.canonical import JsonObject, JsonValue, canonical_json, state_digest
+from journeymap.core.entities import Entity, entity_state, get_entity
 from journeymap.core.events import (
     EventBus,
     EventDeliveryError,
@@ -13,10 +15,14 @@ from journeymap.core.handlers import (
     ActionRegistry,
     ActionRequest,
     ActionResult,
+    ActionStatus,
+    ActionTiming,
+    ActionValidationError,
     ResolutionContext,
     SystemEventHandler,
     SystemEventOutcome,
     SystemEventRegistry,
+    TimedActionHandler,
     TransitionPlan,
     ValidationContext,
 )
@@ -49,8 +55,12 @@ __all__ = [
     "ActionRegistry",
     "ActionRequest",
     "ActionResult",
+    "ActionStatus",
+    "ActionTiming",
+    "ActionValidationError",
     "DeterministicRng",
     "DeterministicScheduler",
+    "Entity",
     "EventBus",
     "EventDeliveryError",
     "EventDraft",
@@ -79,9 +89,13 @@ __all__ = [
     "SystemEventHandler",
     "SystemEventOutcome",
     "SystemEventRegistry",
+    "TimedActionHandler",
     "TransitionIdentity",
     "TransitionPlan",
     "ValidationContext",
+    "WaitHandler",
     "canonical_json",
+    "entity_state",
+    "get_entity",
     "state_digest",
 ]

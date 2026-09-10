@@ -1,7 +1,8 @@
 """Separate actor-action and system-event handler contracts and registries."""
 
 from dataclasses import dataclass, field
-from typing import Protocol
+from enum import StrEnum
+from typing import Protocol, runtime_checkable
 
 from journeymap.core.canonical import JsonObject, clone_json_object
 from journeymap.core.events import EventDraft
@@ -100,12 +101,46 @@ class TransitionPlan:
 
 
 @dataclass(frozen=True, slots=True)
+class ActionTiming:
+    """Derived duration and detached completion checks; never canonical state."""
+
+    duration: int
+    data: JsonObject = field(default_factory=dict)
+
+    def __post_init__(self) -> None:
+        if type(self.duration) is not int or self.duration <= 0:
+            raise ValueError("action duration must be a positive integer")
+        object.__setattr__(self, "data", clone_json_object(self.data))
+
+    def detached(self) -> "ActionTiming":
+        return ActionTiming(self.duration, self.data)
+
+
+class ActionStatus(StrEnum):
+    SUCCEEDED = "SUCCEEDED"
+    REJECTED = "REJECTED"
+    FAILED = "FAILED"
+
+
+class ActionValidationError(ValueError):
+    """An expected action failure, distinct from an engine/handler defect."""
+
+    def __init__(self, reason_code: str) -> None:
+        self.reason_code = reason_code
+        super().__init__(reason_code)
+
+
+@dataclass(frozen=True, slots=True)
 class ActionResult:
     action_request_id: str
     handler_id: str
-    transition: TransitionIdentity
+    transition: TransitionIdentity | None
     state_digest_after: str
     emitted_event_ids: tuple[str, ...]
+    status: ActionStatus
+    reason_code: str | None
+    started_at: int
+    resolved_at: int
 
 
 @dataclass(frozen=True, slots=True)
@@ -126,6 +161,21 @@ class ActionHandler(Protocol):
     def validate(self, request: ActionRequest, context: ValidationContext) -> None: ...
 
     def resolve(self, request: ActionRequest, context: ResolutionContext) -> TransitionPlan: ...
+
+
+@runtime_checkable
+class TimedActionHandler(ActionHandler, Protocol):
+    """Optional synchronous duration, followed by validation of current truth.
+
+    prepare runs after start validation with no RNG or mutation capability.
+    resolve runs only after completion validation and uses the latest state/RNG.
+    """
+
+    def prepare(self, request: ActionRequest, context: ValidationContext) -> ActionTiming: ...
+
+    def validate_completion(
+        self, request: ActionRequest, timing: ActionTiming, context: ValidationContext
+    ) -> None: ...
 
 
 class SystemEventHandler(Protocol):

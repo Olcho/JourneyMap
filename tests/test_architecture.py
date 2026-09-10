@@ -11,6 +11,7 @@ FORBIDDEN_CORE_IMPORTS = {
     "fastapi",
     "journeymap.adapters",
     "journeymap.bootstrap",
+    "journeymap.modules",
     "openai",
     "random",
     "secrets",
@@ -49,3 +50,33 @@ def test_project_has_no_runtime_dependencies() -> None:
     configuration = tomllib.loads((REPOSITORY_ROOT / "pyproject.toml").read_text(encoding="utf-8"))
 
     assert configuration["project"]["dependencies"] == []
+
+
+def test_core_does_not_define_or_reference_movement_domain_state() -> None:
+    forbidden_types = {"Location", "Route", "ActorPosition", "MoveHandler", "MovementModule"}
+    forbidden_state_keys = {"movement", "locations", "routes", "positions", "route_id"}
+    for path in sorted(CORE_ROOT.rglob("*.py")):
+        tree = ast.parse(path.read_text(encoding="utf-8"))
+        for node in ast.walk(tree):
+            if isinstance(node, (ast.ClassDef, ast.Name, ast.Attribute)):
+                name = (
+                    node.name
+                    if isinstance(node, ast.ClassDef)
+                    else (node.id if isinstance(node, ast.Name) else node.attr)
+                )
+                assert name not in forbidden_types, f"{path}: {name}"
+            if isinstance(node, ast.Constant) and isinstance(node.value, str):
+                assert node.value not in forbidden_state_keys, f"{path}: {node.value}"
+
+
+def test_movement_imports_only_core_its_own_module_and_standard_library() -> None:
+    import sys
+
+    root = REPOSITORY_ROOT / "src" / "journeymap" / "modules" / "movement"
+    for path in sorted(root.rglob("*.py")):
+        for imported in imported_names(path):
+            assert (
+                imported.split(".")[0] in sys.stdlib_module_names
+                or imported.startswith("journeymap.core.")
+                or imported.startswith("journeymap.modules.movement.")
+            ), f"{path}: {imported}"
