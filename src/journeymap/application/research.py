@@ -49,7 +49,7 @@ class ResearchView:
         return self._application.observation_history
 
     def knowledge_history(self, actor_id: str) -> tuple[KnowledgeRecord, ...]:
-        return self._knowledge.for_actor(actor_id).history()
+        return self._application.knowledge_snapshot().for_actor(actor_id).history()
 
     @property
     def action_traces(self) -> tuple[ActionTrace, ...]:

@@ -2,9 +2,14 @@
 
 from collections.abc import Callable
 from dataclasses import dataclass, field
+from typing import Protocol
 
 from journeymap.core.handlers import ActionRequest, ActionStatus
 from journeymap.core.observations import Observation
+
+
+class Controller(Protocol):
+    def decide(self, observation: Observation) -> ActionRequest: ...
 
 
 @dataclass(frozen=True, slots=True)

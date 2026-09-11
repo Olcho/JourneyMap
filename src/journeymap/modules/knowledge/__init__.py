@@ -20,4 +20,4 @@ __all__ = [
 class KnowledgeModule:
     @property
     def metadata(self) -> ModuleMetadata:
-        return ModuleMetadata("knowledge", "0.3.0")
+        return ModuleMetadata("knowledge", "0.4.0")

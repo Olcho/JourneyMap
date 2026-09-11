@@ -232,3 +232,27 @@ ActionRequest가 아닌 객체는 TypeError다. live Game은 request/run/actor/O
 ResearchView의 read API는 `world_snapshot`, `manifest`, `simulation_time`, `state_digest`, `rng_snapshot`, `observations`, `knowledge_history(actor_id)`, `action_traces`, `action_results`, `events`, `pending_scheduled_events`, `system_event_outcomes`다. 반환된 mutable JSON은 저장 상태와 분리되어 있다. 과거 World snapshot query, scenario editing, replay 실행 method와 외부 transport는 추가하지 않았다.
 
 ActionTrace는 `attempt_sequence, request, result, controller_result, boundary_reason, error_type`를 보존한다. `request.based_on_observation_id`로 Research Observation과 연결하고 result는 해당 시도의 정확한 kernel ActionResult다. 같은 request ID가 다시 제출돼도 attempt sequence로 구분하며 idempotency를 구현한 것으로 보지 않는다. authority/registry 거부에는 kernel result가 없고 receipt와 boundary reason이 있다. ScheduledEvent는 trace를 만들지 않는다. 직접 kernel/replay 경로의 요청 원본은 기존처럼 호출자가 보관하며 ReplayInput/Report는 변경하지 않았다.
+
+## 10. M4 구현 계약
+
+`create_alderwick_kernel(run_id="run-alderwick", seed=42, event_bus=None)`은 미부팅 kernel을 반환한다. 호출자가 boot하고 `scenario_schedule(collapse_tick=3).events`를 한 번 enqueue한다. factory 자체는 schedule을 설치하지 않으므로 기존 ReplayHarness에도 그대로 전달한다. `create_alderwick_application(kernel)`은 scenario `alderwick:1`에서 초기 경로 지식, bridge perception과 Knowledge projection을 조립한다. 별도 runner framework 없이 [실행 예제](../src/journeymap/examples/alderwick.py)의 GamePort 루프를 사용한다.
+
+| 계약 | 내용 |
+|---|---|
+| ScheduledEvent | `CollapseEastBridge` v1, payload `{bridge_id: "east-bridge"}`. due tick은 scheduler에만 존재 |
+| system handler | `alderwick.collapse-east-bridge.v1`, intact bridge와 affected routes/위치 검증 후 단일 TransitionPlan |
+| committed Event | `BridgeCollapsed` v1, payload `{bridge_id, condition: "collapsed", closed_route_ids, witness_actor_ids}`. route IDs와 witness IDs는 정렬된 목록 |
+| visibility | East Road 또는 East Bridge에 있는 유효한 Entity/position. 다른 actor의 위치나 witness 목록은 Observation에 전달하지 않음 |
+| bridge Observation | `(15, alderwick, bridge)` contributor. `{bridge: {bridge_id: "east-bridge", condition}}`; 보이지 않으면 `{bridge: {}}` |
+| runtime Knowledge | 기존 `(20, knowledge, records)` section의 actor-owned 목록에 초기 지식과 함께 포함 |
+| Controller | `Controller.decide(Observation) -> ActionRequest`. ScriptedController 객체에 상태·서비스 handle 없음 |
+
+ScriptedController는 자기 위치에 대응하는 actor/run-owned `travel_route` Knowledge의 첫 route를 선택한다. bridge가 실제 Observation에서 collapsed로 보이거나 경로 지식이 없으면 duration 1의 WAIT를 선택한다. route ID는 초기 actor Knowledge에서 얻으며 canonical route/passability나 hidden schedule을 읽지 않는다. request ID는 `<observation_id>:scripted-v1`, 나머지 run/actor/Observation ID/제출 tick은 받은 envelope에서 가져온다. 매 submit은 기존 Game authority 검증을 통과해야 한다. 붕괴를 미리 아는 시간표나 action sequence는 없다.
+
+runtime 읽기 경로는 `committed Events → KnowledgeProjection → for_actor(actor).history() → perceive → PerceptionContext.known → contribute_knowledge → Observation → decide`다. `ResearchView.knowledge_history(actor)`도 같은 projection을 읽는다. future schedule이나 최종 World snapshot은 projection 입력이 아니다.
+
+`DIRECT_OBSERVATION`은 acquisition 방식이며 source_ref는 실제 획득을 유발한 committed Event identity다. 목격은 BridgeCollapsed, 나중 발견은 ActorMoved를 가리킨다. 나중 발견의 collapsed value는 해당 이동보다 앞선 BridgeCollapsed의 bridge identity/condition과 ordered Event history로 설명한다. 동일 tick에서도 event_sequence를 사용한다. 정확한 ID/dedup 규칙은 [ERD M4 절](ERD.md#10-m4-실제-상태와-projection-provenance)을 따른다.
+
+projection 읽기 실패는 기존 world commit을 취소하지 않는다. Research에는 오류를 전파하고 Game observe에는 `OBSERVATION_UNAVAILABLE`을 반환하며 성공 Observation sequence를 소비하지 않는다. 반복 읽기/재구성은 같은 지식 history를 제공하고 Event delivery 실패에도 committed log에서 복구할 수 있다. bridge MOVE 거부/완료 실패는 기존 M2의 `ROUTE_IMPASSABLE`, `REJECTED`/`FAILED` 의미를 그대로 사용한다.
+
+ReplayInput/ReplayHarness/ReplayReport schema는 변경하지 않았다. engine replay는 초기 world/manifest + versioned schedule + 기록된 ActionRequest stream만 요구한다. 그 결과 Events와 동일 초기 Knowledge로 runtime history를 별도 비교한다. Observation/Knowledge stream을 replay 필수 입력으로 추가하지 않는다. M5의 INFORM/ASK/REQUEST와 NPC 자율 행동은 아직 제공하지 않는다.

@@ -59,7 +59,7 @@ Core는 hunger, money, weather, combat, 상품, bridge 같은 도메인 타입�
 0.1 후보:
 
 - **movement:** Location, Route, 위치 component, 이동 가능성·소요 시간
-- **knowledge:** actor별 KnowledgeRecord, 출처·획득 시각·확신도
+- **knowledge:** actor별 KnowledgeRecord, 출처·획득 시각·정정 계보. M4는 confidence 모델을 추가하지 않는다.
 - **social:** ASK/INFORM/REQUEST 규칙과 정보 전달
 - **survival:** 최소 자원, REST/CONSUME 효과
 - **inventory:** 소유·수량·이전 원자성
@@ -212,10 +212,24 @@ Contributor 입력은 `PerceptionContext(run_id, actor_id, simulation_time, perc
 
 ObservationHistory는 run별 성공한 generation 순서대로 append한다. envelope은 frozen이며 content는 내부 canonical JSON 문자열로 보관하고 매 조회에 새 JSON 값을 반환한다. contributor가 받은 임시 context의 nested container는 수정 가능하지만 이후 contributor/Observation에 영향을 주지 않는다. record/sequence는 kernel canonical state, RNG, scheduler 및 transition/event sequence와 독립적이다.
 
-`modules.knowledge`는 KnowledgeRecord와 별도 in-memory 초기 ledger를 소유한다. 이 ledger는 canonical World Truth에 포함하지 않으며 kernel state digest에도 포함하지 않는다. 명시적 source와 stable ID를 가진 초기 입력만 허용하고, 지식 부재는 UNKNOWN인 빈 조회 결과다. 상충 주장과 supersession 계보를 함께 보존하며 truth를 참조해 기존 주장을 rewrite하지 않는다. confidence·추론·runtime append·직접 관찰 projection은 구현하지 않았다. 따라서 M3는 EventBus subscriber 또는 Observation builder에서 canonical mutation을 시도하지 않는다. M4/M5 runtime 지식 갱신은 검증된 handler와 공통 transaction boundary에 포함해야 하며 별도 mutable store를 임의로 갱신해서는 안 된다.
+`modules.knowledge`는 KnowledgeRecord와 별도 in-memory 초기 ledger를 소유한다. 이 ledger는 canonical World Truth에 포함하지 않으며 kernel state digest에도 포함하지 않는다. 명시적 source와 stable ID를 가진 초기 입력만 허용하고, 지식 부재는 UNKNOWN인 빈 조회 결과다. 상충 주장과 supersession 계보를 함께 보존하며 truth를 참조해 기존 주장을 rewrite하지 않는다. M3에는 confidence·추론·runtime append·직접 관찰 projection을 구현하지 않았다. M4는 아래 committed-Event projection으로 확장한다. Knowledge를 canonical state에 넣거나 EventBus subscriber/Observation builder에서 mutation하지 않는다.
 
 SimulationApplication은 kernel을 Controller에 전달하지 않고 actor를 고정한 두 callback으로 GamePort를 구성한다. 별도 ResearchView는 kernel과 application history를 읽으며 GamePort/Observation에는 ResearchView를 넣지 않는다. 이 경계는 신뢰된 Python application에서의 API/capability 분리다. private field·closure·traceback introspection 또는 악성 Python 실행을 막는 sandbox가 아니다.
 
 Live submit은 run/actor/실제 Observation의 소유권과 현재 제출 tick을 검증한다. kernel은 기존 opaque provenance를 유지하며 recorded ActionRequest-only replay에 Observation history를 요구하지 않는다. application ActionTrace는 정규화된 live 요청마다 별도의 attempt sequence와 request/result를 보존한다. 기존 kernel에는 ActionRequest history가 없으므로 직접 trusted kernel/replay 경로의 request는 M1/M2처럼 호출자의 ReplayInput이 소유한다. system input은 action trace를 만들지 않는다.
 
 Core는 `ActionHandlerNotFoundError(HandlerNotFoundError)` 하위 타입을 kernel의 최초 actor handler 조회 실패에만 사용한다. ActionRegistry/SystemEventRegistry 자체는 기존 `HandlerNotFoundError`를 유지한다. 따라서 등록된 handler 내부 조회 오류나 system dispatch 결함이 live Game에서 `UNKNOWN_ACTION`으로 오인되지 않는다. 기존 상위 예외 catch와 메시지는 유지하며 더 큰 예외 계층은 추가하지 않았다. kernel submit 변경은 이 좁은 예외 변환뿐이며 dispatch 순서, 시간 진행, commit, scheduler, RNG, EventBus와 ReplayInput/Report 의미는 그대로다.
+
+## 14. M4 scenario와 runtime Knowledge projection
+
+`bootstrap`이 `scenarios.alderwick`, application, movement/knowledge module을 명시적으로 조립한다. scenario는 fixture, bridge truth/handler, 가시성, bridge acquisition 규칙을 소유한다. movement는 scenario/knowledge를 import하지 않으며 `close_routes(state, route_ids)`로 검증한 detached movement candidate를 제공한다. scenario handler는 이를 bridge candidate와 한 TransitionPlan에 넣는다. Core의 commit/dispatch/replay 코드는 변경하지 않았다. AlderwickModule 0.4.0은 movement와 knowledge에 의존하고 KnowledgeModule은 0.4.0이다.
+
+`KnowledgeProjection(initial, events, projector)`는 전체 committed Event log를 받아 만드는 독립 읽기 snapshot이다. eager materialization, mutable cursor, EventBus subscription이 없다. 호출마다 전체 Event를 순회하고 기록을 검증·정렬하며 저장된 World Truth는 조회하지 않는다. 작은 M4 run에서 복잡한 cache 복구보다 이 방식이 작고 명확하다. 초기 기록과 합친 결과는 기존 ledger의 run/ID/time/supersession 검증을 재사용하며 원래 초기 ledger를 수정하지 않는다.
+
+scenario v1은 초기 bridge가 intact이고 condition 변경이 한 번의 collapse뿐이다. projection은 Event sequence 순서로 `BridgeCollapsed` 발생 여부를 접는다. 해당 Event의 당시 witness만 획득하며, 이후 관찰 위치로 완료된 `ActorMoved`는 나중 직접 발견의 근거다. 같은 tick도 system Event가 먼저 기록되므로 그 뒤 도착자는 witness가 아닌 discovery다. 현재 위치·최종 World snapshot·future schedule·observe 호출 횟수는 과거 획득 판정에 사용하지 않는다. bridge 수리/반복 붕괴는 새 scenario/rule version이 필요한 후속 범위다.
+
+`SimulationApplication.knowledge_snapshot()`은 kernel의 committed Event 복사본과 명시적 초기 Knowledge를 연결한다. `_observe()`가 이 snapshot을 `perceive()`에 전달하고 actor view를 `PerceptionContext.known`에 넣는다. 따라서 runtime Knowledge는 ResearchView뿐 아니라 다음 GamePort Observation에도 반영된다. observe는 기록을 mutation하지 않는다. generic M3 composition은 projector/extension을 생략하므로 기존 동작을 유지한다.
+
+trusted `PerceptionExtension(world_copy, actor_id)`만 raw snapshot을 받을 수 있다. 기존 self/movement scope를 덮어쓸 수 없으며 반환 JSON도 복사한다. Alderwick은 actor 위치를 검사한 뒤 보이는 bridge ID/condition만 제공한다. `scenarios.alderwick.contributors`는 Core의 safe context 계약만 import한다. ScriptedController도 Observation/ActionRequest/JSON 계약만 import하고 객체 필드·callback·scenario/kernel/Research handle이 없다. 신뢰된 Python composition의 경계이며 악성 introspection sandbox는 아니다.
+
+commit 전 system 실패는 기존 state/clock/RNG/Event/sequence/schedule rollback을 따른다. commit 후 EventDeliveryError는 이미 발생한 world/Event/outcome을 보존한다. projection은 delivery와 무관하게 committed log에서 복구한다. projection 예외는 Research 읽기에서 전파하고 Game observe에서는 `OBSERVATION_UNAVAILABLE`로 제한하며 partial snapshot/Observation/sequence를 게시하지 않는다. world commit을 rollback하거나 replay하지 않는다.
