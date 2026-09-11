@@ -58,7 +58,7 @@ JourneyMap 0.1은 지속되는 소규모 중세 세계에서 한 명의 실험 �
 
 ### 세계
 
-West Gate, Village Square, Inn, Bakery, Well, Smithy, East Road, East Bridge를 route로 연결한 작은 마을이다. M4의 Stranger, Marta(innkeeper), Edwin(baker), Hugh(guard), Thomas(traveler)는 Entity와 위치 fixture다. NPC schedule/utility 행동은 M5에서 추가한다.
+West Gate, Village Square, Inn, Bakery, Well, Smithy, East Road, East Bridge를 route로 연결한 작은 마을이다. M4의 Stranger, Marta(innkeeper), Edwin(baker), Hugh(guard), Thomas(traveler)는 Entity와 위치 fixture다. M5는 Hugh/Thomas의 Observation 기반 비LLM rule 행동과 명시적 application activation 순서를 추가한다.
 
 ### 통제 사건
 
@@ -83,6 +83,19 @@ M4에서는 이후 현장에 도착한 actor가 직접 발견한다. `BridgeColl
 - 모든 관련 ScheduledEvent, Observation, ActionRequest, ActionResult, Event, KnowledgeRecord의 실행·actor·시간·인과관계를 추적할 수 있다.
 - 같은 fixture, seed, ScheduledEvent 입력과 ActionRequest stream을 replay하면 state digest, handler 결과와 Event 순서가 같다.
 - M4는 실제 `observe → ScriptedController.decide → submit → next observe` 루프와 Event-only Knowledge 재구성까지 검증한다. 동일한 observe 호출 순서를 가진 fresh run의 Observation/요청/결과/Event/Knowledge도 같다.
+
+### M5 사회적 정보 전달 수용 기준 — 구현 완료
+
+- ASK/INFORM/REQUEST v1은 같은 Location의 서로 다른 actor 사이에서 1 tick을 소비하는 행동이다. 시작·완료 시 canonical interaction 조건을 재검증한다.
+- ASK는 구조화된 topic을 질문할 뿐 자동 답변이나 target 지식 조회를 하지 않는다. REQUEST는 구조화된 요청 전달이며 내용의 자동 실행·fulfillment가 아니다.
+- INFORM은 sender-owned KnowledgeRecord 하나의 reference다. live application은 현재 지식 소유권/run/획득 시점과 실제 원본 Observation에 포함된 record를 확인한다. 임의 structured claim assertion은 허용하지 않는다.
+- `ActorInformed` commit 후 target에게 `INFORMED` record가 projection된다. World Truth와 비교·승격·정정하지 않으며 직접 기록은 `DIRECT_OBSERVATION`으로 구분한다.
+- receiver record → social Event → sender claim record → 직접 관찰 또는 이전 전달 Event의 chain을 Research에서 탐색한다. stale/상충 record와 모든 전달 단계를 보존하며 confidence·trust·belief inference는 없다.
+- trusted perception은 자기에게 온 interaction만 contributor에 전달한다. NPC는 그 Observation으로 별도 INFORM을 제출하며 전체 Event log나 다른 actor의 지식을 읽지 않는다.
+- M5 예제는 tick 3 collapse → Hugh MOVE → Thomas ASK → Hugh INFORM → Thomas WAIT를 실증한다. Thomas가 직접 보지 않은 collapsed claim을 tick 7에 처음 전달받고, 초기 intact claim은 남는다.
+- 동일 activation 입력의 fresh run 및 recorded NPC ActionRequest-only engine replay에서 결과/Event/order/world/digest/time/지식이 같다. M4 기본 composition은 유지하며 M5는 `social=True`로 활성화한다.
+
+M6 생존·inventory·trade와 M7 최종 idempotency/compatibility/Observation budget은 구현 범위 밖이다.
 
 ## 7. 실행과 시간 의미
 

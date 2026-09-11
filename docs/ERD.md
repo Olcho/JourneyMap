@@ -228,3 +228,24 @@ witness의 source_ref는 BridgeCollapsed다. later discovery의 source_ref는 Ac
 runtime 직접 획득은 actor별 같은 bridge/condition에 한 번만 만든다. 재방문·반복 읽기·동일 log 재구성은 추가 기록을 만들지 않는다. 초기 주장과 runtime 사실은 자동 병합하거나 supersede하지 않으며 기존 상충 history를 보존한다. 전체 log는 단일 run, 1부터 연속 sequence, 유일 Event ID와 비역행 tick이어야 한다. 중복/누락/뒤집힌 log 또는 provenance가 잘못된 projection 결과는 partial view 대신 오류다. 동일 정상 log를 여러 번 재구성하는 것은 허용한다.
 
 Event/Knowledge는 계속 in-memory다. EventBus delivery 실패 후의 재구성은 살아 있는 committed log를 사용하는 복구이며 프로세스 재시작용 영속 저장이나 resume 기능은 아니다.
+
+## 11. M5 간접 지식과 interaction provenance
+
+canonical state/table과 KnowledgeRecord envelope는 추가·변경하지 않는다. social interaction은 공통 transaction에서 commit한 Event이고 social inbox는 저장하지 않는다. 직접 기록은 M4와 동일한 `DIRECT_OBSERVATION` source이며, 전달 기록은 `INFORMED`다.
+
+| 간접 KnowledgeRecord field | 값 |
+|---|---|
+| knowledge_record_id | `<ActorInformed.event_id>:social-informed-v1:00000001` |
+| run_id / actor_id | Event run / target_actor_id |
+| subject_ref / predicate / value | 그 Event prefix의 sender-owned claim record에서 복사 |
+| source_kind / source_ref | `INFORMED` / ActorInformed Event ID |
+| learned_at / schema_version | Event completion tick / 1 |
+| supersedes_id | None; 자동 정정/병합하지 않음 |
+
+ActorInformed payload의 `sender_actor_id`, `target_actor_id`, `claim_record_id`, `location_id`, optional `reply_to_event_id`로 source와 interaction을 복원한다. ASK/REQUEST와 공통 envelope 필드는 [API M5 계약](API.md#11-m5-구현-계약)을 따른다.
+
+출처 chain은 `receiver Knowledge.source_ref → ActorInformed → sender claim_record_id → sender Knowledge.source_ref → BridgeCollapsed / ActorMoved / 이전 ActorInformed`다. social Event의 source_ref는 INFORM ActionRequest이며 ActionTrace를 통해 실제 sender Observation과 연결된다. reply reference는 ActorAsked를 가리킨다. 이 탐색에 raw World Truth는 필요하지 않다. record ID를 receiver에게 복사하지 않고 새로운 ID를 발급하므로 여러 전달 단계와 반복 전달이 각각 남는다.
+
+projection은 초기 지식과 전체 ordered committed Event를 사용한다. direct records를 source Event에 맞춰 누적하고 social rule에서 그 시점까지의 sender records를 참조한다. unknown/future/타 owner source는 오류이며 malformed log/output에서는 partial history를 게시하지 않는다. initial record source는 여전히 explicit author input이고 runtime source는 실제 committed Event다.
+
+상충 intact(INITIAL)와 collapsed(INFORMED)는 `(learned_at, knowledge_record_id)` 순서의 history/query에 모두 남는다. stale 정보를 나중에 INFORM해도 World Truth와 비교하여 삭제·수정하지 않는다. `supersedes`는 기존 명시적 정정 계약만 유지한다. 어떤 claim을 믿는지, trust/confidence, relationship, 영속 inbox/DB migration은 M5에서 도입하지 않는다.
