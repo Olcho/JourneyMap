@@ -85,3 +85,42 @@ def _scope(run_id: str, actor_id: str, simulation_time: int) -> None:
         raise ValueError("run_id and actor_id must be non-empty strings")
     if type(simulation_time) is not int or simulation_time < 0:
         raise ValueError("simulation_time must be a non-negative integer")
+
+
+def validate_observation_v1(observation: Observation) -> None:
+    """Reader contract; unsupported versions are never implicitly interpreted.
+
+    Generic storage can preserve future envelopes, but current adapters only
+    consume v1 sections. This validates structure, not truth or authorization.
+    """
+    if (
+        type(observation) is not Observation
+        or type(observation.schema_version) is not int
+        or observation.schema_version != 1
+    ):
+        raise ValueError("unsupported Observation version")
+    content = observation.content
+    sections = content.get("sections")
+    if set(content) != {"sections"} or not isinstance(sections, list):
+        raise ValueError("invalid Observation sections")
+    identities: set[tuple[str, str]] = set()
+    for section in sections:
+        if not isinstance(section, dict) or set(section) != {
+            "module_id",
+            "contributor_id",
+            "content",
+        }:
+            raise ValueError("invalid Observation section")
+        module, contributor = section["module_id"], section["contributor_id"]
+        if (
+            type(module) is not str
+            or not module
+            or type(contributor) is not str
+            or not contributor
+            or not isinstance(section["content"], dict)
+        ):
+            raise ValueError("invalid Observation section identity/content")
+        identity = (module, contributor)
+        if identity in identities:
+            raise ValueError("duplicate Observation section identity")
+        identities.add(identity)

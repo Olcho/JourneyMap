@@ -1,6 +1,7 @@
 """Survival actions/system inputs use the existing deterministic commit boundary."""
 
 from journeymap.core.actions import validate_actor
+from journeymap.core.canonical import JsonObject
 from journeymap.core.events import EventDraft
 from journeymap.core.handlers import (
     ActionRequest,
@@ -24,15 +25,19 @@ from journeymap.modules.survival.models import (
 )
 
 
+def validate_rest_payload(payload: JsonObject) -> None:
+    if set(payload) != {"duration"}:
+        raise ActionValidationError("INVALID_PAYLOAD")
+    duration = payload["duration"]
+    if not isinstance(duration, int) or isinstance(duration, bool) or duration <= 0:
+        raise ActionValidationError("INVALID_DURATION")
+
+
 class RestHandler:
     handler_id = "survival.rest.v1"
 
     def validate(self, request: ActionRequest, context: ValidationContext) -> None:
-        if set(request.payload) != {"duration"}:
-            raise ActionValidationError("INVALID_PAYLOAD")
-        duration = request.payload["duration"]
-        if not isinstance(duration, int) or isinstance(duration, bool) or duration <= 0:
-            raise ActionValidationError("INVALID_DURATION")
+        validate_rest_payload(request.payload)
         validate_actor(request, context)
         actor_survival(context.state, request.actor_id)
 
@@ -70,20 +75,20 @@ class RestHandler:
         )
 
 
-def _consume(request: ActionRequest) -> tuple[str, int]:
-    if set(request.payload) != {"item_id", "quantity"}:
+def validate_consume_payload(payload: JsonObject) -> tuple[str, int]:
+    if set(payload) != {"item_id", "quantity"}:
         raise ActionValidationError("INVALID_PAYLOAD")
-    item_id = request.payload["item_id"]
+    item_id = payload["item_id"]
     if not isinstance(item_id, str) or not item_id:
         raise ActionValidationError("INVALID_PAYLOAD")
-    return item_id, positive_quantity(request.payload["quantity"])
+    return item_id, positive_quantity(payload["quantity"])
 
 
 class ConsumeHandler:
     handler_id = "survival.consume.v1"
 
     def validate(self, request: ActionRequest, context: ValidationContext) -> None:
-        item, quantity = _consume(request)
+        item, quantity = validate_consume_payload(request.payload)
         validate_actor(request, context)
         actor_survival(context.state, request.actor_id)
         hunger_recovery(context.state, item)
@@ -98,7 +103,7 @@ class ConsumeHandler:
         self.validate(request, context)
 
     def resolve(self, request: ActionRequest, context: ResolutionContext) -> TransitionPlan:
-        item, quantity = _consume(request)
+        item, quantity = validate_consume_payload(request.payload)
         inventory = decrement_candidate(context.state, request.actor_id, item, quantity)
         before = actor_survival(context.state, request.actor_id)
         after = SurvivalState(

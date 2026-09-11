@@ -2,8 +2,10 @@
 
 from dataclasses import dataclass, replace
 
+from journeymap.application.contracts import normalize_request, request_fingerprint
 from journeymap.application.observations import ObservationHistory, ObservationPipeline
 from journeymap.application.perception import PerceptionExtension, perceive
+from journeymap.application.reasons import PRIVATE_PURCHASE_REASONS, VISIBLE_DOMAIN_REASONS
 from journeymap.application.social import validate_claim
 from journeymap.core.controller import ControllerActionResult, GamePort, GameSubmissionError
 from journeymap.core.entities import get_entity
@@ -22,62 +24,13 @@ from journeymap.modules.social.contracts import EVENT_TYPES, validate_payload
 from journeymap.modules.social.knowledge import project_informed_knowledge
 from journeymap.modules.social.perception import perceive_social
 
-# Only documented actor-facing M2/M5/M6 codes may cross the Game boundary. Extension
-# diagnostics default to a generic status until an actor-facing contract exists.
-_VISIBLE_REASONS = frozenset(
-    {
-        "INVALID_PAYLOAD",
-        "INVALID_DURATION",
-        "UNKNOWN_ACTOR",
-        "INVALID_ENTITY",
-        "MISSING_POSITION",
-        "INVALID_POSITION",
-        "UNKNOWN_ROUTE",
-        "INVALID_ROUTE",
-        "UNKNOWN_LOCATION",
-        "INVALID_LOCATION",
-        "WRONG_ORIGIN",
-        "ROUTE_IMPASSABLE",
-        "INVALID_TRAVERSAL_COST",
-        "INVALID_PASSABILITY",
-        "ROUTE_CHANGED",
-        "SELF_TARGET",
-        "UNKNOWN_TARGET",
-        "INVALID_TARGET",
-        "TARGET_MISSING_POSITION",
-        "TARGET_INVALID_POSITION",
-        "OUT_OF_RANGE",
-        "INVALID_QUANTITY",
-        "UNKNOWN_ITEM",
-        "UNKNOWN_INVENTORY_OWNER",
-        "INVALID_INVENTORY_STATE",
-        "INSUFFICIENT_QUANTITY",
-        "MISSING_SURVIVAL_STATE",
-        "INVALID_SURVIVAL_STATE",
-        "ITEM_NOT_CONSUMABLE",
-        "INVALID_WALLET",
-        "MISSING_WALLET",
-        "UNKNOWN_OFFER",
-        "INVALID_OFFER",
-        "OFFER_UNAVAILABLE",
-        "SELF_PURCHASE",
-        "INSUFFICIENT_FUNDS",
-        "INSUFFICIENT_STOCK",
-        "OFFER_CHANGED",
-        "UNKNOWN_SELLER",
-        "INVALID_SELLER",
-        "SELLER_MISSING_POSITION",
-        "SELLER_INVALID_POSITION",
-    }
-)
-
 
 @dataclass(frozen=True, slots=True)
 class ActionTrace:
     """One live submission attempt, including denials and interrupted execution.
 
-    Attempt sequence disambiguates repeated request IDs without imposing M7
-    idempotency policy. An engine defect need not have an ActionResult.
+    Retries have no new engine result. engine_submitted distinguishes live
+    attempts from engine inputs; an interrupted engine call may have no result.
     """
 
     attempt_sequence: int
@@ -86,12 +39,23 @@ class ActionTrace:
     controller_result: ControllerActionResult | None
     boundary_reason: str | None = None
     error_type: str | None = None
+    engine_submitted: bool = False
+    retry_of_attempt: int | None = None
 
     def __post_init__(self) -> None:
         object.__setattr__(self, "request", self.request.detached())
 
     def detached(self) -> "ActionTrace":
         return replace(self)
+
+
+@dataclass(slots=True)
+class _RequestEntry:
+    actor_id: str
+    fingerprint: str
+    attempt_sequence: int
+    receipt: ControllerActionResult | None = None
+    error_code: str = "ENGINE_ERROR"
 
 
 class SimulationApplication:
@@ -124,6 +88,7 @@ class SimulationApplication:
         self._observations = ObservationHistory(kernel.manifest.run_id)
         self._traces: list[ActionTrace] = []
         self._busy = False
+        self._requests: dict[str, _RequestEntry] = {}
 
     def game_for(self, actor_id: str) -> GamePort:
         """Trusted composition-time grant; the returned port cannot select an actor."""
@@ -223,100 +188,152 @@ class SimulationApplication:
             raise TypeError("Game accepts only ActionRequest")
         self._enter()
         try:
-            # Core's replay envelope predates live input validation. Require
-            # immutable identities here before authority lookup or trace storage.
-            try:
-                identities = (
-                    request.action_request_id,
-                    request.run_id,
-                    request.actor_id,
-                    request.based_on_observation_id,
-                    request.action_type,
-                )
-                if any(type(value) is not str or not value for value in identities):
-                    raise ValueError("invalid request identity")
-                if request.correlation_id is not None and type(request.correlation_id) is not str:
-                    raise ValueError("invalid request correlation")
-                # Revalidate and detach caller-owned payloads as well.
-                request = request.detached()
-            except (TypeError, ValueError, RecursionError):
-                raise GameSubmissionError("INVALID_REQUEST") from None
+            request = normalize_request(request)
+            fingerprint = request_fingerprint(request)
+            previous = self._requests.get(request.action_request_id)
             sequence = len(self._traces) + 1
-            reason = self._authority_reason(actor_id, request)
-            if (
-                reason is None
-                and request.action_type in EVENT_TYPES
-                and request.schema_version == 1
-            ):
-                try:
-                    if not self._social:
-                        raise ActionValidationError("SOCIAL_UNAVAILABLE")
-                    validate_payload(request.action_type, request.payload)
-                except ActionValidationError as error:
-                    reason = error.reason_code
-                if reason is None and request.action_type == "INFORM":
-                    try:
-                        owned = self.knowledge_snapshot().for_actor(actor_id)
-                    except Exception as error:
-                        # A projection defect may itself be an ActionValidationError;
-                        # it is a failed authority read, not a rejected actor payload.
-                        self._traces.append(
-                            ActionTrace(
-                                sequence, request, None, None, error_type=type(error).__name__
-                            )
-                        )
-                        raise GameSubmissionError("KNOWLEDGE_UNAVAILABLE") from None
-                    try:
-                        observation = self._observations.get(request.based_on_observation_id)
-                        assert observation is not None
-                        validate_claim(
+            if previous is not None:
+                if previous.actor_id != actor_id or previous.fingerprint != fingerprint:
+                    visible = self._receipt(actor_id, request, "REQUEST_ID_CONFLICT")
+                    self._traces.append(
+                        ActionTrace(
+                            sequence,
                             request,
-                            observation,
-                            owned,
-                            self._kernel.events,
+                            None,
+                            visible,
+                            "REQUEST_ID_CONFLICT",
+                            retry_of_attempt=previous.attempt_sequence,
                         )
-                    except ActionValidationError as error:
-                        reason = error.reason_code
-                    except Exception as error:
-                        self._traces.append(
-                            ActionTrace(
-                                sequence, request, None, None, error_type=type(error).__name__
-                            )
-                        )
-                        raise GameSubmissionError("KNOWLEDGE_UNAVAILABLE") from None
-            if reason is not None:
-                visible = self._receipt(actor_id, request, reason)
-                self._traces.append(ActionTrace(sequence, request, None, visible, reason))
-                return visible
-            result_offset = len(self._kernel.action_results)
-            try:
-                result = self._kernel.submit_action(request)
-            except ActionHandlerNotFoundError:
-                # Never fallback to the system registry.
-                visible = self._receipt(actor_id, request, "UNKNOWN_ACTION")
-                self._traces.append(ActionTrace(sequence, request, None, visible, "UNKNOWN_ACTION"))
-                return visible
-            except Exception as error:
-                # Publication can fail after a successful commit/result append.
-                results = self._kernel.action_results[result_offset:]
-                committed = results[0] if results else None
+                    )
+                    return visible
                 self._traces.append(
-                    ActionTrace(sequence, request, committed, None, error_type=type(error).__name__)
+                    ActionTrace(
+                        sequence,
+                        request,
+                        None,
+                        previous.receipt,
+                        boundary_reason=(
+                            previous.receipt.reason_code if previous.receipt else None
+                        ),
+                        error_type=None if previous.receipt else "IndeterminateRequest",
+                        retry_of_attempt=previous.attempt_sequence,
+                    )
                 )
-                raise GameSubmissionError("ENGINE_ERROR") from None
-            public_reason = result.reason_code
-            if public_reason is not None and public_reason not in _VISIBLE_REASONS:
-                public_reason = f"ACTION_{result.status.value}"
-            visible = ControllerActionResult(
-                request.action_request_id,
-                request.run_id,
-                actor_id,
-                result.status,
-                public_reason,
-                result.started_at,
-                result.resolved_at,
-            )
-            self._traces.append(ActionTrace(sequence, request, result, visible))
+                if previous.receipt is not None:
+                    return previous.receipt
+                raise GameSubmissionError(previous.error_code) from None
+            # Reserve before authority reads or engine entry. No automatic retry
+            # when an exception leaves no result, even after independent commits.
+            entry = _RequestEntry(actor_id, fingerprint, sequence)
+            self._requests[request.action_request_id] = entry
+            try:
+                visible = self._execute(actor_id, request)
+            except GameSubmissionError as error:
+                entry.error_code = str(error)
+                trace = self._traces[-1] if len(self._traces) >= sequence else None
+                if trace is not None and trace.result is not None:
+                    entry.receipt = self._public_result(actor_id, request, trace.result)
+                elif (
+                    entry.error_code == "KNOWLEDGE_UNAVAILABLE"
+                    and trace is not None
+                    and not trace.engine_submitted
+                ):
+                    # A failed authority read never entered the engine. Preserve
+                    # M5's safe retry after projection recovery; no finalized
+                    # denial/result exists and no execution is indeterminate.
+                    del self._requests[request.action_request_id]
+                raise
+            entry.receipt = visible
             return visible
         finally:
             self._busy = False
+
+    def _execute(self, actor_id: str, request: ActionRequest) -> ControllerActionResult:
+        sequence = len(self._traces) + 1
+        reason = self._authority_reason(actor_id, request)
+        if reason is None and request.action_type in EVENT_TYPES and request.schema_version == 1:
+            try:
+                if not self._social:
+                    raise ActionValidationError("SOCIAL_UNAVAILABLE")
+                validate_payload(request.action_type, request.payload)
+            except ActionValidationError as error:
+                reason = error.reason_code
+            if reason is None and request.action_type == "INFORM":
+                try:
+                    owned = self.knowledge_snapshot().for_actor(actor_id)
+                except Exception as error:
+                    # A projection defect may itself be an ActionValidationError;
+                    # it is a failed authority read, not a rejected actor payload.
+                    self._traces.append(
+                        ActionTrace(sequence, request, None, None, error_type=type(error).__name__)
+                    )
+                    raise GameSubmissionError("KNOWLEDGE_UNAVAILABLE") from None
+                try:
+                    observation = self._observations.get(request.based_on_observation_id)
+                    assert observation is not None
+                    validate_claim(
+                        request,
+                        observation,
+                        owned,
+                        self._kernel.events,
+                    )
+                except ActionValidationError as error:
+                    reason = error.reason_code
+                except Exception as error:
+                    self._traces.append(
+                        ActionTrace(sequence, request, None, None, error_type=type(error).__name__)
+                    )
+                    raise GameSubmissionError("KNOWLEDGE_UNAVAILABLE") from None
+        if reason is not None:
+            visible = self._receipt(actor_id, request, reason)
+            self._traces.append(ActionTrace(sequence, request, None, visible, reason))
+            return visible
+        result_offset = len(self._kernel.action_results)
+        try:
+            result = self._kernel.submit_action(request)
+        except ActionHandlerNotFoundError:
+            # Never fallback to the system registry.
+            visible = self._receipt(actor_id, request, "UNKNOWN_ACTION")
+            self._traces.append(
+                ActionTrace(sequence, request, None, visible, "UNKNOWN_ACTION", engine_submitted=True)
+            )
+            return visible
+        except Exception as error:
+            # Publication can fail after a successful commit/result append.
+            results = self._kernel.action_results[result_offset:]
+            committed = results[0] if results else None
+            self._traces.append(
+                ActionTrace(
+                    sequence,
+                    request,
+                    committed,
+                    None,
+                    error_type=type(error).__name__,
+                    engine_submitted=True,
+                )
+            )
+            raise GameSubmissionError("ENGINE_ERROR") from None
+        visible = self._public_result(actor_id, request, result)
+        self._traces.append(ActionTrace(sequence, request, result, visible, engine_submitted=True))
+        return visible
+
+    @staticmethod
+    def _public_result(
+        actor_id: str, request: ActionRequest, result: ActionResult
+    ) -> ControllerActionResult:
+        public_reason = result.reason_code
+        if public_reason is not None and (
+            public_reason not in VISIBLE_DOMAIN_REASONS
+            or (request.action_type == "BUY" and public_reason in PRIVATE_PURCHASE_REASONS)
+        ):
+            public_reason = f"ACTION_{result.status.value}"
+        visible = ControllerActionResult(
+            request.action_request_id,
+            request.run_id,
+            actor_id,
+            result.status,
+            public_reason,
+            result.started_at,
+            result.resolved_at,
+        )
+        return visible

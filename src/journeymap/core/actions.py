@@ -1,5 +1,6 @@
 """Domain-neutral WAIT action, explicitly registered by composition."""
 
+from journeymap.core.canonical import JsonObject
 from journeymap.core.entities import get_entity
 from journeymap.core.handlers import (
     ActionRequest,
@@ -20,6 +21,15 @@ def validate_actor(request: ActionRequest, context: ValidationContext) -> None:
         raise ActionValidationError("UNKNOWN_ACTOR")
 
 
+def validate_wait_payload(payload: JsonObject) -> int:
+    if set(payload) != {"duration"}:
+        raise ActionValidationError("INVALID_PAYLOAD")
+    duration = payload["duration"]
+    if not isinstance(duration, int) or isinstance(duration, bool) or duration <= 0:
+        raise ActionValidationError("INVALID_DURATION")
+    return duration
+
+
 class WaitHandler:
     handler_id = "core.wait.v1"
 
@@ -27,11 +37,7 @@ class WaitHandler:
         self.prepare(request, context)
 
     def prepare(self, request: ActionRequest, context: ValidationContext) -> ActionTiming:
-        if set(request.payload) != {"duration"}:
-            raise ActionValidationError("INVALID_PAYLOAD")
-        duration = request.payload["duration"]
-        if not isinstance(duration, int) or isinstance(duration, bool) or duration <= 0:
-            raise ActionValidationError("INVALID_DURATION")
+        duration = validate_wait_payload(request.payload)
         validate_actor(request, context)
         return ActionTiming(duration)
 

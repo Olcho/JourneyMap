@@ -18,13 +18,17 @@ from journeymap.modules.movement.perception import perceive_position
 from journeymap.modules.trade.models import Offer, get_offer, payment_candidate
 
 
-def _purchase(request: ActionRequest) -> tuple[str, int]:
-    if set(request.payload) != {"offer_id", "quantity"}:
+def validate_buy_payload(payload: JsonObject) -> tuple[str, int]:
+    if set(payload) != {"offer_id", "quantity"}:
         raise ActionValidationError("INVALID_PAYLOAD")
-    offer_id = request.payload["offer_id"]
+    offer_id = payload["offer_id"]
     if not isinstance(offer_id, str) or not offer_id:
         raise ActionValidationError("INVALID_PAYLOAD")
-    return offer_id, positive_quantity(request.payload["quantity"])
+    return offer_id, positive_quantity(payload["quantity"])
+
+
+def _purchase(request: ActionRequest) -> tuple[str, int]:
+    return validate_buy_payload(request.payload)
 
 
 def _local_offer(request: ActionRequest, context: ValidationContext) -> Offer:

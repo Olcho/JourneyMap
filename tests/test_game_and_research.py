@@ -411,8 +411,10 @@ def test_trace_request_payloads_are_detached_and_observation_reuse_is_not_expiry
     first = research.action_traces[0]
     first.request.payload.clear()
     assert research.action_traces[0].request.payload == {"duration": 1}
-    # Repeated IDs/reuse are preserved as separate attempts, not deduplicated.
-    second_request = replace(intent(observation), submitted_at=kernel.simulation_time)
+    # Past Observation reuse is independent of M7 request-ID idempotency.
+    second_request = replace(
+        intent(observation), action_request_id="request-2", submitted_at=kernel.simulation_time
+    )
     game.submit(second_request)
     assert [trace.attempt_sequence for trace in research.action_traces] == [1, 2]
     assert all(
@@ -685,7 +687,7 @@ def test_late_contributor_failure_preserves_world_history_and_interleaved_sequen
     assert denied.reason_code == "WRONG_ACTOR"
     assert execution(kernel) == before
     assert a.observe().observation_sequence == 4
-    result = a.submit(intent(records[0]))
+    result = a.submit(replace(intent(records[0]), action_request_id="valid-after-denial"))
     assert result.status is ActionStatus.SUCCEEDED
     assert [trace.attempt_sequence for trace in research.action_traces] == [1, 2]
     assert len(research.system_event_outcomes) == 1
@@ -741,7 +743,7 @@ def test_unknown_actor_and_absent_position_are_distinct_perception_cases() -> No
     }
 
 
-def test_system_delivery_failure_does_not_attach_a_prior_same_id_action_result() -> None:
+def test_system_delivery_failure_does_not_attach_a_prior_action_result() -> None:
     bus = EventBus()
 
     def broken(event: EventEnvelope) -> None:
@@ -758,9 +760,9 @@ def test_system_delivery_failure_does_not_attach_a_prior_same_id_action_result()
     assert first.status is ActionStatus.SUCCEEDED
     kernel.schedule(future(2))
     with pytest.raises(GameSubmissionError, match=r"^ENGINE_ERROR$"):
-        game.submit(intent(game.observe()))
+        game.submit(replace(intent(game.observe()), action_request_id="interrupted-2"))
     previous, interrupted = research.action_traces
-    assert previous.request.action_request_id == interrupted.request.action_request_id
+    assert previous.request.action_request_id != interrupted.request.action_request_id
     assert previous.result == kernel.action_results[0]
     assert interrupted.attempt_sequence == 2
     assert interrupted.result is None
@@ -771,7 +773,7 @@ def test_system_delivery_failure_does_not_attach_a_prior_same_id_action_result()
     assert kernel.pending_scheduled_events == ()
     assert len(kernel.action_results) == 1
     # Recovery starts a new attempt and never redelivers the committed event.
-    game.submit(intent(game.observe()))
+    game.submit(replace(intent(game.observe()), action_request_id="recovery-3"))
     assert research.action_traces[-1].attempt_sequence == 3
     assert len(kernel.action_results) == 2
     assert len(research.system_event_outcomes) == len(research.events) == 1
@@ -796,7 +798,9 @@ def test_live_future_submission_cannot_advance_time_even_when_domain_would_rejec
     assert control.simulation_time == 2 and len(control.system_event_outcomes) == 1
     # Scenario advancement followed by a current-tick action may reuse old input.
     kernel.advance_to(2)
-    result = game.submit(replace(intent(observation), submitted_at=2))
+    result = game.submit(
+        replace(intent(observation), action_request_id="current-tick-2", submitted_at=2)
+    )
     assert result.status is ActionStatus.SUCCEEDED and result.resolved_at == 3
     assert len(research.observations) == 1
     kernel.close()

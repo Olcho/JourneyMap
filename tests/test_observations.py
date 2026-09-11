@@ -48,7 +48,7 @@ def test_envelope_identity_digest_and_deep_immutability() -> None:
 
 
 def test_all_ordering_key_parts_are_stable_across_registration_permutations() -> None:
-    keys = [(2, "a", "a"), (1, "b", "a"), (1, "a", "b"), (1, "a", "a")]
+    keys = [(2, "a", "c"), (1, "b", "a"), (1, "a", "b"), (1, "a", "a")]
     records: list[Observation] = []
     for order in permutations(keys):
         pipeline = ObservationPipeline()
