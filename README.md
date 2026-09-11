@@ -39,7 +39,9 @@ World progresses
 
 ## 현재 상태
 
-M4 Alderwick Bridge Vertical Slice + ScriptedController를 구현했다. 8개 장소와 5명의 actor, 숨은 bridge 붕괴, 원자적 bridge/route 변경, 목격·나중 도착에 따른 runtime Knowledge projection을 연결했다. Knowledge는 초기 기록과 committed Event 이력에서 재구성하며 다음 actor Observation의 known section에 반영된다. ScriptedController는 Observation만 읽고 실제 GamePort를 통해 MOVE/MOVE/WAIT를 제출한다. 기존 ActionRequest-only engine replay는 그대로 유지한다. INFORM/ASK/REQUEST, 간접 지식 전달과 NPC 자율 행동은 다음 M5 범위다.
+M5 Non-LLM NPC Behavior + Social Information Transfer를 구현했다. M4의 8개 장소·5명 actor·숨은 bridge 붕괴와 직접 관찰 의미를 유지하며 ASK/INFORM/REQUEST, actor-scoped social perception, 비LLM NPC 응답과 간접 지식 출처를 추가했다. INFORM은 sender가 실제 Observation에서 접근한 자기 KnowledgeRecord를 전달하며 World Truth를 복사하지 않는다. 초기 지식 + committed Events에서 직접·간접 기록을 재구성하고 상충 주장을 함께 보존한다. NPC도 GamePort로 ActionRequest를 제출하며 기존 engine replay는 NPC 정책을 다시 실행하지 않는다.
+
+M5 실행 예제: `python -m journeymap.examples.alderwick_social`. 명시적 `social=True` composition에서 Hugh가 붕괴를 목격한 뒤 광장으로 이동하고 Thomas의 ASK에 INFORM한다. Thomas의 `intact(INITIAL)`와 `collapsed(INFORMED)`가 함께 남는다. 고정 activation 순서는 example/application 호출자가 소유하며 별도 NPC scheduler나 LLM은 없다. 상세 계약은 [API M5 절](docs/API.md#11-m5-구현-계약)을 따른다.
 
 실행 예제: `python -m journeymap.examples.alderwick`. tick 3에 붕괴하고 Stranger는 tick 4에 East Road에 도착해 직접 발견한다. 상세 계약은 [API의 M4 절](docs/API.md#10-m4-구현-계약), 검증 범위는 [테스트 전략](docs/TEST_STRATEGY.md)을 따른다.
 

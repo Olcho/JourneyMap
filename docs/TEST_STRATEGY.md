@@ -55,7 +55,7 @@ JourneyMap의 최우선 품질은 기능 수가 아니라 정보·권한 경계,
 8. 기존 ActionRequest-only ReplayHarness로 결과/Event/order/time/world/digest가 같고, Event-only Knowledge 재구성도 같다. fresh live run의 Observation/요청/지식 순서도 비교한다.
 9. commit 전 실패의 원자성, commit 후 delivery 실패에서의 재구성, repeated read/rebuild와 duplicate acquisition 방지를 검증한다.
 
-**M5 extension:** 목격자가 `INFORM`하면 수신자가 출처를 가진 간접 지식을 얻는다. ASK/REQUEST/social transfer 및 NPC 자율 schedule/utility 행동도 M5 범위이며 M4 exit에 요구하지 않는다.
+**M5 extension — 구현 완료:** 목격자의 INFORM 뒤에만 수신자가 출처 있는 간접 지식을 얻는다. 별도 `social=True` composition으로 ASK→NPC INFORM→다음 Observation/행동, REQUEST 전달, conflicting history, 다단계 provenance, engine replay와 fresh-run determinism을 검증한다. M4 기본 fixture와 모든 기존 테스트는 그대로 유지한다.
 
 ## 3. 계층별 테스트
 
@@ -113,7 +113,8 @@ Property 예: 음수 inventory 불가, 실패한 transfer의 양쪽 balance 불�
 - **M2:** 최소 Entity identity와 movement 소유권, Location/단방향 Route/ActorPosition, MOVE/WAIT v1 payload, 존재·연결·통행·양의 정수 비용 검증, 시작 거부 시 state digest/clock/RNG/ID/scheduler/domain Event 불변, duration 중/동일 완료 tick system ordering, 완료 조건 실패 시 경과 시간/system commit 유지와 action 성공 mutation/Event 미생성, 성공·REJECTED·FAILED를 섞은 replay 결과/ID/Event/digest 동일, timed context 격리·재진입 금지·중간 system 오류의 M1 의미 유지
 - **M3:** actor별 allowlist perception, hidden truth/다른 actor knowledge/future schedule의 비노출과 반사실적 변경에 대한 Observation 불변성, contributor 전체 key 정렬/입출력 격리/invalid 출력 원자성, immutable Observation ID/digest/history, 명시적 source/상충/정정 계보/UNKNOWN knowledge, bound Game capability/위조 권한 차단/제한된 receipt, Research trace와 ActionRequest-only replay 동등성
 - **M4:** 위 Alderwick Bridge Integration의 직접 관찰/Controller/engine replay/Knowledge reconstruction 항목 전체. M5 INFORM extension 제외
-- **M5–M6:** 정보 전달과 cross-module 원자성
+- **M5:** social v1 schema/range/time, live claim authority, target-scoped perception, NPC ASK→INFORM, source chain/conflict, failure recovery, Event-prefix reconstruction과 replay
+- **M6:** 생존·inventory·trade와 자원 보존/cross-module 원자성
 - **M7:** versioned contract/conformance suite
 - **M8:** 엔진 gate 전부 + LLM 기록 완전성 + 24시간 smoke experiment
 
@@ -132,3 +133,15 @@ M3 adversarial audit는 mutable request identity/correlation의 trace 및 transi
 M4 자동화는 `tests/test_alderwick.py`(8개 integration 사례), `tests/test_alderwick_failures.py`(18개), `tests/test_knowledge_projection.py`(18개) 및 architecture 추가 2개다. 기존 225개 테스트의 의미를 유지하여 전체 271개다. failure injection은 bridge/route/cost/endpoint/witness/payload/resolve/Event 직렬화 실패에서 clock/RNG/sequence/schedule/world/Event를 비교한다. 첫 route candidate를 만든 뒤 두 번째 route 검증 실패도 포함한다. BridgeCollapsed 및 ActorMoved delivery 실패 후 Research와 다음 Observation에 committed Knowledge가 남는지 확인한다.
 
 projection 테스트는 초기 상충 기록 보존, deterministic ID/source, 동일 history 재구성, 재방문 dedup, 입력·출력 alias 분리, event prefix의 비소급성, 정렬된 당시 witness, 잘못된 run/order/gap/duplicate/provenance/version을 검사한다. projection 예외 뒤에도 world는 유지되고 다음 정상 observe가 첫 성공 sequence를 사용한다. M4는 intact→collapsed의 한 번 전이를 검증하며 수리/재붕괴, social transfer나 영속 resume를 검증한 것으로 보지 않는다.
+
+## 7. M5 자동화와 감사 범위
+
+- `tests/test_social.py`: ASK/INFORM/REQUEST 각각의 정확한 v1 schema, target/self/entity/position/location/range, 추가 field와 wrong version, 고정 1 tick, 완료 시 actor/target/location 변화. 실패 전후 state/digest/time/RNG/sequence/schedule/Event를 비교한다. kernel-only INFORM은 trusted raw claim reference를 사용하며 live ownership 검증을 주장하지 않는다.
+- `tests/test_social_information.py`: live unknown/foreign/다른 actor/target/future/unobserved record 참조 거부, 실제 Observation 내용 변조·누락 반례, reply topic/양쪽 actor/Observation scope, ASK/REQUEST의 비자동 실행, unrelated actor 비노출, Hugh→Thomas→Marta 전달과 stale claim 재전달, 상충 보존, malformed social provenance와 Event-prefix ordering, delivery 실패 복구.
+- `tests/test_social_boundaries.py`: 같은 tick의 observe 이후 acquisition 거부, live 시작·완료 실패의 receiver 무획득과 mixed replay, raw Event log를 제거한 contributor 입력, projection/claim 읽기 실패 후 trace와 Observation sequence, detached 출력, ordered rule 입력 격리, NPC import와 ReplayInput schema 경계, 비활성 social composition의 거부.
+
+실제 비LLM loop는 Hugh MOVE/Thomas ASK/Hugh INFORM/Thomas WAIT/Hugh WAIT를 실행한다. tick 3 목격 기록, tick 6 질문, tick 7 전달, Thomas의 초기 intact와 간접 collapsed 기록, 미응답→응답 완료 전이와 다음 행동을 확인한다. 두 fresh live run의 Observation/ActionTrace/Events/Knowledge를 비교하고 ReplayHarness는 recorded requests만으로 별도 두 번 실행한다. ActionResults/system outcomes/order/final world/digest/time/RNG와 replay 후 동일 초기 지식에서 재구성한 history를 비교한다.
+
+권한 거부는 kernel input에 포함되지 않는 ActionTrace다. kernel canonical REJECTED/FAILED는 replay stream에 포함한다. claim ownership/Observation 검증은 live application의 책임이며 replay kernel의 privileged path를 hostile input validator로 간주하지 않는다. replay 후 source-prefix 검증은 Observation 검증의 대체가 아니다.
+
+M5 gate: 기존 271개를 삭제·완화하지 않은 전체 **383 passed**. Python 3.12.10, Ruff check/format, strict mypy, diff 검사를 함께 실행한다. 이 count는 M5 종료 시점 기준이며 M6+ 개발 시 갱신한다. projection에서 발생한 ActionValidationError도 actor payload 거부로 오분류하지 않고 authority read 실패로 추적한다. 자동 belief winner·confidence·trust·LLM·일반 행동 framework·영속 resume·M7 retry/idempotency는 검사하거나 구현한 것으로 보지 않는다.

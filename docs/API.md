@@ -255,4 +255,48 @@ runtime 읽기 경로는 `committed Events → KnowledgeProjection → for_actor
 
 projection 읽기 실패는 기존 world commit을 취소하지 않는다. Research에는 오류를 전파하고 Game observe에는 `OBSERVATION_UNAVAILABLE`을 반환하며 성공 Observation sequence를 소비하지 않는다. 반복 읽기/재구성은 같은 지식 history를 제공하고 Event delivery 실패에도 committed log에서 복구할 수 있다. bridge MOVE 거부/완료 실패는 기존 M2의 `ROUTE_IMPASSABLE`, `REJECTED`/`FAILED` 의미를 그대로 사용한다.
 
-ReplayInput/ReplayHarness/ReplayReport schema는 변경하지 않았다. engine replay는 초기 world/manifest + versioned schedule + 기록된 ActionRequest stream만 요구한다. 그 결과 Events와 동일 초기 Knowledge로 runtime history를 별도 비교한다. Observation/Knowledge stream을 replay 필수 입력으로 추가하지 않는다. M5의 INFORM/ASK/REQUEST와 NPC 자율 행동은 아직 제공하지 않는다.
+ReplayInput/ReplayHarness/ReplayReport schema는 변경하지 않았다. engine replay는 초기 world/manifest + versioned schedule + 기록된 ActionRequest stream만 요구한다. 그 결과 Events와 동일 초기 Knowledge로 runtime history를 별도 비교한다. Observation/Knowledge stream을 replay 필수 입력으로 추가하지 않는다. M5 확장은 아래 절의 명시적 composition으로 제공한다.
+
+## 11. M5 구현 계약
+
+`create_alderwick_kernel(social=True)`는 SocialModule과 ASK/INFORM/REQUEST v1을 등록한다. `create_alderwick_application(kernel, social=True)`는 social 초기 입력, projection rule, perception과 `(30, social, interactions)` contributor를 추가한다. 기본 `social=False`는 M4 fixture/Observation 동작을 유지한다. generic composition은 등록된 social handlers와 `create_application(..., social=True)`를 함께 사용한다. custom pipeline은 여전히 전체 pipeline을 대체하므로 knowledge/social contributor의 명시적 등록도 호출자 책임이다. social이 비활성인 Game에서 v1 social 제출은 `SOCIAL_UNAVAILABLE`이다.
+
+| action / schema_version | 정확한 payload |
+|---|---|
+| ASK / 1 | `{target_actor_id: str, subject_ref: str, predicate: str}` |
+| INFORM / 1 | `{target_actor_id: str, claim_record_id: str, reply_to_event_id?: str}` |
+| REQUEST / 1 | `{target_actor_id: str, request_kind: str, request_payload: object}` |
+
+모든 문자열은 비어 있지 않아야 한다. 필수 field 누락, 추가 field, 잘못된 type은 `INVALID_PAYLOAD`다. optional reply는 생략할 수 있지만 null/빈 문자열은 거부한다. request_payload는 nested canonical JSON object이고 비어 있어도 된다. request_kind는 구조화된 식별자일 뿐 실행할 handler의 이름이 아니다. payload 안에 action/mutation처럼 보이는 값이 있어도 실행하지 않는다. unknown version은 registry에서 `UNKNOWN_ACTION`으로 거부한다.
+
+모두 고정 1 tick이며 시작과 완료 때 sender/target Entity, 자기 자신이 아닌 target, 양쪽 유효 position/Location, 같은 Location을 확인한다. entity_type은 M2처럼 actor 자격 enum이 아니다. 양쪽이 시작·완료 모두 같은 장소라면 그 두 장소가 서로 달라도 허용한다. 중간 이동 경로나 지속 접촉은 모델링하지 않는다. 완료 tick의 due system input이 먼저 처리된다. 시작 실패는 REJECTED/추가 시간 없음, 완료 실패는 FAILED/경과 시간과 system commit 유지다. social 성공은 domain state/RNG를 변경하지 않고 공통 commit boundary에서 transition/result/Event만 만든다.
+
+| committed Event v1 | 정확한 payload |
+|---|---|
+| ActorAsked | `{sender_actor_id, target_actor_id, location_id, subject_ref, predicate}` |
+| ActorInformed | `{sender_actor_id, target_actor_id, location_id, claim_record_id, reply_to_event_id?}` |
+| ActorRequested | `{sender_actor_id, target_actor_id, location_id, request_kind, request_payload}` |
+
+location_id는 완료 장소다. 공통 envelope의 source_kind는 ACTION, source_ref는 ActionRequest ID, transition_id/causation_id는 commit transition ID이며 correlation과 sequence/tick은 기존 Core 계약이다. ASK는 질문 전달만 기록하고 REQUEST는 요청 전달만 기록한다. 자동 답변·지식 조회·내용 실행·fulfillment는 없다.
+
+INFORM의 claim source는 현재 sender-owned Knowledge의 한 record다. live application은 저장된 원본 Observation의 knowledge section에 동일 record JSON이 실제 포함됐는지와 run/actor/획득 시점을 검사한다. unknown·타 actor·타 run·미래·미노출 record에는 동일 `INVALID_CLAIM_REFERENCE`를 반환한다. Controller가 변조한 Observation object나 추측한 ID는 권한 증거가 아니다. stale claim은 소유하고 Observation에 있으면 전달할 수 있다. canonical truth와 일치하는지 검사하지 않는다.
+
+reply_to_event_id는 앞서 받은 ActorAsked ID다. 원본 Observation의 social section에 해당 interaction이 있어야 하며 질문자=INFORM target, 질문 대상=INFORM sender, subject/predicate=claim topic이어야 한다. 실패는 `INVALID_REPLY_REFERENCE`. 답변 1회만 허용하는 idempotency 제약은 없고 NPC가 최신 Observation의 answered를 보고 중복 답변을 피한다.
+
+추가 actor-visible canonical reason은 `SELF_TARGET`, `UNKNOWN_TARGET`, `INVALID_TARGET`, `TARGET_MISSING_POSITION`, `TARGET_INVALID_POSITION`, `OUT_OF_RANGE`다. sender는 기존 `UNKNOWN_ACTOR`, `INVALID_ENTITY`, `MISSING_POSITION`, `INVALID_POSITION`을 사용한다. social의 position/location integrity 오류는 해당 actor의 INVALID_POSITION 계열로 묶는다. live schema/claim/reply 거부는 kernel 진입 전 receipt와 boundary ActionTrace만 남긴다. canonical 거부/완료 실패에는 kernel ActionResult가 있다.
+
+social Observation content는 `{social: {interactions: [...]}}`다. incoming interaction은 `{event_id, event_type, simulation_time, sender_actor_id}`와 다음 allowlist field만 가진다.
+
+- ActorAsked: `subject_ref, predicate, answered: bool`.
+- ActorInformed: 존재하면 `reply_to_event_id`. 실제 claim은 receiver의 knowledge section에 별도 projected record로 전달한다.
+- ActorRequested: `request_kind, request_payload`.
+
+목록은 committed Event 순서다. target 자신, sender의 claim_record_id, global event_sequence, transition, 전체 Event log를 복사하지 않는다. 과거 incoming은 남고 answered는 committed reply로만 계산한다. 같은 장소의 unrelated actor도 해당 interaction을 받지 않는다.
+
+`INFORMED` record의 ID는 `<ActorInformed.event_id>:social-informed-v1:00000001`, source_ref는 해당 Event ID, learned_at은 완료 tick이다. subject/predicate/value는 prefix의 sender record에서 복사하고 supersedes_id는 None이다. 반복 rebuild는 동일하며 새 INFORM Event는 같은 claim을 전달해도 별도 획득 기록이다. 신뢰도·자동 winner·stale 제거는 없다.
+
+Research는 기존 observations/action_traces/action_results/events/knowledge_history로 chain을 조회한다. live claim projection 오류는 `GameSubmissionError("KNOWLEDGE_UNAVAILABLE")`와 result 없는 error trace다. observe projection 오류는 `OBSERVATION_UNAVAILABLE`이고 partial Observation/sequence를 남기지 않는다. post-commit delivery 오류는 기존 `ENGINE_ERROR` receipt 경계와 성공 result/Event를 유지하며 Knowledge는 committed log에서 복구한다.
+
+engine replay에는 kernel에 전달된 recorded requests만 넣는다. boundary-denied attempts는 연구 trace로 별도 보존한다. 정상·kernel REJECTED/FAILED 요청은 그대로 replay한다. interrupted/delivery-failed run은 기존 오류 계약을 따르며 자동 resume/retry는 없다. replay kernel은 claim/Observation authority를 다시 검사하지 않는 trusted 경로이며, 재구성한 Knowledge는 sender prefix ownership/source를 검증한다. 이 경계는 arbitrary untrusted replay input에 live 권한을 부여하지 않는다.
+
+비LLM 예제 `alderwick_social`은 tick 3부터 Hugh/Thomas/Hugh/Thomas/Hugh 순서로 actor를 activate한다. policy는 제공된 Observation으로 MOVE/ASK/INFORM/WAIT/WAIT를 결정하고 target-scoped ASK가 실제 별도 INFORM으로 이어진다. recorded ActionRequest만으로 tick 9까지 engine replay되며 NPC policy 실행은 불필요하다.

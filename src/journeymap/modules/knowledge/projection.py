@@ -19,6 +19,9 @@ class KnowledgeReader(Protocol):
 
 
 type KnowledgeProjector = Callable[[tuple[EventEnvelope, ...]], tuple[KnowledgeRecord, ...]]
+type KnowledgeEventRule = Callable[
+    [EventEnvelope, tuple[EventEnvelope, ...], KnowledgeLedger], tuple[KnowledgeRecord, ...]
+]
 
 
 class KnowledgeProjection:
@@ -33,7 +36,9 @@ class KnowledgeProjection:
         self,
         initial: KnowledgeLedger,
         events: tuple[EventEnvelope, ...],
-        projector: KnowledgeProjector,
+        projector: KnowledgeProjector | None = None,
+        *,
+        event_rules: tuple[KnowledgeEventRule, ...] = (),
     ) -> None:
         committed = tuple(event.detached() for event in events)
         by_id: dict[str, EventEnvelope] = {}
@@ -49,14 +54,36 @@ class KnowledgeProjection:
             by_id[event.event_id] = event
             tick = event.simulation_time
         # Rules receive copies, not the evidence used for provenance validation.
-        acquired = projector(tuple(event.detached() for event in committed))
+        acquired = projector(tuple(event.detached() for event in committed)) if projector else ()
         for record in acquired:
             source = by_id.get(record.source_ref)
             if source is None or record.learned_at != source.simulation_time:
                 raise ValueError("runtime knowledge must reference its committed source Event")
         # Reuse the record scope/identity/supersession validator on this snapshot.
         # The original initial ledger remains frozen at the manifest start tick.
-        self._snapshot = KnowledgeLedger(initial.run_id, tick, (*initial.history(), *acquired))
+        snapshot = KnowledgeLedger(initial.run_id, initial.initial_time, initial.history())
+        for index, event in enumerate(committed):
+            direct = tuple(record for record in acquired if record.source_ref == event.event_id)
+            snapshot = KnowledgeLedger(
+                initial.run_id, event.simulation_time, (*snapshot.history(), *direct)
+            )
+            for rule in event_rules:
+                # Each rule receives isolated evidence and the accumulated prefix.
+                added = rule(
+                    event.detached(),
+                    tuple(previous.detached() for previous in committed[:index]),
+                    KnowledgeLedger(initial.run_id, event.simulation_time, snapshot.history()),
+                )
+                if any(
+                    record.source_ref != event.event_id
+                    or record.learned_at != event.simulation_time
+                    for record in added
+                ):
+                    raise ValueError("event rule must reference its current committed source Event")
+                snapshot = KnowledgeLedger(
+                    initial.run_id, event.simulation_time, (*snapshot.history(), *added)
+                )
+        self._snapshot = snapshot
 
     @property
     def run_id(self) -> str:

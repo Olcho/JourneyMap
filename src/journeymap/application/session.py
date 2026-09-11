@@ -4,6 +4,7 @@ from dataclasses import dataclass, replace
 
 from journeymap.application.observations import ObservationHistory, ObservationPipeline
 from journeymap.application.perception import PerceptionExtension, perceive
+from journeymap.application.social import validate_claim
 from journeymap.core.controller import ControllerActionResult, GamePort, GameSubmissionError
 from journeymap.core.entities import get_entity
 from journeymap.core.handlers import (
@@ -11,13 +12,17 @@ from journeymap.core.handlers import (
     ActionRequest,
     ActionResult,
     ActionStatus,
+    ActionValidationError,
 )
 from journeymap.core.kernel import SimulationKernel
 from journeymap.core.observations import Observation
 from journeymap.modules.knowledge import KnowledgeLedger
 from journeymap.modules.knowledge.projection import KnowledgeProjection, KnowledgeProjector
+from journeymap.modules.social.contracts import EVENT_TYPES, validate_payload
+from journeymap.modules.social.knowledge import project_informed_knowledge
+from journeymap.modules.social.perception import perceive_social
 
-# Only documented actor-facing M2 codes may cross the Game boundary. Extension
+# Only documented actor-facing M2/M5 codes may cross the Game boundary. Extension
 # diagnostics default to a generic status until an actor-facing contract exists.
 _VISIBLE_REASONS = frozenset(
     {
@@ -36,6 +41,12 @@ _VISIBLE_REASONS = frozenset(
         "INVALID_TRAVERSAL_COST",
         "INVALID_PASSABILITY",
         "ROUTE_CHANGED",
+        "SELF_TARGET",
+        "UNKNOWN_TARGET",
+        "INVALID_TARGET",
+        "TARGET_MISSING_POSITION",
+        "TARGET_INVALID_POSITION",
+        "OUT_OF_RANGE",
     }
 )
 
@@ -73,6 +84,7 @@ class SimulationApplication:
         *,
         knowledge_projector: KnowledgeProjector | None = None,
         perception_extension: PerceptionExtension | None = None,
+        social: bool = False,
     ) -> None:
         if (
             knowledge.run_id != kernel.manifest.run_id
@@ -86,6 +98,7 @@ class SimulationApplication:
         self._knowledge = knowledge
         self._knowledge_projector = knowledge_projector
         self._perception_extension = perception_extension
+        self._social = social
         self._pipeline = pipeline
         self._observations = ObservationHistory(kernel.manifest.run_id)
         self._traces: list[ActionTrace] = []
@@ -110,9 +123,14 @@ class SimulationApplication:
 
     def knowledge_snapshot(self) -> KnowledgeLedger | KnowledgeProjection:
         """Research/trusted read, reconstructed independently of Event delivery."""
-        if self._knowledge_projector is None:
+        if self._knowledge_projector is None and not self._social:
             return self._knowledge
-        return KnowledgeProjection(self._knowledge, self._kernel.events, self._knowledge_projector)
+        return KnowledgeProjection(
+            self._knowledge,
+            self._kernel.events,
+            self._knowledge_projector,
+            event_rules=(project_informed_knowledge,) if self._social else (),
+        )
 
     @property
     def action_traces(self) -> tuple[ActionTrace, ...]:
@@ -134,6 +152,16 @@ class SimulationApplication:
                 knowledge=self.knowledge_snapshot(),
                 extension=self._perception_extension,
             )
+            if self._social:
+                if "social" in context.perceived:
+                    raise ValueError("social perception scope is reserved")
+                context = replace(
+                    context,
+                    perceived={
+                        **context.perceived,
+                        "social": perceive_social(self._kernel.events, actor_id),
+                    },
+                )
             return self._observations.generate(context, self._pipeline)
         except Exception:
             raise GameSubmissionError("OBSERVATION_UNAVAILABLE") from None
@@ -194,6 +222,47 @@ class SimulationApplication:
                 raise GameSubmissionError("INVALID_REQUEST") from None
             sequence = len(self._traces) + 1
             reason = self._authority_reason(actor_id, request)
+            if (
+                reason is None
+                and request.action_type in EVENT_TYPES
+                and request.schema_version == 1
+            ):
+                try:
+                    if not self._social:
+                        raise ActionValidationError("SOCIAL_UNAVAILABLE")
+                    validate_payload(request.action_type, request.payload)
+                except ActionValidationError as error:
+                    reason = error.reason_code
+                if reason is None and request.action_type == "INFORM":
+                    try:
+                        owned = self.knowledge_snapshot().for_actor(actor_id)
+                    except Exception as error:
+                        # A projection defect may itself be an ActionValidationError;
+                        # it is a failed authority read, not a rejected actor payload.
+                        self._traces.append(
+                            ActionTrace(
+                                sequence, request, None, None, error_type=type(error).__name__
+                            )
+                        )
+                        raise GameSubmissionError("KNOWLEDGE_UNAVAILABLE") from None
+                    try:
+                        observation = self._observations.get(request.based_on_observation_id)
+                        assert observation is not None
+                        validate_claim(
+                            request,
+                            observation,
+                            owned,
+                            self._kernel.events,
+                        )
+                    except ActionValidationError as error:
+                        reason = error.reason_code
+                    except Exception as error:
+                        self._traces.append(
+                            ActionTrace(
+                                sequence, request, None, None, error_type=type(error).__name__
+                            )
+                        )
+                        raise GameSubmissionError("KNOWLEDGE_UNAVAILABLE") from None
             if reason is not None:
                 visible = self._receipt(actor_id, request, reason)
                 self._traces.append(ActionTrace(sequence, request, None, visible, reason))

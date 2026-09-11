@@ -83,6 +83,10 @@ Exit: [Alderwick Bridge Integration Test](TEST_STRATEGY.md#p0--alderwick-bridge-
 
 Exit: 원격 NPC가 자동으로 진실을 알지 못하며 상호작용 뒤 출처가 있는 지식만 얻는다.
 
+구현 완료: SocialModule의 ASK/INFORM/REQUEST v1, 동일 Location/self-target 금지와 시작·완료 재검증/1 tick, target-scoped interaction perception, live sender Knowledge/원본 Observation claim 검증을 추가했다. INFORM은 claim reference이며 World Truth 복사가 아니다. 기존 M4 direct projector와 ordered Event-prefix social rule을 조합해 초기·직접·간접 Knowledge를 재구성한다. source chain, stale/상충 기록과 다단계 전달을 보존한다.
+
+`social=True` Alderwick 예제에서 Hugh 목격→귀환→Thomas ASK→Hugh NPC INFORM→Thomas 다음 Observation/WAIT의 closed loop를 실제 GamePort로 실행한다. activation은 trusted application/example의 고정 순서이고 NPC는 Observation만 읽는 비LLM 정책이다. ActionRequest-only ReplayHarness를 바꾸지 않고 policy 재실행 없이 engine replay하며 fresh live run도 결정적이다. 271개 M0–M4 baseline을 유지한 383개 테스트와 Ruff/format/mypy/diff gate로 exit criteria를 충족했다. canonical Knowledge/inbox, LLM, 일반 NPC framework와 M6/M7 기능은 추가하지 않았다.
+
 ## M6 Survival, Inventory + Trade Minimum
 
 목표: 생존 판단을 유발할 최소 자원 흐름.
