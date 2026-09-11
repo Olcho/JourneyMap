@@ -26,19 +26,24 @@ def create_alderwick_kernel(
     seed: int = 42,
     event_bus: EventBus | None = None,
     social: bool = False,
+    resources: bool = False,
 ) -> SimulationKernel:
     """Unbooted scenario v1 kernel, also the unchanged ReplayHarness factory.
 
     Schedule installation remains explicit so replay never enqueues it twice.
     """
     from journeymap.core.actions import WaitHandler
+    from journeymap.modules.inventory import InventoryModule
     from journeymap.modules.knowledge import KnowledgeModule
     from journeymap.modules.movement import MovementModule
     from journeymap.modules.social import SocialModule
+    from journeymap.modules.survival import SurvivalModule
+    from journeymap.modules.trade import TradeModule
     from journeymap.scenarios.alderwick import AlderwickModule
     from journeymap.scenarios.alderwick.fixture import initial_world
+    from journeymap.scenarios.alderwick.resources import resource_world
 
-    state = initial_world()
+    state = resource_world() if resources else initial_world()
     movement, alderwick = MovementModule(), AlderwickModule()
     actions, systems = ActionRegistry(), SystemEventRegistry()
     movement.register_actions(actions)
@@ -47,11 +52,31 @@ def create_alderwick_kernel(
     if social:
         social_module.register_actions(actions)
     alderwick.register_system_events(systems)
+    resource_modules: tuple[Module, ...] = ()
+    if resources:
+        survival, trade = SurvivalModule(), TradeModule()
+        survival.register_actions(actions)
+        survival.register_system_events(systems)
+        trade.register_actions(actions)
+        resource_modules = (InventoryModule(), survival, trade)
     return create_kernel(
-        modules=(movement, KnowledgeModule(), alderwick, *((social_module,) if social else ())),
+        modules=(
+            movement,
+            KnowledgeModule(),
+            alderwick,
+            *((social_module,) if social else ()),
+            *resource_modules,
+        ),
         initial_state=state,
         manifest=RunManifest(
-            run_id, "alderwick", "1", __version__, 1, seed, 0, state_digest(state)
+            run_id,
+            "alderwick",
+            "resources-1" if resources else "1",
+            __version__,
+            1,
+            seed,
+            0,
+            state_digest(state),
         ),
         action_registry=actions,
         system_event_registry=systems,
@@ -63,6 +88,7 @@ def create_alderwick_application(
     kernel: SimulationKernel,
     *,
     social: bool = False,
+    resources: bool = False,
 ) -> tuple[SimulationApplication, ResearchView]:
     """Explicit trusted composition; generic M3 composition remains unchanged."""
     from journeymap.modules.social.perception import contribute_social
@@ -70,10 +96,19 @@ def create_alderwick_application(
     from journeymap.scenarios.alderwick.contributors import contribute_bridge
     from journeymap.scenarios.alderwick.fixture import initial_knowledge
     from journeymap.scenarios.alderwick.knowledge import project_bridge_knowledge
+    from journeymap.scenarios.alderwick.resource_contributors import (
+        contribute_inventory,
+        contribute_survival,
+        contribute_trade,
+    )
+    from journeymap.scenarios.alderwick.resources import perceive_resources
     from journeymap.scenarios.alderwick.social import social_initial_knowledge
 
-    if (kernel.manifest.scenario_id, kernel.manifest.scenario_version) != ("alderwick", "1"):
-        raise ValueError("Alderwick application requires scenario v1")
+    version = "resources-1" if resources else "1"
+    if (kernel.manifest.scenario_id, kernel.manifest.scenario_version) != ("alderwick", version):
+        raise ValueError("Alderwick application requires the matching scenario version")
+    if resources and not {"inventory", "survival", "trade"} <= set(kernel.module_ids):
+        raise ValueError("resource application requires inventory/survival/trade modules")
     if social and "social" not in kernel.module_ids:
         raise ValueError("social application requires the social module")
     pipeline = ObservationPipeline()
@@ -102,6 +137,15 @@ def create_alderwick_application(
             contributor_id="interactions",
             contributor=contribute_social,
         )
+    if resources:
+        for module, contributor in (
+            ("inventory", contribute_inventory),
+            ("survival", contribute_survival),
+            ("trade", contribute_trade),
+        ):
+            pipeline.register(
+                priority=40, module_id=module, contributor_id="resources", contributor=contributor
+            )
     return create_application(
         kernel,
         initial_knowledge=(
@@ -111,7 +155,7 @@ def create_alderwick_application(
         ),
         pipeline=pipeline,
         knowledge_projector=project_bridge_knowledge,
-        perception_extension=perceive_bridge,
+        perception_extension=perceive_resources if resources else perceive_bridge,
         social=social,
     )
 

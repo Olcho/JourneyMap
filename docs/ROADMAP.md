@@ -98,6 +98,12 @@ Exit: 원격 NPC가 자동으로 진실을 알지 못하며 상호작용 뒤 출
 
 Exit: 자원 보존, 실패 원자성, 시간 경과 효과와 최소 구매·소비 시나리오가 통과한다.
 
+구현 완료: InventoryModule/SurvivalModule/TradeModule 0.6.0을 분리하고 item identity/정수 수량, 0–100 hunger/fatigue, 정수 Wallet/active Offer를 구현했다. REST v1은 duration tick과 최신 fatigue recovery, CONSUME/BUY v1은 고정 1 tick과 시작·완료 재검증을 사용한다. BUY는 시작 견적을 고정하고 완료 시 바뀐 가격/seller/item으로 자동 구매하지 않는다. inventory-owned detached helper와 기존 TransitionPlan의 여러 key commit으로 BUY의 inventory+trade, CONSUME의 inventory+survival을 원자적으로 적용한다.
+
+`resources=True` Alderwick의 `resources-1` schedule은 기존 tick 3 bridge collapse와 finite tick 1–20 SurvivalTick을 함께 구성한다. 자기 자원과 local active offer만 perception을 통과하며 private wallet/stock/effect/future schedule은 숨긴다. live WAIT→MOVE→MOVE→BUY 2→CONSUME 1→REST 3의 tick 10 결과는 Stranger wallet 6/bread 1/hunger 30/fatigue 11이다. BUY 보존, 소비 sink provenance, 같은 tick system 우선/latest state, 후보 구성·resolve·직렬화 실패 원자성, post-commit delivery 실패, recorded ActionRequest-only mixed replay와 fresh-run determinism을 자동화했다. social과 resource를 함께 구성해 M4/M5 Knowledge 의미도 확인했다.
+
+M6 exit gate 통과: 기존 383개 테스트를 삭제·완화하지 않은 **543 passed**(신규 160개), Python 3.12.10, Ruff `All checks passed!`, format `95 files already formatted`, strict mypy `Success: no issues found in 86 source files`, `git diff --check` 성공. Core/kernel/replay schema와 runtime dependencies는 변경하지 않았다. M7 계약 안정화, 장기 recurring schedule, 일반 effect/economy framework, persistence redesign과 LLM은 추가하지 않았다. commit/push는 수행하지 않았다.
+
 ## M7 Complete Action/Observation Contracts
 
 목표: LLM 연결 전에 외부 계약을 안정화.

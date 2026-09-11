@@ -155,9 +155,9 @@ LLM trial 분석에는 별도 **ControllerInvocation** 레코드를 둘 수 있�
 
 - **movement:** `Location`, `Route`, `ActorPosition`. Route는 endpoints, traversal cost와 현재 passability를 가진다.
 - **knowledge:** `KnowledgeRecord`와 선택적 정규화 index. 연구 핵심 envelope 소유자이기도 하다.
-- **inventory:** `ItemDefinition`, `InventoryEntry`.
-- **survival:** `SurvivalState`의 최소 hunger/fatigue 등. 실제 필드는 해당 milestone에서 확정한다.
-- **trade:** `Wallet`, `Offer` 또는 최소 price listing. 통화 의미는 trade module이 소유한다.
+- **inventory:** `ItemDefinition`과 actor-owned quantity map. M6의 실제 schema는 아래 12절을 따른다.
+- **survival:** `SurvivalState(hunger, fatigue)`와 consumable hunger recovery. 값은 0–100 정수다.
+- **trade:** `Wallet`, `Offer`. 단일 정수 통화와 가격은 trade module이 소유한다.
 - **social:** 대화/전달 Event를 사용하며 별도 상태가 필요할 때만 table을 추가한다.
 
 ## 6. 원자성·무결성
@@ -249,3 +249,38 @@ ActorInformed payload의 `sender_actor_id`, `target_actor_id`, `claim_record_id`
 projection은 초기 지식과 전체 ordered committed Event를 사용한다. direct records를 source Event에 맞춰 누적하고 social rule에서 그 시점까지의 sender records를 참조한다. unknown/future/타 owner source는 오류이며 malformed log/output에서는 partial history를 게시하지 않는다. initial record source는 여전히 explicit author input이고 runtime source는 실제 committed Event다.
 
 상충 intact(INITIAL)와 collapsed(INFORMED)는 `(learned_at, knowledge_record_id)` 순서의 history/query에 모두 남는다. stale 정보를 나중에 INFORM해도 World Truth와 비교하여 삭제·수정하지 않는다. `supersedes`는 기존 명시적 정정 계약만 유지한다. 어떤 claim을 믿는지, trust/confidence, relationship, 영속 inbox/DB migration은 M5에서 도입하지 않는다.
+
+## 12. M6 실제 canonical resource schema
+
+M6는 in-memory canonical JSON과 기존 Event/ActionResult를 확장하며 SQLite table/migration이나 persistence redesign은 추가하지 않는다. 세 top-level key는 각각의 module이 소유한다.
+
+```json
+{
+  "inventory": {
+    "items": {"bread": {"item_id": "bread"}},
+    "owners": {"stranger": {"bread": 0}, "edwin": {"bread": 5}}
+  },
+  "survival": {
+    "actors": {"stranger": {"hunger": 20, "fatigue": 10}, "edwin": {"hunger": 0, "fatigue": 0}},
+    "consumables": {"bread": 10}
+  },
+  "trade": {
+    "wallets": {"stranger": 10, "edwin": 0},
+    "offers": {
+      "edwin-bread": {"offer_id": "edwin-bread", "seller_id": "edwin", "item_id": "bread", "unit_price": 2, "active": true}
+    }
+  }
+}
+```
+
+위 예시는 두 actor만 발췌했다. 실제 Alderwick resource fixture는 기존 5명의 actor 모두에게 inventory/survival/wallet을 제공한다. Stranger 외의 초기 hunger/fatigue/wallet은 0이고 Edwin만 bread 5개를 소유한다. Entity와 movement에 resource field를 추가하지 않는다.
+
+ItemDefinition은 stable item_id만 가진다. quantity와 wallet/price는 bool을 제외한 0 이상의 정수다. owner record가 있고 등록된 item의 entry가 없으면 수량 0이며 수신 시 entry를 만든다. 소모로 0이 된 entry는 유지한다. 없는 owner/Entity나 item definition은 명시적 검증 오류다. self transfer/self purchase는 거부한다. helpers는 관련 row를 검증한 detached candidate를 반환하고 unrelated module fields/records를 유지한다. 정보 공개 query는 record 전체 복사 대신 allowlist를 재구성한다.
+
+SurvivalState는 hunger/fatigue 0–100 정수이며 높은 값이 나쁘다. consumables의 값은 survival-owned positive integer hunger recovery다. inventory item에 survival effect를 넣지 않는다. future tick table, schedule cursor나 read-time derived pressure는 canonical schema에 없다. pressure는 성공한 system/action transition에서만 변경된다.
+
+Wallet dataclass의 actor_id는 canonical wallets map key이고 Offer의 offer_id는 map key와 record identity가 일치해야 한다. offer는 seller/item 참조와 unit_price/active만 가지며 별도 stock을 중복 저장하지 않는다. 초기 builder는 offer seller의 wallet 참조를 확인하고 BUY는 실제 Entity/position/inventory/item/wallet을 재검증한다. wallet과 inventory는 KnowledgeRecord가 아니다.
+
+BUY는 `{inventory, trade}` 후보와 ItemPurchased를, CONSUME는 `{inventory, survival}` 후보와 ItemConsumed를 각각 한 transition에 커밋한다. BUY의 수량/통화는 양쪽 합계를 보존한다. CONSUME의 world item total 감소는 성공 Event quantity와 같아야 한다. REST/SurvivalTick은 item/currency의 source/sink가 아니다. Event payload와 reason/time 계약은 [API M6 절](API.md#12-m6-구현-계약)에 있다.
+
+ActionTrace의 request → based_on_observation_id와 ActionResult → transition → emitted Event ID로 actor provenance를 연결한다. SurvivalAdvanced는 ActionRequest 없이 ScheduledEvent source_ref로 연결한다. Event log와 future schedule은 resource state digest에 포함되지 않고 ReplayReport에서 별도로 비교한다. replay는 초기 resource world와 `alderwick/resources-1` schedule 및 기존 ActionRequest stream만 요구한다. M4/M5 Knowledge는 기존 별도 projection으로 유지한다.

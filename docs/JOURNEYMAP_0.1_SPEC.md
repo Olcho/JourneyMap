@@ -95,7 +95,19 @@ M4에서는 이후 현장에 도착한 actor가 직접 발견한다. `BridgeColl
 - M5 예제는 tick 3 collapse → Hugh MOVE → Thomas ASK → Hugh INFORM → Thomas WAIT를 실증한다. Thomas가 직접 보지 않은 collapsed claim을 tick 7에 처음 전달받고, 초기 intact claim은 남는다.
 - 동일 activation 입력의 fresh run 및 recorded NPC ActionRequest-only engine replay에서 결과/Event/order/world/digest/time/지식이 같다. M4 기본 composition은 유지하며 M5는 `social=True`로 활성화한다.
 
-M6 생존·inventory·trade와 M7 최종 idempotency/compatibility/Observation budget은 구현 범위 밖이다.
+### M6 자원 제약 수용 기준 — 구현 완료
+
+- inventory는 stable item identity와 owner별 정수 수량, survival은 0–100의 hunger/fatigue와 consumable hunger recovery, trade는 단일 정수 통화의 wallet과 offer를 소유한다. Entity/Core에는 도메인 속성을 추가하지 않는다.
+- `SurvivalTick` v1은 actor action이 아닌 별도 system input이다. due transition에서 hunger +2/fatigue +1을 100까지 올리고 actor ID 순서로 `SurvivalAdvanced`를 기록한다. Observation 읽기나 wall clock은 상태를 변경하지 않는다.
+- REST v1은 양의 정수 duration만큼 실제 시간을 소비하고 완료 시 최신 fatigue에서 duration ×3을 감소시킨다. CONSUME v1은 1 tick 뒤 자기 inventory를 감소시키고 최신 hunger를 bread 1개당 10씩 낮춘다. 값은 0에서 제한한다.
+- BUY v1은 동일 Location의 다른 seller와 1 tick 동안 상호작용한다. 시작 견적을 고정하고 완료 때 entity/position/offer/stock/funds를 재검증한다. 가격·seller·item 변경은 새 조건으로 자동 구매하지 않는다.
+- BUY의 inventory+wallet과 CONSUME의 inventory+survival은 각각 하나의 TransitionPlan/Event와 함께 커밋된다. BUY는 item/currency 합계를 보존하고 CONSUME의 의도된 item sink는 ItemConsumed quantity와 정확히 대응한다.
+- 자기 survival/inventory/wallet과 local active offer만 trusted perception을 통과한다. 다른 actor의 inventory/wallet, 효과 설정, remote offers와 미래 tick schedule은 공개하지 않는다.
+- 같은 tick의 due system inputs를 먼저 commit한 뒤 action completion을 판정한다. REJECTED에는 추가 시간 비용이 없고 FAILED에는 경과 시간과 독립 system commits가 남는다. 두 경우 action 성공 mutation/Event는 없다.
+- `resources=True`는 별도 `alderwick/resources-1` fixture/schedule이다. 기존 bridge 붕괴를 포함하고 tick 1–20만 survival input을 예약한다. 이후 자동 tick 연장은 없으며 이 fixture로 장기 survival 실행을 주장하지 않는다.
+- live WAIT→MOVE→MOVE→BUY→CONSUME→REST, 실패 주입, private resource leak 반례, ActionRequest-only replay와 fresh-run determinism을 검증한다. `social=True, resources=True`에서도 기존 직접/간접 Knowledge provenance를 유지한다.
+
+M7 최종 idempotency/compatibility/Observation budget, crafting/equipment/health/death/복잡한 economy와 LLM은 이번 구현 범위 밖이다.
 
 ## 7. 실행과 시간 의미
 

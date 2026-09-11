@@ -39,6 +39,10 @@ World progresses
 
 ## 현재 상태
 
+M6 Survival, Inventory + Trade Minimum을 구현했다. 명시적 `resources=True` Alderwick composition에서 inventory의 item/수량, survival의 hunger/fatigue, trade의 wallet/offer를 분리한다. BUY와 CONSUME는 기존 단일 TransitionPlan으로 두 모듈을 원자적으로 변경하고 REST는 실제 시간을 소비한다. 숨은 SurvivalTick은 tick 1–20에 pressure를 진행시키며 Observation은 자기 자원과 같은 장소의 active offer만 공개한다. M7 최종 계약 안정화는 남아 있다.
+
+M6 실행 예제: `python -m journeymap.examples.alderwick_resources`. WAIT→Bakery 이동→bread 2개 구매→1개 소비→3 tick 휴식을 실행하고 기존 ActionRequest-only ReplayHarness와 결과를 비교한다. tick 10의 Stranger는 bread 1, wallet 6, hunger 30, fatigue 11이다. 상세 계약은 [API M6 절](docs/API.md#12-m6-구현-계약), 상태 소유권은 [ERD M6 절](docs/ERD.md#12-m6-실제-canonical-resource-schema)을 따른다. 기존 M4/M5 예제와 generic application에는 자원이 자동 노출되지 않는다.
+
 M5 Non-LLM NPC Behavior + Social Information Transfer를 구현했다. M4의 8개 장소·5명 actor·숨은 bridge 붕괴와 직접 관찰 의미를 유지하며 ASK/INFORM/REQUEST, actor-scoped social perception, 비LLM NPC 응답과 간접 지식 출처를 추가했다. INFORM은 sender가 실제 Observation에서 접근한 자기 KnowledgeRecord를 전달하며 World Truth를 복사하지 않는다. 초기 지식 + committed Events에서 직접·간접 기록을 재구성하고 상충 주장을 함께 보존한다. NPC도 GamePort로 ActionRequest를 제출하며 기존 engine replay는 NPC 정책을 다시 실행하지 않는다.
 
 M5 실행 예제: `python -m journeymap.examples.alderwick_social`. 명시적 `social=True` composition에서 Hugh가 붕괴를 목격한 뒤 광장으로 이동하고 Thomas의 ASK에 INFORM한다. Thomas의 `intact(INITIAL)`와 `collapsed(INFORMED)`가 함께 남는다. 고정 activation 순서는 example/application 호출자가 소유하며 별도 NPC scheduler나 LLM은 없다. 상세 계약은 [API M5 절](docs/API.md#11-m5-구현-계약)을 따른다.

@@ -22,7 +22,7 @@ from journeymap.modules.social.contracts import EVENT_TYPES, validate_payload
 from journeymap.modules.social.knowledge import project_informed_knowledge
 from journeymap.modules.social.perception import perceive_social
 
-# Only documented actor-facing M2/M5 codes may cross the Game boundary. Extension
+# Only documented actor-facing M2/M5/M6 codes may cross the Game boundary. Extension
 # diagnostics default to a generic status until an actor-facing contract exists.
 _VISIBLE_REASONS = frozenset(
     {
@@ -47,6 +47,27 @@ _VISIBLE_REASONS = frozenset(
         "TARGET_MISSING_POSITION",
         "TARGET_INVALID_POSITION",
         "OUT_OF_RANGE",
+        "INVALID_QUANTITY",
+        "UNKNOWN_ITEM",
+        "UNKNOWN_INVENTORY_OWNER",
+        "INVALID_INVENTORY_STATE",
+        "INSUFFICIENT_QUANTITY",
+        "MISSING_SURVIVAL_STATE",
+        "INVALID_SURVIVAL_STATE",
+        "ITEM_NOT_CONSUMABLE",
+        "INVALID_WALLET",
+        "MISSING_WALLET",
+        "UNKNOWN_OFFER",
+        "INVALID_OFFER",
+        "OFFER_UNAVAILABLE",
+        "SELF_PURCHASE",
+        "INSUFFICIENT_FUNDS",
+        "INSUFFICIENT_STOCK",
+        "OFFER_CHANGED",
+        "UNKNOWN_SELLER",
+        "INVALID_SELLER",
+        "SELLER_MISSING_POSITION",
+        "SELLER_INVALID_POSITION",
     }
 )
 
