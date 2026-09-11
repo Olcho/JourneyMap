@@ -88,7 +88,7 @@ class KnowledgeLedger:
     """Frozen initial first-class ledger, separate from the kernel state digest.
 
     IDs and sources are explicit versioned scenario inputs, never inferred from
-    truth. Runtime append must later participate in a validated transaction;
+    truth. Runtime acquisition is a separate committed-Event projection;
     no subscriber, Observation builder or Controller receives a write API here.
     """
 

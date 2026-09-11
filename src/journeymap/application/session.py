@@ -3,7 +3,7 @@
 from dataclasses import dataclass, replace
 
 from journeymap.application.observations import ObservationHistory, ObservationPipeline
-from journeymap.application.perception import perceive
+from journeymap.application.perception import PerceptionExtension, perceive
 from journeymap.core.controller import ControllerActionResult, GamePort, GameSubmissionError
 from journeymap.core.entities import get_entity
 from journeymap.core.handlers import (
@@ -15,6 +15,7 @@ from journeymap.core.handlers import (
 from journeymap.core.kernel import SimulationKernel
 from journeymap.core.observations import Observation
 from journeymap.modules.knowledge import KnowledgeLedger
+from journeymap.modules.knowledge.projection import KnowledgeProjection, KnowledgeProjector
 
 # Only documented actor-facing M2 codes may cross the Game boundary. Extension
 # diagnostics default to a generic status until an actor-facing contract exists.
@@ -69,6 +70,9 @@ class SimulationApplication:
         kernel: SimulationKernel,
         knowledge: KnowledgeLedger,
         pipeline: ObservationPipeline,
+        *,
+        knowledge_projector: KnowledgeProjector | None = None,
+        perception_extension: PerceptionExtension | None = None,
     ) -> None:
         if (
             knowledge.run_id != kernel.manifest.run_id
@@ -80,6 +84,8 @@ class SimulationApplication:
                 raise ValueError("knowledge owner is not a run entity")
         self._kernel = kernel
         self._knowledge = knowledge
+        self._knowledge_projector = knowledge_projector
+        self._perception_extension = perception_extension
         self._pipeline = pipeline
         self._observations = ObservationHistory(kernel.manifest.run_id)
         self._traces: list[ActionTrace] = []
@@ -102,6 +108,12 @@ class SimulationApplication:
     def observation_history(self) -> tuple[Observation, ...]:
         return self._observations.records
 
+    def knowledge_snapshot(self) -> KnowledgeLedger | KnowledgeProjection:
+        """Research/trusted read, reconstructed independently of Event delivery."""
+        if self._knowledge_projector is None:
+            return self._knowledge
+        return KnowledgeProjection(self._knowledge, self._kernel.events, self._knowledge_projector)
+
     @property
     def action_traces(self) -> tuple[ActionTrace, ...]:
         return tuple(trace.detached() for trace in self._traces)
@@ -119,7 +131,8 @@ class SimulationApplication:
                 actor_id=actor_id,
                 simulation_time=self._kernel.simulation_time,
                 world=self._kernel.state_snapshot,
-                knowledge=self._knowledge,
+                knowledge=self.knowledge_snapshot(),
+                extension=self._perception_extension,
             )
             return self._observations.generate(context, self._pipeline)
         except Exception:

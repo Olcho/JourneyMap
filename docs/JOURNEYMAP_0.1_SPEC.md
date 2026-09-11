@@ -58,7 +58,7 @@ JourneyMap 0.1은 지속되는 소규모 중세 세계에서 한 명의 실험 �
 
 ### 세계
 
-West Gate, Village Square, Inn, Bakery, Well, Smithy, East Road, East Bridge를 route로 연결한 작은 마을이다. innkeeper, baker, guard, traveler 같은 NPC가 schedule/utility/scripted 규칙으로 움직인다.
+West Gate, Village Square, Inn, Bakery, Well, Smithy, East Road, East Bridge를 route로 연결한 작은 마을이다. M4의 Stranger, Marta(innkeeper), Edwin(baker), Hugh(guard), Thomas(traveler)는 Entity와 위치 fixture다. NPC schedule/utility 행동은 M5에서 추가한다.
 
 ### 통제 사건
 
@@ -66,22 +66,23 @@ West Gate, Village Square, Inn, Bakery, Well, Smithy, East Road, East Bridge를 
 
 붕괴가 발생하면 한 원자적 engine transition 안에서:
 
-1. bridge 및 관련 route의 canonical 상태가 통행 불가로 변경된다.
+1. scenario-owned bridge condition이 `collapsed`로, movement-owned 관련 route의 `passable`이 false로 변경된다. bridge condition과 route passability는 별개 사실이다.
 2. `BridgeCollapsed` Event가 결정적 순서로 기록된다.
-3. perception 규칙을 만족한 actor에게만 perceived fact가 생성된다.
-4. knowledge module이 해당 actor의 KnowledgeRecord를 갱신한다.
-5. 멀리 있는 actor의 지식은 자동으로 바뀌지 않는다.
+3. 발생 당시 East Road/East Bridge에 있는 witness ID를 Event에 정렬해 기록한다.
 
-이후 정보가 `INFORM` 등 상호작용으로 전달되거나, 무지한 actor가 현장에 도착해 직접 발견될 수 있어야 한다. 전달된 주장은 곧바로 World Truth로 승격되지 않으며 출처와 확신도를 가진 지식으로 취급한다.
+commit 이후 knowledge module은 초기 Knowledge와 committed Event에서 직접 획득 기록을 결정적으로 재구성한다. 별도 Knowledge canonical write나 EventBus side effect는 없다. trusted perception은 현재 위치에서 보이는 bridge identity/condition만 통과시키며, Observation은 perceived fact와 actor-owned KnowledgeRecord를 별도 section으로 제공한다. 멀리 있는 actor의 지식은 자동으로 바뀌지 않는다.
+
+M4에서는 이후 현장에 도착한 actor가 직접 발견한다. `BridgeCollapsed` 이후의 `ActorMoved` 순서를 사용하며 최종 World snapshot을 과거 이동에 소급 적용하지 않는다. M5에서는 `INFORM`으로 출처가 있는 간접 지식을 전달한다. 전달된 주장은 World Truth로 승격되지 않는다. M4에는 confidence 모델이나 social transfer가 없다.
 
 ### 수직 슬라이스 수용 기준
 
 - 붕괴 전 Observation과 KnowledgeRecord에 미래 붕괴 사실이 없다.
 - 목격자와 비목격자의 붕괴 직후 지식이 다르다.
-- 비목격자는 유효한 정보 전달 후에만 간접적으로 알 수 있다.
+- M4 비목격자는 나중에 관찰 가능한 위치에 도착하면 직접 알 수 있다. M5에서는 유효한 정보 전달 후 간접적으로 알 수 있다.
 - 붕괴 route를 사용하려는 MOVE는 실패하고 canonical 상태를 부분 변경하지 않는다.
 - 모든 관련 ScheduledEvent, Observation, ActionRequest, ActionResult, Event, KnowledgeRecord의 실행·actor·시간·인과관계를 추적할 수 있다.
 - 같은 fixture, seed, ScheduledEvent 입력과 ActionRequest stream을 replay하면 state digest, handler 결과와 Event 순서가 같다.
+- M4는 실제 `observe → ScriptedController.decide → submit → next observe` 루프와 Event-only Knowledge 재구성까지 검증한다. 동일한 observe 호출 순서를 가진 fresh run의 Observation/요청/결과/Event/Knowledge도 같다.
 
 ## 7. 실행과 시간 의미
 

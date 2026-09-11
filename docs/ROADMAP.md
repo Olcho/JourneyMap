@@ -54,7 +54,7 @@ Exit: 유효·무효 이동, 시간 비용, route 폐쇄와 invalid action atomi
 
 Exit: Knowledge Leak Test와 Authority Test가 통과하고 Observation→Action 추적이 가능하다.
 
-구현 완료: 자기 identity/위치만 통과시키는 perception, ordered contributor pipeline, immutable Observation history, source-aware 초기 KnowledgeLedger, actor 고정 GamePort와 별도 ResearchView, Observation→ActionRequest→ActionResult trace를 구현했다. hidden truth/다른 actor 지식/future schedule 누출 반례, 위조 authority, contributor mutation/ordering, 기존 replay 회귀를 자동화했다. runtime Knowledge mutation은 M3 exit에 필요하지 않아 추가하지 않았다. 초기 지식은 명시적 입력만 허용하고 관찰/정보 전달 projection은 M4/M5에서 공통 mutation boundary와 함께 구현한다. 다음 범위는 M4다.
+구현 완료: 자기 identity/위치만 통과시키는 perception, ordered contributor pipeline, immutable Observation history, source-aware 초기 KnowledgeLedger, actor 고정 GamePort와 별도 ResearchView, Observation→ActionRequest→ActionResult trace를 구현했다. hidden truth/다른 actor 지식/future schedule 누출 반례, 위조 authority, contributor mutation/ordering, 기존 replay 회귀를 자동화했다. runtime Knowledge mutation은 M3 exit에 필요하지 않아 추가하지 않았다. 초기 지식은 명시적 입력만 허용한다. M4의 직접 관찰 projection은 공통 mutation boundary에서 commit된 Event로 재구성하며, 정보 전달은 M5에 남긴다.
 
 2026-09-11 adversarial audit gate 통과: WIP checkpoint에서 발견한 mutable live request identity의 기록 오염과 handler 내부 registry 오류의 오분류를 수정했다. 회귀 테스트를 포함한 전체 pytest/Ruff/format/mypy와 diff 검사를 통과한 뒤 위 M3 완료 상태를 확정했다. runtime Knowledge writer나 M4+ 기능은 추가하지 않았다.
 
@@ -64,10 +64,14 @@ Exit: Knowledge Leak Test와 Authority Test가 통과하고 Observation→Action
 
 - Alderwick 최소 지도·actor fixture
 - 숨겨진 ScheduledEvent와 System/Event Handler를 통한 East Bridge 붕괴
-- 목격 기반 지식 갱신과 route 폐쇄
-- ScriptedController 기반 end-to-end run/replay
+- bridge condition과 movement route 폐쇄 및 BridgeCollapsed Event의 원자적 전이
+- 발생 당시 witness direct Knowledge와 나중 도착의 direct discovery
+- committed Event-only Knowledge projection과 다음 actor Observation 연결
+- ScriptedController 기반 실제 GamePort end-to-end run 및 기존 engine replay
 
-Exit: [Alderwick Bridge Integration Test](TEST_STRATEGY.md#p0--alderwick-bridge-integration-test)와 replay가 통과한다.
+Exit: [Alderwick Bridge Integration Test](TEST_STRATEGY.md#p0--alderwick-bridge-integration-test)의 M4 항목과 replay가 통과한다. M5 INFORM extension은 제외한다.
+
+구현 완료: 8개 장소/14개 단방향 route/5명 actor fixture, tick 3의 숨은 collapse, East Road/East Bridge 가시성, deterministic witness/arrival Knowledge와 ScriptedController MOVE/MOVE/WAIT 루프를 연결했다. runtime Knowledge는 canonical state가 아닌 초기 기록 + committed Event의 순수 projection이며 Research와 다음 Observation에서 같은 actor history를 읽는다. 동일 tick ordering, partial mutation 방지, delivery 실패 복구, 반복 재구성, 기존 ReplayHarness와 fresh live run의 동등성을 자동화했다. 전체 gate는 기존 225개를 포함한 271개 테스트와 Ruff/format/mypy/diff 검사다. NPC 자율 행동과 social transfer는 M5 미구현 항목으로 유지한다.
 
 ## M5 Non-LLM NPC Behavior + Social Information Transfer
 

@@ -129,7 +129,7 @@ erDiagram
       string source_kind
       string source_ref
       datetime learned_at
-      float confidence
+      int schema_version
       string supersedes_id
     }
 ```
@@ -147,7 +147,7 @@ erDiagram
 - **Observation:** Controller에 실제 전달된 immutable envelope을 그대로 보존한다. actor, simulation time, ordering, schema와 digest를 포함한다.
 - **ActionRequest:** Actor/Controller가 제출한 정규화된 행동 의도만 보존한다. actor와 Observation 관계는 필수이며 ScheduledEvent나 자연 발생 World Event를 넣지 않는다. 거부된 요청도 삭제하지 않는다.
 - **ActionResult:** 정상 처리된 요청과 1:1이며 `SUCCEEDED`, `REJECTED`, `FAILED` 같은 status와 안정적 reason code를 가진다. 실패 시 해당 action의 성공 mutation은 없다. duration 동안 독립적으로 commit된 system mutation과 경과 시간은 유지한다. 예상 밖 engine 오류는 결과를 조작하지 않고 예외로 전파한다.
-- **KnowledgeRecord:** actor별 주장/사실 인식의 출처, 획득 시각, 확신도와 정정 계보를 가진다. 동일 subject에 대한 상충 지식을 허용할 수 있으며 World Truth와 FK로 동일시하지 않는다.
+- **KnowledgeRecord:** actor별 주장/사실 인식의 출처, 획득 시각과 정정 계보를 가진다. 동일 subject에 대한 상충 지식을 허용하며 World Truth와 FK로 동일시하지 않는다. M4에는 confidence 필드가 없다.
 
 LLM trial 분석에는 별도 **ControllerInvocation** 레코드를 둘 수 있다. `controller_trace_id`, model/provider, prompt version, parameters, memory policy/version, Observation ID, raw response 참조, parse status와 ActionRequest ID를 보존한다. provider 비밀값이나 인증정보는 저장하지 않는다.
 
@@ -162,7 +162,7 @@ LLM trial 분석에는 별도 **ControllerInvocation** 레코드를 둘 수 있�
 
 ## 6. 원자성·무결성
 
-- actor action과 system event는 서로 다른 handler를 사용하지만, 각 engine transition은 validation 이후 canonical mutation, 결과 provenance, Event append와 직접 유발된 Knowledge update를 공통 transaction/mutation boundary에서 commit한다.
+- actor action과 system event는 서로 다른 handler를 사용하지만, 각 engine transition은 validation 이후 canonical mutation, 결과 provenance와 Event append를 공통 transaction/mutation boundary에서 commit한다. M4 runtime Knowledge는 그 committed Event와 초기 Knowledge에서 재구성하는 별도 first-class research projection이다. Knowledge canonical write를 같은 transaction에 추가하지 않는다.
 - invalid Action은 ActionRequest와 REJECTED ActionResult만 기록하고 domain state/Event를 부분 생성하지 않는다. 감사 Event가 필요하면 domain Event와 분리된 명시적 기록 정책을 사용한다.
 - M2 시작 거부의 비교 기준은 제출 tick까지 due system event를 처리한 뒤의 상태다. 완료 조건 실패는 FAILED 결과만 추가하고 이미 경과한 시간·독립적인 system commit을 rollback하지 않는다.
 
@@ -209,6 +209,22 @@ KnowledgeLedger 생성에는 run ID, manifest start tick과 **명시적인 초�
 
 record ID는 run 내 유일하며 조회 순서는 `(learned_at, knowledge_record_id)`다. supersedes는 같은 run/actor/subject/predicate의 현재 ledger에 있는 이전 또는 동일 tick 기록을 가리켜야 한다. unknown reference, 미래 predecessor, cycle과 actor 간 계보를 거부한다. 원본을 삭제·rewrite하지 않고 상충 기록과 정정 계보를 모두 history/query에 반환한다. 자동 winner 선택은 없다. `for_actor(actor_id)`는 자기 기록만 복사한 ActorKnowledgeView를 만들며 그 view에는 actor selector나 ledger handle이 없다. 빈 query는 UNKNOWN을 뜻하고 전 세계 unknown row를 만들지 않는다.
 
-Observation과 Knowledge는 서로 다른 store다. observe/MOVE/WAIT/system event가 초기 Knowledge를 자동 수정하거나 append하지 않는다. Controller와 Research가 읽은 nested JSON을 수정해도 ledger와 저장된 trace는 바뀌지 않는다. M3에는 runtime knowledge writer가 없으며 M4/M5의 관찰/정보 전달 기반 갱신은 검증된 handler 및 공통 transaction과 함께 설계해야 한다. EventBus subscriber의 kernel 재진입 또는 Observation builder의 raw state mutation으로 우회하지 않는다.
+Observation과 Knowledge는 서로 다른 store다. observe/MOVE/WAIT/system event가 초기 Knowledge를 자동 수정하거나 append하지 않는다. Controller와 Research가 읽은 nested JSON을 수정해도 ledger와 저장된 trace는 바뀌지 않는다. M3에는 runtime knowledge writer가 없다. M4는 아래 별도 projection을 추가하며 EventBus subscriber의 kernel 재진입이나 Observation builder의 mutation을 사용하지 않는다.
 
 초기 Knowledge와 Observation/ActionTrace는 기존 kernel state digest 및 engine replay input에 포함되지 않는다. 연구자가 live Observation stream까지 재현하려면 동일한 명시적 초기 지식, pipeline 설정과 actor별 observe 호출 순서/tick도 보관해야 한다. M1/M2 engine replay는 기록된 ActionRequest만으로 충분하다. 이 milestone은 별도 영속 저장·복구 또는 resume 기능을 제공하지 않는다.
+
+## 10. M4 실제 상태와 projection provenance
+
+| 소유자 / 경로 | 값 |
+|---|---|
+| Alderwick `alderwick.east_bridge` | `{bridge_id: "east-bridge", condition: "intact" 또는 "collapsed"}` |
+| movement의 기존 route 두 개 | `east-road-to-east-bridge`, `east-bridge-to-east-road`의 passable |
+| knowledge `KnowledgeProjection` | 초기 기록 + committed Event로 재구성한 독립 history/view. World Truth/digest 밖에 존재 |
+
+KnowledgeRecord 필드는 M3와 같다. runtime direct 기록의 ID는 `<source_event_id>:alderwick-direct-v1:<projection_index:08d>`다. index는 Event 안의 정렬된 witness 순번 또는 단일 arrival의 1이며, 중복 획득을 건너뛰어도 나머지 index를 다시 매기지 않는다. `source_kind="DIRECT_OBSERVATION"`, `source_ref=<실제 획득 trigger Event ID>`, `learned_at=<그 Event tick>`, `schema_version=1`, `supersedes_id=None`이다. subject는 `east-bridge`, predicate는 `condition`, value는 `collapsed`다.
+
+witness의 source_ref는 BridgeCollapsed다. later discovery의 source_ref는 ActorMoved이며 이 Event가 도착·획득 시점을 고정한다. collapsed value의 근거는 같은 run에서 **그 ActorMoved보다 앞선 event_sequence의 BridgeCollapsed**이고, 그 payload의 bridge_id/condition과 ActorMoved destination의 가시성을 scenario v1 규칙으로 결합한다. 같은 tick이어도 sequence가 근거다. source_ref가 이동 Event라는 이유로 그 payload만이 value의 모든 근거라는 의미는 아니다. 이 관계는 전체 Event 이력에서 조회하며 KnowledgeRecord에 별도 causal graph 필드를 추가하지 않았다.
+
+runtime 직접 획득은 actor별 같은 bridge/condition에 한 번만 만든다. 재방문·반복 읽기·동일 log 재구성은 추가 기록을 만들지 않는다. 초기 주장과 runtime 사실은 자동 병합하거나 supersede하지 않으며 기존 상충 history를 보존한다. 전체 log는 단일 run, 1부터 연속 sequence, 유일 Event ID와 비역행 tick이어야 한다. 중복/누락/뒤집힌 log 또는 provenance가 잘못된 projection 결과는 partial view 대신 오류다. 동일 정상 log를 여러 번 재구성하는 것은 허용한다.
+
+Event/Knowledge는 계속 in-memory다. EventBus delivery 실패 후의 재구성은 살아 있는 committed log를 사용하는 복구이며 프로세스 재시작용 영속 저장이나 resume 기능은 아니다.

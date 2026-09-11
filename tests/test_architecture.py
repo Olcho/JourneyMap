@@ -13,6 +13,8 @@ FORBIDDEN_CORE_IMPORTS = {
     "journeymap.application",
     "journeymap.bootstrap",
     "journeymap.modules",
+    "journeymap.scenarios",
+    "journeymap.examples",
     "openai",
     "random",
     "secrets",
@@ -126,5 +128,31 @@ def test_knowledge_has_no_world_engine_movement_or_infrastructure_dependency() -
                 "journeymap.core.canonical",
                 "journeymap.core.observations",
                 "journeymap.core.modules",
+                "journeymap.core.events",
                 "journeymap.modules.knowledge.records",
             }, f"{path}: {imported}"
+
+
+def test_scripted_controller_and_bridge_contributor_have_only_safe_contract_imports() -> None:
+    allowed = {
+        "journeymap.core.canonical",
+        "journeymap.core.handlers",
+        "journeymap.core.observations",
+    }
+    root = REPOSITORY_ROOT / "src" / "journeymap"
+    for relative in ("adapters/scripted.py", "scenarios/alderwick/contributors.py"):
+        assert imported_names(root / relative) <= allowed
+
+
+def test_scenario_has_no_kernel_research_adapter_or_bootstrap_dependency() -> None:
+    import sys
+
+    root = REPOSITORY_ROOT / "src" / "journeymap" / "scenarios"
+    for path in sorted(root.rglob("*.py")):
+        for imported in imported_names(path):
+            assert imported.split(".")[0] in sys.stdlib_module_names or (
+                imported.startswith(
+                    ("journeymap.scenarios.", "journeymap.modules.", "journeymap.core.")
+                )
+                and imported != "journeymap.core.kernel"
+            ), f"{path}: {imported}"

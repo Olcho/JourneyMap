@@ -6,6 +6,7 @@ from pathlib import Path
 from journeymap import __version__
 from journeymap.adapters.sqlite import SQLitePersistence
 from journeymap.application.observations import ObservationPipeline, contribute_self
+from journeymap.application.perception import PerceptionExtension
 from journeymap.application.research import ResearchView
 from journeymap.application.session import SimulationApplication
 from journeymap.core.canonical import JsonValue, clone_json_object, state_digest
@@ -15,7 +16,81 @@ from journeymap.core.kernel import SimulationKernel
 from journeymap.core.modules import Module, ModuleRegistry
 from journeymap.core.run import RunManifest
 from journeymap.modules.knowledge import KnowledgeLedger, KnowledgeRecord, contribute_knowledge
+from journeymap.modules.knowledge.projection import KnowledgeProjector
 from journeymap.modules.movement.perception import contribute_position
+
+
+def create_alderwick_kernel(
+    *,
+    run_id: str = "run-alderwick",
+    seed: int = 42,
+    event_bus: EventBus | None = None,
+) -> SimulationKernel:
+    """Unbooted scenario v1 kernel, also the unchanged ReplayHarness factory.
+
+    Schedule installation remains explicit so replay never enqueues it twice.
+    """
+    from journeymap.core.actions import WaitHandler
+    from journeymap.modules.knowledge import KnowledgeModule
+    from journeymap.modules.movement import MovementModule
+    from journeymap.scenarios.alderwick import AlderwickModule
+    from journeymap.scenarios.alderwick.fixture import initial_world
+
+    state = initial_world()
+    movement, alderwick = MovementModule(), AlderwickModule()
+    actions, systems = ActionRegistry(), SystemEventRegistry()
+    movement.register_actions(actions)
+    actions.register("WAIT", 1, WaitHandler())
+    alderwick.register_system_events(systems)
+    return create_kernel(
+        modules=(movement, KnowledgeModule(), alderwick),
+        initial_state=state,
+        manifest=RunManifest(
+            run_id, "alderwick", "1", __version__, 1, seed, 0, state_digest(state)
+        ),
+        action_registry=actions,
+        system_event_registry=systems,
+        event_bus=event_bus,
+    )
+
+
+def create_alderwick_application(
+    kernel: SimulationKernel,
+) -> tuple[SimulationApplication, ResearchView]:
+    """Explicit trusted composition; generic M3 composition remains unchanged."""
+    from journeymap.scenarios.alderwick.bridge import perceive_bridge
+    from journeymap.scenarios.alderwick.contributors import contribute_bridge
+    from journeymap.scenarios.alderwick.fixture import initial_knowledge
+    from journeymap.scenarios.alderwick.knowledge import project_bridge_knowledge
+
+    if (kernel.manifest.scenario_id, kernel.manifest.scenario_version) != ("alderwick", "1"):
+        raise ValueError("Alderwick application requires scenario v1")
+    pipeline = ObservationPipeline()
+    pipeline.register(
+        priority=0, module_id="core", contributor_id="self", contributor=contribute_self
+    )
+    pipeline.register(
+        priority=10,
+        module_id="movement",
+        contributor_id="position",
+        contributor=contribute_position,
+    )
+    pipeline.register(
+        priority=15, module_id="alderwick", contributor_id="bridge", contributor=contribute_bridge
+    )
+    pipeline.register(
+        priority=20,
+        module_id="knowledge",
+        contributor_id="records",
+        contributor=contribute_knowledge,
+    )
+    return create_application(
+        kernel,
+        initial_knowledge=initial_knowledge(kernel.manifest.run_id),
+        pipeline=pipeline,
+        knowledge_projector=project_bridge_knowledge,
+        perception_extension=perceive_bridge,
+    )
 
 
 def create_kernel(
@@ -61,6 +136,8 @@ def create_application(
     *,
     initial_knowledge: Iterable[KnowledgeRecord] = (),
     pipeline: ObservationPipeline | None = None,
+    knowledge_projector: KnowledgeProjector | None = None,
+    perception_extension: PerceptionExtension | None = None,
 ) -> tuple[SimulationApplication, ResearchView]:
     """Compose once per run; give Controllers only application.game_for(actor).
 
@@ -87,5 +164,11 @@ def create_application(
             contributor_id="records",
             contributor=contribute_knowledge,
         )
-    application = SimulationApplication(kernel, knowledge, pipeline)
+    application = SimulationApplication(
+        kernel,
+        knowledge,
+        pipeline,
+        knowledge_projector=knowledge_projector,
+        perception_extension=perception_extension,
+    )
     return application, ResearchView(kernel, application, knowledge)

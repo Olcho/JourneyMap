@@ -39,7 +39,9 @@ World progresses
 
 ## 현재 상태
 
-M3 Perception + Knowledge 구현과 adversarial audit gate를 통과했다. M2의 MOVE/WAIT와 deterministic kernel 위에 actor별 perception, immutable Observation history, source-aware 초기 Knowledge ledger와 별도의 Game/Research port를 추가했다. Game 경로는 실제 Observation의 run/actor 권한을 검증하고 Observation → ActionRequest → ActionResult 관계를 기록한다. 기존 kernel replay는 Observation stream 없이 계속 실행된다. 다음 범위는 M4이며 Alderwick 시나리오, ScriptedController와 runtime 지식 갱신은 아직 없다.
+M4 Alderwick Bridge Vertical Slice + ScriptedController를 구현했다. 8개 장소와 5명의 actor, 숨은 bridge 붕괴, 원자적 bridge/route 변경, 목격·나중 도착에 따른 runtime Knowledge projection을 연결했다. Knowledge는 초기 기록과 committed Event 이력에서 재구성하며 다음 actor Observation의 known section에 반영된다. ScriptedController는 Observation만 읽고 실제 GamePort를 통해 MOVE/MOVE/WAIT를 제출한다. 기존 ActionRequest-only engine replay는 그대로 유지한다. INFORM/ASK/REQUEST, 간접 지식 전달과 NPC 자율 행동은 다음 M5 범위다.
+
+실행 예제: `python -m journeymap.examples.alderwick`. tick 3에 붕괴하고 Stranger는 tick 4에 East Road에 도착해 직접 발견한다. 상세 계약은 [API의 M4 절](docs/API.md#10-m4-구현-계약), 검증 범위는 [테스트 전략](docs/TEST_STRATEGY.md)을 따른다.
 
 M2 composition은 `MovementModule.register_actions(action_registry)`로 MOVE를, `action_registry.register("WAIT", 1, WaitHandler())`로 WAIT를 명시적으로 등록한다. 초기 canonical state는 `{"entities": entity_state(...), "movement": movement_state(...)}`로 구성하고 module·registry·state를 `create_kernel`에 전달한다. payload와 시간 계약은 [API의 M2 절](docs/API.md#8-m2-구현-계약)을 따른다.
 
