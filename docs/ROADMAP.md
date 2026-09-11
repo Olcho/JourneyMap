@@ -115,6 +115,12 @@ M6 exit gate 통과: 기존 383개 테스트를 삭제·완화하지 않은 **54
 
 Exit: Scripted/Human test adapter가 같은 계약 suite를 통과하고 잘못된 출력은 no-mutation으로 처리된다.
 
+구현 완료: MOVE/WAIT/ASK/INFORM/REQUEST/REST/CONSUME/BUY strict v1, exact type/version compatibility, actor-visible reason/receipt를 동결했다. observe는 read operation이고 TALK/OBSERVE handler는 없다. application-owned cache가 same-ID exact retries의 receipt를 반환하며 changed request는 REQUEST_ID_CONFLICT로 차단한다. past Observation 허용/current tick 검증은 보존했다. action delivery 오류의 committed result 복구, result 없는 kernel 오류의 indeterminate ID 소진, 확실한 pre-kernel read 실패의 기존 recoverable retry를 구분한다.
+
+Observation v1은 stable section identity, deterministic ordering과 canonical UTF-8 65,536-byte budget을 사용한다. 초과 시 fail-closed하며 sequence/history를 소비하지 않고 Knowledge/social 원본을 삭제·요약·절단하지 않는다. 정보 경계는 trusted perception이며 BUY의 private seller diagnostic만 receipt에서 가린다. HumanController, 단일 trusted turn helper, Provider/MemoryPolicy Protocol과 NoMemory, Scripted/Human/SocialNpc 공통 conformance를 추가했다.
+
+M7 최종 gate: 기존 543개 연구/안전 회귀를 유지한 **656 passed (신규 113)**, Python 3.12.10, Ruff `All checks passed!`, format `105 files already formatted`, mypy `Success: no issues found in 96 source files`, working/base diff 검사 통과. pre-M7 repeated-ID fixture의 최소 전환과 보존 invariant는 [테스트 전략](TEST_STRATEGY.md#9-m7-contract-gate와-pre-m7-policy-전환)에 기록했다. kernel/ReplayInput/World schema와 runtime dependencies는 변경하지 않았다. M7 exit criteria를 충족하며 실제 Provider 호출·LLMController·24h 실험·persistence/resume는 포함하지 않는다.
+
 ## M8 LLM Adapter + First 24-hour Experiment
 
 목표: 검증된 엔진에 단일 LLMController를 연결하고 첫 연구 실행.
@@ -122,7 +128,8 @@ Exit: Scripted/Human test adapter가 같은 계약 suite를 통과하고 잘못�
 - 한 Provider adapter와 constrained parsing
 - prompt/model/parameters/raw output/ActionRequest 기록
 - 우선 NoMemory, 필요 시 최소 recent memory 조건
-- 24 simulation-hour protocol, metrics와 export
+- 24 simulation-hour protocol, tick-to-hour/activation 정의, metrics와 export
+- full-log projection/Research history 메모리와 65,536-byte Observation 상한에서 실제 24h 활동량·overflow 처리 검증
 
 Exit: LLM 없이 engine replay가 가능하고, 복수 LLM trial을 통계적으로 비교할 완전한 기록이 생성된다.
 

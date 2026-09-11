@@ -324,6 +324,7 @@ def test_controller_has_no_hidden_capability_and_uses_observation_content(
     assert app.game_for("stranger").submit(forged).reason_code == "WRONG_ACTOR"
     system = replace(
         controller.decide(observation),
+        action_request_id="system-forgery",
         action_type="CollapseEastBridge",
         payload={"bridge_id": "east-bridge"},
     )

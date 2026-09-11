@@ -16,7 +16,9 @@
 
 Location/Route, actor position, inventory 등 domain canonical state는 소유 Module만 변경한다. 범용 Entity row에 모든 상태를 넣지 않는다.
 
-## 2. 논리 ERD
+## 2. 논리 ERD (영속화 설계 예시)
+
+이 도식은 향후 영속화 관계를 설명하는 개념 모델이며 현재 Python envelope의 serialization schema가 아니다. 현재 구현의 정확한 기록은 9–13절과 [API](API.md)를 따른다. datetime/display_name/action_result_id 등 도식상의 예시 필드를 실제 Game API로 해석하지 않는다.
 
 ```mermaid
 erDiagram
@@ -25,7 +27,7 @@ erDiagram
     SIMULATION_RUN ||--o{ EVENT : records
     SIMULATION_RUN ||--o{ OBSERVATION : emits
     SIMULATION_RUN ||--o{ ACTION_REQUEST : receives
-    ACTION_REQUEST ||--|| ACTION_RESULT : resolves_to
+    ACTION_REQUEST ||--o| ACTION_RESULT : may_resolve_to
     OBSERVATION ||--o{ ACTION_REQUEST : prompts
     ACTION_REQUEST ||--o{ EVENT : causes
     SCHEDULED_EVENT ||--o{ EVENT : causes
@@ -203,7 +205,7 @@ M3는 SQLite table을 추가하지 않는다. World Truth는 계속 kernel canon
 |---|---|
 | Observation / Core envelope, application history | `observation_id, run_id, actor_id, observation_sequence, simulation_time, schema_version, content_digest`; immutable canonical content. 성공 generation 때만 run-local sequence를 소비하고 append |
 | KnowledgeRecord / knowledge module | `knowledge_record_id, run_id, actor_id, subject_ref, predicate, value, source_kind, source_ref, learned_at, supersedes_id?, schema_version` |
-| ActionTrace / application | `attempt_sequence, request: ActionRequest, result: ActionResult?, controller_result?, boundary_reason?, error_type?`. live 요청 시도와 대응 결과를 연결 |
+| ActionTrace / application | `attempt_sequence, request: ActionRequest, result: ActionResult?, controller_result?, boundary_reason?, error_type?, engine_submitted, retry_of_attempt?`. live 요청 시도와 대응 결과를 연결 |
 
 KnowledgeLedger 생성에는 run ID, manifest start tick과 **명시적인 초기 기록**만 제공한다. stable record ID와 source kind/ref는 시나리오 작성자가 제공하는 문자열이며 UUID/자동 truth seed를 만들지 않는다. learned_at은 시작 tick 이하이고 source는 빈 문자열일 수 없다. subject_ref/value는 World Truth FK나 pointer가 아니며 존재하지 않는 대상에 관한 주장도 표현할 수 있다. 별도 confidence 필드나 자동 확신도 조정은 없다.
 
@@ -284,3 +286,25 @@ Wallet dataclass의 actor_id는 canonical wallets map key이고 Offer의 offer_i
 BUY는 `{inventory, trade}` 후보와 ItemPurchased를, CONSUME는 `{inventory, survival}` 후보와 ItemConsumed를 각각 한 transition에 커밋한다. BUY의 수량/통화는 양쪽 합계를 보존한다. CONSUME의 world item total 감소는 성공 Event quantity와 같아야 한다. REST/SurvivalTick은 item/currency의 source/sink가 아니다. Event payload와 reason/time 계약은 [API M6 절](API.md#12-m6-구현-계약)에 있다.
 
 ActionTrace의 request → based_on_observation_id와 ActionResult → transition → emitted Event ID로 actor provenance를 연결한다. SurvivalAdvanced는 ActionRequest 없이 ScheduledEvent source_ref로 연결한다. Event log와 future schedule은 resource state digest에 포함되지 않고 ReplayReport에서 별도로 비교한다. replay는 초기 resource world와 `alderwick/resources-1` schedule 및 기존 ActionRequest stream만 요구한다. M4/M5 Knowledge는 기존 별도 projection으로 유지한다.
+
+## 13. M7 application-owned identity / research records
+
+M7은 canonical world schema, SQLite table, ReplayInput schema를 추가하지 않는다. live idempotency map은 하나의 SimulationApplication에 소속되고 실행 중에만 존재한다. key는 action_request_id, 내부 entry는 bound actor_id, canonical 전체 request fingerprint, 최초 attempt_sequence, 확정 receipt 또는 sanitized error code다. Controller에게 이 map/fingerprint/query를 공개하지 않으며 TTL·영속 복구·distributed exactly-once는 없다.
+
+| 실제 기록 | 필드 / 소유권 |
+|---|---|
+| ActionRequest | `action_request_id, run_id, actor_id, based_on_observation_id, submitted_at, action_type, schema_version, payload, correlation_id` / 기존 Core envelope, live copy는 application |
+| ControllerActionResult | `action_request_id, run_id, actor_id, status, reason_code, started_at, resolved_at, schema_version` / actor-visible immutable receipt |
+| ActionTrace | `attempt_sequence, request, result?, controller_result?, boundary_reason?, error_type?, engine_submitted=False, retry_of_attempt=None` / application live attempt history |
+| ControllerTurnResult | `observation?, request?, receipt?, failure_code?` / trusted turn caller가 보관하는 sanitized record; 자동 DB/history 저장 없음 |
+| Observation | `observation_id, run_id, actor_id, observation_sequence, simulation_time, schema_version, content_digest, content` / immutable application history |
+| ProviderRequest / RawModelResponse | versioned prompt/model config / raw text+metadata, adapter data only; actor/world record 아님 |
+| MemoryContext | `current: Observation, prior: tuple[Observation,...]` / 같은 actor/run의 이미 전달된 context, canonical world 밖 |
+
+request ID는 최종 live identity, attempt_sequence는 각 normalized 제출의 연구 identity다. 1개의 ID에 exact retries와 conflicting attempts가 여러 개 생길 수 있지만 engine 실행은 중복하지 않는다. retry trace는 result=None, 원 receipt, retry_of_attempt를 갖는다. conflict trace는 원 request 내용을 노출하지 않는 새 거부 receipt만 갖는다. boundary-denied trace에도 kernel result는 없다. malformed/non-normalizable 출력은 ActionTrace 대신 turn helper의 sanitized 실패 record로 관찰할 수 있다.
+
+최초 action delivery failure는 성공 kernel result와 error_type을 trace에 보존하고 actor receipt는 None이다. exact retry의 receipt는 이 결과에서 복구하되 새 ActionResult/Event를 추가하지 않는다. kernel 진입 후 result 없는 오류는 indeterminate다. kernel 진입 전 projection/read failure만 recoverable하며 그 attempt는 engine_submitted=False로 남는다. 서로 다른 attempt의 결과를 request ID 검색으로 합치지 않는다.
+
+state digest는 이 모든 application/cache/Observation/Knowledge/turn 기록을 포함하지 않는다. replay는 resolved 원 engine ActionRequest만 사용하며 retries/conflicts를 input에 중복하지 않는다. interrupted call을 포함한 Research history와 완전한 engine replay stream은 동일 개념이 아니다.
+
+Observation content budget은 65,536 canonical UTF-8 bytes이며 초과 시 record를 저장하지 않는다. Knowledge/social/Research 원본 이력은 삭제하지 않는다. 따라서 first-class history와 cache의 메모리 사용은 실행에 따라 증가한다. M8의 export/24h capacity 설계가 필요하며 새로운 persistence/resume 구현이 완료된 것으로 보지 않는다.

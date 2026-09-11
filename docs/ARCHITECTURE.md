@@ -21,10 +21,9 @@ Adapters / Composition Root
   └─ ModuleRegistry composition
                 │
 Application / Simulation Orchestration
-  ├─ run lifecycle and turn loop
+  ├─ live authority, idempotency and one-turn helper
   ├─ perception → observation pipeline
-  ├─ action dispatch / system-event dispatch
-  └─ shared transition → recording
+  └─ live attempt / Controller failure records
                 │
 Core Kernel                         Domain Modules
   identity, clock, RNG, scheduler   movement, knowledge, social,
@@ -56,7 +55,7 @@ Core는 hunger, money, weather, combat, 상품, bridge 같은 도메인 타입�
 
 각 Module은 자신의 상태 schema, command/action handler, event 구독, perception 규칙 또는 observation contributor, invariants와 migration을 소유한다.
 
-0.1 후보:
+0.1 구현 Module:
 
 - **movement:** Location, Route, 위치 component, 이동 가능성·소요 시간
 - **knowledge:** actor별 KnowledgeRecord, 출처·획득 시각·정정 계보. M4는 confidence 모델을 추가하지 않는다.
@@ -71,7 +70,7 @@ Core는 hunger, money, weather, combat, 상품, bridge 같은 도메인 타입�
 
 - dependency는 `ModuleRegistry` metadata에 선언하고 시작 시 누락·순환을 검증한다.
 - 0.1 기본 방향은 `trade → inventory`, `social → knowledge`, `survival → inventory`다.
-- movement에서 나온 위치/이동 event를 knowledge가 구독할 수 있지만, movement는 knowledge를 알 필요가 없다.
+- scenario-owned projector가 committed movement Event를 읽어 Knowledge를 재구성한다. movement는 knowledge를 import하지 않는다.
 - 양방향 호출이 필요해 보이면 더 작은 중립 계약이나 event로 분리한다.
 
 ## 5. 상태와 정보 흐름
@@ -208,7 +207,7 @@ Perception은 현재 snapshot에서 actor의 존재와 identity를 확인하고 
 
 Contributor 입력은 `PerceptionContext(run_id, actor_id, simulation_time, perceived, known)`이다. 기본 `perceived`는 `self: {entity_id, entity_type}`, `movement: {location_id}`이며 position이 없으면 movement는 빈 object다. `known`은 해당 actor의 명시적 기존 KnowledgeRecord JSON 목록인 `{records: [...]}`다. 이 context에는 raw world/module record, store/query handle, scheduler, future event, RNG/seed, Event log, 다른 actor 지식, Research capability가 없다. 신뢰된 초기 지식 작성자는 actor에게 허용된 주장과 source만 제공해야 한다.
 
-`ObservationPipeline.register`는 `(priority, module_id, contributor_id)`를 완전 정렬 key로 사용하고 중복 key를 거부한다. contributor는 매번 분리된 context만 받아 JSON section을 반환한다. 등록 목록 snapshot을 정렬해 순서대로 실행하고, 출력도 즉시 canonical 검증·복사한다. context나 다른 출력의 mutation alias가 없으며 실패하면 record와 sequence를 소비하지 않는다. contributor는 trusted formatter이며 추론 엔진이 아니다. 외부 secret이나 서비스 handle을 closure로 주입하지 않는 것은 composition의 책임이다.
+`ObservationPipeline.register`는 `(priority, module_id, contributor_id)`를 완전 정렬 key로 사용한다. M7은 공개 `(module_id, contributor_id)` identity 중복도 priority와 무관하게 거부한다. contributor는 매번 분리된 context만 받아 JSON section을 반환한다. 등록 목록 snapshot을 정렬해 순서대로 실행하고, 출력도 즉시 canonical 검증·복사한다. context나 다른 출력의 mutation alias가 없으며 실패하면 record와 sequence를 소비하지 않는다. contributor는 trusted formatter이며 추론 엔진이 아니다. 외부 secret이나 서비스 handle을 closure로 주입하지 않는 것은 composition의 책임이다.
 
 ObservationHistory는 run별 성공한 generation 순서대로 append한다. envelope은 frozen이며 content는 내부 canonical JSON 문자열로 보관하고 매 조회에 새 JSON 값을 반환한다. contributor가 받은 임시 context의 nested container는 수정 가능하지만 이후 contributor/Observation에 영향을 주지 않는다. record/sequence는 kernel canonical state, RNG, scheduler 및 transition/event sequence와 독립적이다.
 
@@ -264,4 +263,22 @@ SurvivalTick v1 handler는 빈 payload의 system input을 받아 모든 survival
 
 trusted scenario `perceive_resources`는 각 resource module의 scoped query와 기존 bridge perception을 조합한다. inventory/survival/trade raw tables나 효과 설정을 contributor에 전달하지 않는다. `resource_contributors.py`는 Core JSON/PerceptionContext만 import하고, safe context를 세 개의 `(40, module_id, resources)` section으로 조립한다. offer는 공개 listing이며 seller의 정확한 stock이나 private wallet을 공개한다는 의미가 아니다. malformed private wallet/stock/effect 설정도 그 필드를 읽지 않는 다른 actor의 Observation을 바꾸지 않는다.
 
-bootstrap의 `resources=True`만 fixture, 세 모듈, handler, perception을 연결한다. manifest/schedule은 `alderwick/resources-1`로 기존 `alderwick/1`과 구분한다. schedule 설치는 호출자 책임이며 ReplayHarness는 등록을 중복하지 않는다. generic create_application은 자동 resource section을 추가하지 않는다. social opt-in을 함께 사용할 수 있으며 M4 direct/M5 informed projection과 Game authority 경계를 유지한다. M6 action reason allowlist만 application.session에 추가한다.
+bootstrap의 `resources=True`만 fixture, 세 모듈, handler, perception을 연결한다. manifest/schedule은 `alderwick/resources-1`로 기존 `alderwick/1`과 구분한다. schedule 설치는 호출자 책임이며 ReplayHarness는 등록을 중복하지 않는다. generic create_application은 자동 resource section을 추가하지 않는다. social opt-in을 함께 사용할 수 있으며 M4 direct/M5 informed projection과 Game authority 경계를 유지한다. M6가 추가한 action reason은 M7에서 application.reasons의 명시적 allowlist로 이동했다.
+
+## 17. M7 live contract boundary
+
+`application.contracts`는 기존 module-owned payload parser를 명시적으로 조합하는 작은 v1 preflight map이다. WAIT/MOVE/REST/CONSUME/BUY의 검증 함수를 분리했지만 handler의 validation 순서·timing·resolve·TransitionPlan은 유지한다. generic schema framework, 중앙 action resolver, Core의 domain 개념을 추가하지 않았다. domain handler는 계속 ActionRegistry에서 확장한다.
+
+`SimulationApplication._submit`은 normalize → ID lookup/reservation → live authority → kernel 전달을 수행한다. cache는 application/run 메모리이며 모든 actor port가 공유한다. identity는 전체 canonical envelope와 실제 bound actor다. exact retry는 원 receipt/오류를 반환하고 conflict는 원 기록을 교체하지 않는다. 생성/종료/동시 접근은 기존 단일 동기 Python composition 규칙을 따른다. application은 run당 한 번만 생성하며 cache를 다른 application 또는 프로세스 복구 수단으로 사용하지 않는다.
+
+실행 직전 kernel.action_results 길이로 그 호출의 결과만 추적한다. action commit 후 EventDeliveryError는 성공 result를 cache receipt로 변환하고 최초 caller에는 기존 ENGINE_ERROR를 유지한다. system commit만 있거나 시작/resolve에서 오류가 나 result가 없으면 ID를 consumed/indeterminate로 유지한다. exact retry가 clock/RNG/scheduler/transition/Event를 재소비하지 않는다. kernel 진입 전 KNOWLEDGE_UNAVAILABLE이고 trace.engine_submitted=False이면 예약을 해제하여 기존 M5 읽기 복구를 허용한다. 예외 메시지나 old result를 근거로 가짜 성공을 만들지 않는다.
+
+`application.reasons`는 exported frozenset들로 public vocabulary를 정의한다. BUY의 shared inventory/wallet 검증에서 private seller table 존재/형태를 드러낼 수 있는 다섯 diagnostic은 actor receipt에서 ACTION_REJECTED/ACTION_FAILED로 가린다. domain validation, 거래 조건, Research ActionResult에는 변경이 없다. capability 경계는 계속 perception의 positive allowlist이며 diagnostic sanitization은 보조 경계다.
+
+ObservationPipeline은 whole-content canonical UTF-8 byte size를 검사한 뒤 ObservationHistory에 넘긴다. 기본 65,536 bytes, overflow fail-closed, no truncation/no history deletion이다. 이는 출력 byte 제한으로, 큰 contributor/전체 projection 계산의 CPU·메모리 제한은 아니다. priority는 내부 정렬 값이고 공개 identity는 module/contributor pair다. v1 reader는 unknown version·추가 envelope field·잘못된 section identity를 거부하며 domain content 의미는 trusted contributor가 소유한다.
+
+`application.turns.run_controller_turn`은 GamePort와 Controller를 trusted caller로부터 받아 Observation 하나만 Controller.decide에 전달한다. output type/normalization/binding/v1 payload를 검증한 뒤 submit한다. 실패 결과는 caller가 저장할 ControllerTurnResult이며 새 canonical state/DB schema가 아니다. submit 이전 실패는 no-engine-mutation, submit 오류는 이미 commit되었을 수 있는 SUBMISSION_ERROR로 구분한다. 일반 agent loop나 자동 fallback/retry는 없다.
+
+`adapters.human`은 decision source만 보관한다. `adapters.provider`와 `adapters.memory`는 safe data envelope/Protocol만 정의하고 NoMemory를 제공한다. Provider는 versioned prompt/model config만, Memory는 같은 actor에게 이미 전달한 ordered prior Observations만 다룬다. M8의 LLMController가 이 Protocol과 parser를 사용할 예정이며 Core/Module은 adapters/provider/memory/SDK를 import하지 않는다. injected callable/record의 합법적인 출처는 composition 책임이며 Python sandbox를 주장하지 않는다.
+
+ActionTrace에 engine_submitted/retry_of_attempt를 추가해 normalized live attempts와 engine inputs를 구분한다. retries/conflicts는 새 kernel result가 없고 Research에서 원 attempt에 연결된다. 기존 ReplayInput/Report, kernel, EventBus, scheduler, RNG와 state schema는 변경하지 않았다. interrupted engine call이 있는 run에 완전한 replay/resume 보장을 추가하지 않는다. 자세한 receipt·오류·replay 정책은 [API 13절](API.md#13-m7-최종-compatibility--retry--observation--controller-계약)을 따른다.

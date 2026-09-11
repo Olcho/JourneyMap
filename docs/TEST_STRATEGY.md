@@ -35,8 +35,8 @@ JourneyMap의 최우선 품질은 기능 수가 아니라 정보·권한 경계,
 
 ### P0 — Invalid Action Atomicity
 
-- route 불통, 자원 부족, stale Observation, 잘못된 payload 등 각 실패 지점에서 action을 실행한다.
-- ActionRequest와 REJECTED ActionResult 외 canonical domain state와 domain Event가 전혀 변하지 않음을 transaction 전후 digest로 검사한다.
+- route 불통, 자원 부족, 과거 Observation의 belief와 현재 truth 불일치, 잘못된 payload 등 각 실패 지점에서 action을 실행한다. 과거 Observation 자체를 만료로 거부하지 않는다.
+- 시작 거부는 제출 tick까지의 독립 system 진행 이후를 기준으로 action mutation이 없음을 검사한다. 완료 FAILED는 elapsed time/system commit을 유지하고 action 성공 mutation은 없어야 한다. Controller preflight 실패는 kernel 진입 자체가 없음을 검사한다.
 
 ### P0 — Module Dependency Validation
 
@@ -115,7 +115,7 @@ Property 예: 음수 inventory 불가, 실패한 transfer의 양쪽 balance 불�
 - **M4:** 위 Alderwick Bridge Integration의 직접 관찰/Controller/engine replay/Knowledge reconstruction 항목 전체. M5 INFORM extension 제외
 - **M5:** social v1 schema/range/time, live claim authority, target-scoped perception, NPC ASK→INFORM, source chain/conflict, failure recovery, Event-prefix reconstruction과 replay
 - **M6:** 생존·inventory·trade와 자원 보존/cross-module 원자성
-- **M7:** versioned contract/conformance suite
+- **M7:** strict v1 contract/conformance, live idempotency/error retry, Observation 65,536-byte budget/order/redaction, malformed output no-mutation, Provider/Memory dependency boundary
 - **M8:** 엔진 gate 전부 + LLM 기록 완전성 + 24시간 smoke experiment
 
 M2 자동화는 `tests/test_movement.py`, `tests/test_timed_actions.py`, `tests/test_architecture.py`에 있다. 폐쇄는 test-only system handler로 표현하며 Alderwick/bridge 시나리오는 만들지 않는다. 원자성은 제출 tick까지 독립적인 세계 진행 이후 action 시작 상태를 기준으로 검사한다. 완료 tick에서 폐쇄/재개, 유효한 비용 변경, endpoint 변경, actor/position/location 변경도 검증한다.
@@ -162,3 +162,37 @@ BUY는 item/currency 양쪽 합계 보존을 검사한다. CONSUME는 item total
 M0–M5의 기존 383개 테스트는 삭제·완화 없이 유지한다. `.venv`의 Python version, Ruff check, Ruff format --check, strict mypy, 전체 pytest 및 git diff --check가 모두 통과해야 M6 exit를 확정한다. 이 gate는 finite 20-tick scenario와 minimum resource contract를 검증하며 장기 simulation, generic economy/effects, persistence resume 또는 M7 최종 idempotency/compatibility를 구현한 것으로 보지 않는다.
 
 M6 종료 gate: **543 passed**(기존 383 + resource 127/integration 9/failures 19/architecture 5), Python 3.12.10, Ruff `All checks passed!`, format `95 files already formatted`, strict mypy `Success: no issues found in 86 source files`, diff 검사 성공. 기존 테스트 파일은 변경하지 않았다.
+
+## 9. M7 contract gate와 pre-M7 policy 전환
+
+기존 543개 테스트는 삭제하지 않았다. 연구/안전 invariant 보존은 기존 assertion을 무조건 복제하는 의미가 아니다. M7이 명시적으로 대체하는 repeated-ID 실행 정책과 불완전한 Observation fixture만 아래처럼 최소 수정하고 별도 adversarial tests로 새 계약을 강화했다.
+
+| 기존 테스트 | 유지한 invariant | 최소 전환 |
+|---|---|---|
+| test_trace_request_payloads_are_detached_and_observation_reuse_is_not_expiry_policy | request/trace payload 격리, 과거 Observation 재사용, attempt sequence | 두 번째 실제 행동은 새 ID; repeated-ID 재실행 comment 제거 |
+| test_system_delivery_failure_does_not_attach_a_prior_action_result (이전 이름에 same_id 포함) | interrupted attempt에 이전 결과 오연결 금지, system commit 보존, 다음 행동 복구 | 두 번째/세 번째 실제 행동에 서로 다른 ID, 이름·ID 비교만 변경 |
+| test_late_contributor_failure_preserves_world_history_and_interleaved_sequences | Observation 오류 원자성, actor별 성공 sequence, 권한 거부, due-now 무진행 | denial 이후 정상 행동은 새 ID |
+| test_live_future_submission_cannot_advance_time_even_when_domain_would_reject | future tick 권한 거부, trusted kernel의 system-first 의미, 과거 Observation 정상 재사용 | 정상 current-tick 후속 행동은 새 ID |
+| test_controller_has_no_hidden_capability_and_uses_observation_content | Controller capability 제한, 보이는 bridge만으로 결정, 위조 actor/system 권한 거부 | 기존 bridge section 내용만 변경해 v1 identity 유지; 별개 system 위조에 새 ID |
+| test_all_ordering_key_parts_are_stable_across_registration_permutations | 정렬 key 세 요소 및 24개 등록 순열의 동일 결과 | priority만 다른 중복 visible identity 대신 고유 contributor ID 사용 |
+
+supersede된 정책은 동일 ID를 서로 다른 정상 실행에 재사용하던 pre-M7 live 정책, 서로 다른 priority로 같은 visible contributor identity를 등록하던 정책, Controller가 identity 없는 수제 section을 해석하던 fixture다. past Observation/current submitted_at, M2 REJECTED/FAILED, M4 bridge Knowledge, M5 INFORM provenance/projection 읽기 복구, M6 원자성·자원 보존은 그대로다. BUY public diagnostic masking은 표시 경계 변경이며 kernel reason/도메인 판정 순서를 변경하지 않는다.
+
+신규 자동화:
+
+- `tests/test_m7_idempotency.py`: SUCCEEDED/REJECTED/FAILED exact retry, 모든 normalized envelope 필드 변경 conflict, 다른 actor port·독립 run scope, canonical key order와 payload alias, 확정 boundary denial, action/system delivery 오류 및 시작/resolve 예외. clock/state/digest/전체 RNG/transition sequence/Events/pending scheduler/system outcomes/action_results를 비교한다. BUY/CONSUME/REST delivery retry도 정상 control kernel의 양쪽 module commit과 일치해야 한다. mixed resolved action stream에서 retries/conflicts를 제외하고 두 번 engine replay한다.
+- `tests/test_m7_contracts.py`: 8종 exact payload/optional reply/nested REQUEST fixtures, missing/extra/type/bool/unknown-version, mutated NaN/Infinity/cycle/non-JSON/invalid UTF-8, ActionRequest와 receipt golden. Scripted/Human/SocialNpc를 같은 reusable suite로 binding/schema/입력 불변성/결정성/capability를 검사한다. None/dict/object/exception/잘못된 ActionRequest는 due-now system event가 있어도 kernel에 들어가지 않는다. Observation failure와 post-commit submission failure의 turn record도 구분한다.
+- `tests/test_m7_observations.py`: v1 공개 envelope/content/ordering/digest, exact UTF-8 boundary·1-byte 초과·multibyte·item 초과, 기본 65,536-byte 상한, duplicate visible identity, reader fail-closed, overflow 후 sequence 복구. 40/250-record knowledge와 40건의 큰 social REQUEST history에서 결정적 결과·overflow·전체 Research 보존을 검증한다.
+- `tests/test_m7_boundaries.py`: Core/Module에서 adapters/LLM SDK import 금지, Human/Provider/Memory의 좁은 의존성, fake Provider protocol/data validation, NoMemory와 same-actor ordered prior scope, private seller wallet/stock의 missing/invalid 상태가 동일 actor-visible fallback으로 처리됨을 검사한다.
+
+M0–M6의 기존 counterfactual leak tests는 raw World Truth/hidden schedule/debug/다른 actor Knowledge와 자원 변경이 actor Observation을 바꾸지 않아야 함을 계속 검증한다. M7의 byte cap은 이 positive projection을 대체하지 않는다. 임의 문자열 denylist나 Knowledge/social 원본 삭제로 테스트를 통과시키지 않는다.
+
+최종 gate는 프로젝트 `.venv` Python 3.12의 `python --version`, `ruff check .`, `ruff format --check .`, `mypy`, `pytest`, `git diff --check`, `git status`다. 2026-09-12 최종 M7 gate 통과: **656 passed in 2.71s (기존 543 + 신규 113)**. Python 3.12.10, Ruff `All checks passed!`, format `105 files already formatted`, mypy `Success: no issues found in 96 source files`, working diff 및 M6 base 대비 전체 diff 검사 통과. git HEAD는 사용자 WIP checkpoint 99a9ec1이며 최종 변경은 commit/push하지 않았다. kernel/ReplayInput schema 변경, 실제 LLM·24h 실행, crash-safe retry/resume, bounded Research memory를 완료했다고 주장하지 않는다.
+
+### M7 전체 변경 파일 (M6 base 대비)
+
+| 구분 | 파일 |
+|---|---|
+| 구현 | [src/journeymap/adapters/human.py](../src/journeymap/adapters/human.py)<br>[src/journeymap/adapters/memory.py](../src/journeymap/adapters/memory.py)<br>[src/journeymap/adapters/provider.py](../src/journeymap/adapters/provider.py)<br>[src/journeymap/adapters/scripted.py](../src/journeymap/adapters/scripted.py)<br>[src/journeymap/adapters/social_npc.py](../src/journeymap/adapters/social_npc.py)<br>[src/journeymap/application/contracts.py](../src/journeymap/application/contracts.py)<br>[src/journeymap/application/observations.py](../src/journeymap/application/observations.py)<br>[src/journeymap/application/reasons.py](../src/journeymap/application/reasons.py)<br>[src/journeymap/application/session.py](../src/journeymap/application/session.py)<br>[src/journeymap/application/turns.py](../src/journeymap/application/turns.py)<br>[src/journeymap/core/actions.py](../src/journeymap/core/actions.py)<br>[src/journeymap/core/observations.py](../src/journeymap/core/observations.py)<br>[src/journeymap/modules/movement/handlers.py](../src/journeymap/modules/movement/handlers.py)<br>[src/journeymap/modules/survival/handlers.py](../src/journeymap/modules/survival/handlers.py)<br>[src/journeymap/modules/trade/handlers.py](../src/journeymap/modules/trade/handlers.py) |
+| 테스트 | [tests/test_alderwick.py](../tests/test_alderwick.py)<br>[tests/test_game_and_research.py](../tests/test_game_and_research.py)<br>[tests/test_m7_boundaries.py](../tests/test_m7_boundaries.py)<br>[tests/test_m7_contracts.py](../tests/test_m7_contracts.py)<br>[tests/test_m7_idempotency.py](../tests/test_m7_idempotency.py)<br>[tests/test_m7_observations.py](../tests/test_m7_observations.py)<br>[tests/test_observations.py](../tests/test_observations.py) |
+| 문서 | [README.md](../README.md)<br>[docs/API.md](../docs/API.md)<br>[docs/ARCHITECTURE.md](../docs/ARCHITECTURE.md)<br>[docs/ERD.md](../docs/ERD.md)<br>[docs/JOURNEYMAP_0.1_SPEC.md](../docs/JOURNEYMAP_0.1_SPEC.md)<br>[docs/ROADMAP.md](../docs/ROADMAP.md)<br>[docs/TEST_STRATEGY.md](../docs/TEST_STRATEGY.md) |

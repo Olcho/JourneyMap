@@ -48,7 +48,7 @@ JourneyMap 0.1은 지속되는 소규모 중세 세계에서 한 명의 실험 �
 - versioned scenario schedule과 기록된 ActionRequest stream 기반 엔진 replay
 - ScriptedController, 이후 LLMController 연결 지점
 
-초기 action type 후보는 `OBSERVE`, `MOVE`, `ASK`, `INFORM`, `REQUEST`, `BUY`, `CONSUME`, `REST`, `WAIT`다. action type과 payload는 버전이 있는 schema로 정의한다. 자유 형식 `TALK`를 canonical 의미로 임의 해석하지 않는다.
+M7에서 동결한 0.1 action set은 `MOVE`, `WAIT`, `ASK`, `INFORM`, `REQUEST`, `REST`, `CONSUME`, `BUY`의 strict v1이다. exact payload는 [API 1절](API.md#1-game--controller-interface)을 따른다. `OBSERVE`는 GamePort.observe() read operation이며 `TALK` action은 없다.
 
 ## 5. 명시적 비범위
 
@@ -107,7 +107,22 @@ M4에서는 이후 현장에 도착한 actor가 직접 발견한다. `BridgeColl
 - `resources=True`는 별도 `alderwick/resources-1` fixture/schedule이다. 기존 bridge 붕괴를 포함하고 tick 1–20만 survival input을 예약한다. 이후 자동 tick 연장은 없으며 이 fixture로 장기 survival 실행을 주장하지 않는다.
 - live WAIT→MOVE→MOVE→BUY→CONSUME→REST, 실패 주입, private resource leak 반례, ActionRequest-only replay와 fresh-run determinism을 검증한다. `social=True, resources=True`에서도 기존 직접/간접 Knowledge provenance를 유지한다.
 
-M7 최종 idempotency/compatibility/Observation budget, crafting/equipment/health/death/복잡한 economy와 LLM은 이번 구현 범위 밖이다.
+M6 도메인 의미는 아래 M7에서도 보존한다. crafting/equipment/health/death/복잡한 economy와 실제 LLM은 M7 범위 밖이다.
+
+### M7 Action / Observation contract 수용 기준 — 구현 완료
+
+- run당 하나의 application에서 동일 normalized ActionRequest ID의 SUCCEEDED/REJECTED/FAILED/권한 denial은 같은 receipt로 재전송하고 kernel을 다시 실행하지 않는다. 다른 요청의 ID 재사용은 REQUEST_ID_CONFLICT다. normalization은 9개 envelope 필드 전체의 canonical JSON 비교이고 caller binding도 확인한다.
+- ActionRequest envelope·strict v1 payload·정확한 type/version dispatch·actor-visible reason code를 [API](API.md#13-m7-최종-compatibility--retry--observation--controller-계약)와 conformance tests로 동결한다. unknown type/version은 UNKNOWN_ACTION이며 암묵 migration은 없다.
+- post-commit Event delivery 오류의 최초 ENGINE_ERROR/Research 성공 result는 유지하고 exact retry에서 확정 receipt를 복구한다. kernel 진입 후 result 없는 오류는 consumed/indeterminate로 재실행하지 않는다. 진입 전 projection/read 실패만 예약을 해제하여 기존 recoverable semantics를 유지한다.
+- 과거 Observation 참조와 새 요청의 current tick 검증은 독립이다. stale belief의 현재 truth에 대한 REJECTED/FAILED는 유효한 연구 결과다. exact retry는 이미 확정된 결과를 반환하므로 current tick 검증을 반복하지 않는다.
+- Observation v1은 immutable envelope/content, run-local 성공 sequence, canonical content digest와 stable section identity를 가진다. 정렬은 (priority,module_id,contributor_id), visible identity 중복은 거부한다.
+- content는 canonical JSON UTF-8 65,536 bytes까지 전체 제공한다. 초과 시 OBSERVATION_UNAVAILABLE이며 partial history/sequence와 world mutation이 없다. 임의 truncation, Knowledge/social/Research history 삭제, token/model dependency는 없다.
+- 정보 경계는 trusted actor-scoped perception의 positive projection이다. raw World/Research/scheduler/RNG는 contributor·Controller·Provider·Memory에 전달하지 않는다. BUY의 private seller table diagnostics는 공개 receipt에서 일반 status code로 가리되 kernel/domain 판정과 Research는 보존한다.
+- trusted one-turn helper는 잘못된 Controller output/exception을 submit 전에 차단하고 최소 sanitized turn record를 반환한다. Scripted/Human/SocialNpc의 동일 conformance를 검증한다. Human은 injected source만 사용하며 CLI/UI는 없다.
+- Provider와 MemoryPolicy는 최소 Protocol, NoMemory는 빈 선택만 제공한다. 실제 LLM SDK/API, memory engine, agent-loop framework는 없다. 의존 방향은 future LLMController → Provider/Memory/parser이며 Core/domain은 이들을 import하지 않는다.
+- live attempts와 engine replay inputs를 구분하며 ReplayInput schema·kernel semantics는 그대로다. 기존 543개 테스트의 연구/안전 invariant는 유지하고 M7이 대체한 repeated-ID 실행 정책의 fixture만 최소 전환한다.
+
+Observation 출력 상한은 full-log projection의 처리 비용이나 Research 메모리 상한이 아니다. M8은 24 simulation-hour의 tick 단위, 활동량, 용량과 export를 정하고 실제 Provider 실험을 수행해야 한다.
 
 ## 7. 실행과 시간 의미
 

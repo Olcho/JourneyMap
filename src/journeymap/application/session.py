@@ -295,7 +295,9 @@ class SimulationApplication:
             # Never fallback to the system registry.
             visible = self._receipt(actor_id, request, "UNKNOWN_ACTION")
             self._traces.append(
-                ActionTrace(sequence, request, None, visible, "UNKNOWN_ACTION", engine_submitted=True)
+                ActionTrace(
+                    sequence, request, None, visible, "UNKNOWN_ACTION", engine_submitted=True
+                )
             )
             return visible
         except Exception as error:
