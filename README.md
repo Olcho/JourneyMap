@@ -39,7 +39,13 @@ World progresses
 
 ## 현재 상태
 
-M6 Survival, Inventory + Trade Minimum을 구현했다. 명시적 `resources=True` Alderwick composition에서 inventory의 item/수량, survival의 hunger/fatigue, trade의 wallet/offer를 분리한다. BUY와 CONSUME는 기존 단일 TransitionPlan으로 두 모듈을 원자적으로 변경하고 REST는 실제 시간을 소비한다. 숨은 SurvivalTick은 tick 1–20에 pressure를 진행시키며 Observation은 자기 자원과 같은 장소의 active offer만 공개한다. M7 최종 계약 안정화는 남아 있다.
+M7 Complete Action/Observation Contracts를 구현했다. 0.1 actor action은 MOVE/WAIT/ASK/INFORM/REQUEST/REST/CONSUME/BUY의 strict v1이며 `observe()`는 별도 read다. application-owned idempotency로 exact retry는 기존 receipt를 반환하고 변경된 동일 ID는 `REQUEST_ID_CONFLICT`로 거부한다. kernel/replay에는 retry 정책을 넣지 않았다.
+
+Observation은 canonical JSON UTF-8 65,536 bytes까지 전체 내용을 제공하고 초과 시 fail-closed한다. 과거 Observation 참조, 상충 Knowledge와 전체 Research history를 보존한다. Scripted/Human/SocialNpc conformance, malformed output의 no-mutation turn helper, 최소 Provider/MemoryPolicy Protocol과 NoMemory를 제공한다. 실제 LLM adapter와 24시간 실험은 M8에 남아 있다. 최종 payload·reason·retry·budget·권한 계약은 [API](docs/API.md#13-m7-최종-compatibility--retry--observation--controller-계약), 회귀 목적 보존은 [테스트 전략](docs/TEST_STRATEGY.md#9-m7-contract-gate와-pre-m7-policy-전환)에 있다.
+
+trusted caller에서 `run_controller_turn(game, controller)`를 사용하면 observe→결정→출력 검증→submit을 한 번 실행하고 `ControllerTurnResult`를 받는다. Controller에는 Observation만 전달한다. 직접 GamePort.submit도 지원하며 application은 run당 한 번 생성해 모든 actor port가 공유해야 한다. idempotency는 이 메모리 수명에 한정되고 crash-safe persistence가 아니다.
+
+M6 Survival, Inventory + Trade Minimum을 구현했다. 명시적 `resources=True` Alderwick composition에서 inventory의 item/수량, survival의 hunger/fatigue, trade의 wallet/offer를 분리한다. BUY와 CONSUME는 기존 단일 TransitionPlan으로 두 모듈을 원자적으로 변경하고 REST는 실제 시간을 소비한다. 숨은 SurvivalTick은 tick 1–20에 pressure를 진행시키며 Observation은 자기 자원과 같은 장소의 active offer만 공개한다. 이 도메인 의미는 M7에서도 유지한다.
 
 M6 실행 예제: `python -m journeymap.examples.alderwick_resources`. WAIT→Bakery 이동→bread 2개 구매→1개 소비→3 tick 휴식을 실행하고 기존 ActionRequest-only ReplayHarness와 결과를 비교한다. tick 10의 Stranger는 bread 1, wallet 6, hunger 30, fatigue 11이다. 상세 계약은 [API M6 절](docs/API.md#12-m6-구현-계약), 상태 소유권은 [ERD M6 절](docs/ERD.md#12-m6-실제-canonical-resource-schema)을 따른다. 기존 M4/M5 예제와 generic application에는 자원이 자동 노출되지 않는다.
 
@@ -51,18 +57,21 @@ M5 실행 예제: `python -m journeymap.examples.alderwick_social`. 명시적 `s
 
 M2 composition은 `MovementModule.register_actions(action_registry)`로 MOVE를, `action_registry.register("WAIT", 1, WaitHandler())`로 WAIT를 명시적으로 등록한다. 초기 canonical state는 `{"entities": entity_state(...), "movement": movement_state(...)}`로 구성하고 module·registry·state를 `create_kernel`에 전달한다. payload와 시간 계약은 [API의 M2 절](docs/API.md#8-m2-구현-계약)을 따른다.
 
-M3 composition은 `application, research = create_application(kernel, initial_knowledge=...)`를 run당 한 번 호출한다. Controller에는 `application.game_for(actor_id)`가 반환하는 actor 고정 `GamePort`만 전달한다. `observe()`는 현재 tick의 자기 identity/위치와 명시적 기존 지식만 기록하며, `submit(request)`는 actor-visible receipt만 반환한다. kernel 수명주기·scenario 진행 권한과 `research`는 신뢰된 application 호출자가 보관한다. 상세 계약과 제한은 [API의 M3 절](docs/API.md#9-m3-구현-계약)에 있다.
+M3 composition은 `application, research = create_application(kernel, initial_knowledge=...)`를 run당 한 번 호출한다. trusted turn 호출자는 `application.game_for(actor_id)`의 actor 고정 `GamePort`를 보관하고 Controller.decide에는 Observation만 전달한다. `observe()`는 현재 tick의 자기 identity/위치와 명시적 기존 지식만 기록하며, `submit(request)`는 actor-visible receipt만 반환한다. kernel 수명주기·scenario 진행 권한과 `research`는 신뢰된 application 호출자가 보관한다. 상세 계약과 제한은 [API의 M3 절](docs/API.md#9-m3-구현-계약)에 있다.
 
 ## 개발 환경과 검증
 
-Python 3.12 이상에서 개발용 의존성을 설치하고 M0 품질 gate를 실행한다.
+검증 기준은 Python 3.12다. 프로젝트 `.venv`를 활성화하고 개발용 의존성과 전체 품질 gate를 실행한다.
 
 ```text
 python -m pip install -e ".[dev]"
+python --version
 ruff check .
 ruff format --check .
 mypy
 pytest
+git diff --check
+git status
 ```
 
 기능 또는 계약을 변경할 때는 같은 변경에서 관련 테스트와 문서를 갱신한다. milestone 범위를 바꾸는 변경은 `docs/ROADMAP.md`, 논리 계약은 `docs/API.md`, 상태·저장 소유권은 `docs/ERD.md`, 계층과 의존 방향은 `docs/ARCHITECTURE.md`, 검증 규칙은 `docs/TEST_STRATEGY.md`에 반영한다.

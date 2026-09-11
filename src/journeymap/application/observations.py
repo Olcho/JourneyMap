@@ -1,11 +1,16 @@
 """Ordered assembly and append-only storage after trusted perception."""
 
-from journeymap.core.canonical import JsonObject, JsonValue, clone_json_object
+from journeymap.core.canonical import JsonObject, JsonValue, canonical_json, clone_json_object
 from journeymap.core.observations import Observation, ObservationContributor, PerceptionContext
+
+DEFAULT_OBSERVATION_BUDGET_BYTES = 65_536
 
 
 class ObservationPipeline:
-    def __init__(self) -> None:
+    def __init__(self, *, max_content_bytes: int = DEFAULT_OBSERVATION_BUDGET_BYTES) -> None:
+        if type(max_content_bytes) is not int or max_content_bytes <= 0:
+            raise ValueError("Observation budget must be a positive integer")
+        self._max_content_bytes = max_content_bytes
         self._contributors: dict[tuple[int, str, str], ObservationContributor] = {}
 
     def register(
@@ -21,8 +26,8 @@ class ObservationPipeline:
         if any(type(value) is not str or not value for value in (module_id, contributor_id)):
             raise ValueError("module_id and contributor_id must be non-empty strings")
         key = (priority, module_id, contributor_id)
-        if key in self._contributors:
-            raise ValueError(f"duplicate contributor ordering key: {key!r}")
+        if any(existing[1:] == key[1:] for existing in self._contributors):
+            raise ValueError(f"duplicate contributor identity: {key[1:]!r}")
         self._contributors[key] = contributor
 
     def assemble(self, context: PerceptionContext) -> JsonObject:
@@ -41,7 +46,10 @@ class ObservationPipeline:
                     "content": clone_json_object(output),
                 }
             )
-        return {"sections": sections}
+        content: JsonObject = {"sections": sections}
+        if len(canonical_json(content).encode("utf-8")) > self._max_content_bytes:
+            raise ValueError("Observation content budget exceeded")
+        return content
 
 
 class ObservationHistory:

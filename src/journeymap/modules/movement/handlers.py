@@ -26,10 +26,14 @@ def _text(value: JsonValue, reason: str) -> str:
     return value
 
 
-def _route(request: ActionRequest, state: JsonObject) -> Route:
-    if set(request.payload) != {"route_id"}:
+def validate_move_payload(payload: JsonObject) -> str:
+    if set(payload) != {"route_id"}:
         raise ActionValidationError("INVALID_PAYLOAD")
-    route_id = _text(request.payload["route_id"], "INVALID_PAYLOAD")
+    return _text(payload["route_id"], "INVALID_PAYLOAD")
+
+
+def _route(request: ActionRequest, state: JsonObject) -> Route:
+    route_id = validate_move_payload(request.payload)
     movement = _object(state.get("movement"), "MISSING_POSITION")
     positions = _object(movement.get("positions"), "MISSING_POSITION")
     position = _object(positions.get(request.actor_id), "MISSING_POSITION")

@@ -2,7 +2,7 @@
 
 from journeymap.core.canonical import JsonObject
 from journeymap.core.handlers import ActionRequest
-from journeymap.core.observations import Observation
+from journeymap.core.observations import Observation, validate_observation_v1
 
 
 class ScriptedController:
@@ -15,6 +15,7 @@ class ScriptedController:
     __slots__ = ()
 
     def decide(self, observation: Observation) -> ActionRequest:
+        validate_observation_v1(observation)
         location = None
         blocked = False
         records = []

@@ -310,7 +310,9 @@ def test_controller_has_no_hidden_capability_and_uses_observation_content(
     visible = observation.content
     sections = visible["sections"]
     assert isinstance(sections, list)
-    sections.append({"content": {"bridge": {"condition": "collapsed"}}})
+    for section in sections:
+        if isinstance(section, dict) and section.get("module_id") == "alderwick":
+            section["content"] = {"bridge": {"condition": "collapsed"}}
     changed = Observation(observation.run_id, observation.actor_id, 100, 0, visible)
     assert controller.decide(changed).action_type == "WAIT"
     assert execution(kernel) == before
@@ -322,6 +324,7 @@ def test_controller_has_no_hidden_capability_and_uses_observation_content(
     assert app.game_for("stranger").submit(forged).reason_code == "WRONG_ACTOR"
     system = replace(
         controller.decide(observation),
+        action_request_id="system-forgery",
         action_type="CollapseEastBridge",
         payload={"bridge_id": "east-bridge"},
     )
