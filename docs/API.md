@@ -300,3 +300,59 @@ Research는 기존 observations/action_traces/action_results/events/knowledge_hi
 engine replay에는 kernel에 전달된 recorded requests만 넣는다. boundary-denied attempts는 연구 trace로 별도 보존한다. 정상·kernel REJECTED/FAILED 요청은 그대로 replay한다. interrupted/delivery-failed run은 기존 오류 계약을 따르며 자동 resume/retry는 없다. replay kernel은 claim/Observation authority를 다시 검사하지 않는 trusted 경로이며, 재구성한 Knowledge는 sender prefix ownership/source를 검증한다. 이 경계는 arbitrary untrusted replay input에 live 권한을 부여하지 않는다.
 
 비LLM 예제 `alderwick_social`은 tick 3부터 Hugh/Thomas/Hugh/Thomas/Hugh 순서로 actor를 activate한다. policy는 제공된 Observation으로 MOVE/ASK/INFORM/WAIT/WAIT를 결정하고 target-scoped ASK가 실제 별도 INFORM으로 이어진다. recorded ActionRequest만으로 tick 9까지 engine replay되며 NPC policy 실행은 불필요하다.
+
+## 12. M6 구현 계약
+
+`create_alderwick_kernel(resources=True)`와 `create_alderwick_application(kernel, resources=True)`가 resource fixture와 세 모듈을 명시적으로 구성한다. `social=True`와 함께 사용할 수 있다. manifest/scenario schedule version은 `resources-1`이며 기본 M4/M5의 `1`과 호환되는 것으로 취급하지 않는다. `resource_schedule()`을 live caller가 설치한다. replay에는 같은 schedule을 ReplayInput으로 전달한다. generic application에는 자동 resource section이 없다.
+
+| Action / schema_version | 정확한 payload | duration | 성공 효과 |
+|---|---|---|---|
+| REST / 1 | `{duration: positive_int}` | duration tick | 최신 fatigue에서 duration ×3 감소; 최소 0 |
+| CONSUME / 1 | `{item_id: nonempty_str, quantity: positive_int}` | 1 tick | 자기 item 수량 감소, 최신 hunger에서 quantity ×현재 recovery 감소; 최소 0 |
+| BUY / 1 | `{offer_id: nonempty_str, quantity: positive_int}` | 1 tick | seller→buyer item 이전, buyer→seller 정수 통화 이전 |
+
+필수 field 누락/추가 및 잘못된 identity type은 INVALID_PAYLOAD다. quantity/duration의 bool, 0, 음수, float/string/null은 거부한다. version은 registry에서 정확히 dispatch하며 미등록 version은 Game에서 UNKNOWN_ACTION이다. resource module이 없는 기본 Alderwick의 세 action도 UNKNOWN_ACTION이다. quantity 제한은 별도로 두지 않고 실제 stock/funds를 검증한다. M6의 one-tick bulk CONSUME는 최소 계약이며 nutrition/효과 framework가 아니다.
+
+BUY는 시작·완료 양쪽에서 buyer/seller Entity, self purchase 금지, 양쪽 valid position/Location와 같은 Location, active offer, item identity, 양쪽 inventory, stock, buyer funds와 seller wallet을 검증한다. 가격은 0 이상의 정수여서 무료 offer도 가능하다. offer 자체는 재고 수량을 갖지 않으며 seller inventory만 권위다. out-of-stock active listing은 Observation에 계속 보일 수 있고 BUY에서 INSUFFICIENT_STOCK으로 거부한다.
+
+`ActionTiming.data`에는 시작 offer의 `{offer_id, seller_id, item_id, unit_price, active}`만 저장한다. 완료 시 없는 offer는 UNKNOWN_OFFER, malformed offer는 INVALID_OFFER, 비활성화는 OFFER_UNAVAILABLE, 유효한 seller/item/price 변경은 OFFER_CHANGED다. 같은 의미의 metadata 변경은 구매를 막지 않는다. quote가 같으면 현재 stock/funds/위치를 재검증하고 현재 잔액·수량에 이전을 적용한다. 양쪽이 시작과 완료 모두 같은 장소라면 장소 자체가 바뀌어도 허용한다. 중간 경로의 지속 접촉은 모델링하지 않는다.
+
+CONSUME는 시작·완료에 actor/SurvivalState, inventory item/quantity와 consumable 설정을 검증한다. recovery는 survival 소유 `consumables[item_id]`의 양의 정수다. bread fixture는 10이며 여러 개는 선형 적용한다. 완료 시 현재 유효한 효과 설정을 사용하며 BUY와 달리 effect quote를 고정하지 않는다. REST는 actor/SurvivalState를 재검증하고 hunger/inventory/wallet을 직접 변경하지 않는다. REST 중 system input의 hunger 증가는 그대로 남는다.
+
+`SurvivalTick / 1`은 정확히 `{}` payload의 별도 ScheduledEvent다. `survival.tick.v1` handler는 현재 등록된 survival actor들의 hunger +2/fatigue +1을 100에서 제한하고 actor ID 순서로 SurvivalAdvanced Event를 발행한다. 전체 actor 갱신은 하나의 system transition이다. Alderwick finite schedule은 tick 1–20, priority 10이며 bridge collapse는 tick 3/priority 0이다. 그 뒤의 action completion은 최신 상태에 적용된다. tick 20 이후에는 추가 schedule 없이는 pressure 증가가 없다. system input은 ActionRequest/ActionTrace를 만들지 않는다.
+
+| Committed Event / v1 | Payload |
+|---|---|
+| SurvivalAdvanced | `{actor_id, before: {hunger, fatigue}, after: {hunger, fatigue}}` |
+| ActorRested | `{actor_id, duration, fatigue_before, fatigue_after}` |
+| ItemConsumed | `{actor_id, item_id, quantity, hunger_before, hunger_after}` |
+| ItemPurchased | `{buyer_id, seller_id, offer_id, item_id, quantity, unit_price, total_price}` |
+
+actor Event의 source_ref는 ActionRequest ID이고 system Event의 source_ref는 ScheduledEvent ID다. 공통 transition_id/causation_id, correlation, sequence/tick은 기존 envelope을 사용한다. CONSUME item 감소량은 해당 성공 Event quantity와 같으며 hunger 감소는 0 clamp 때문에 recovery ×quantity보다 작을 수 있다. BUY는 양쪽 item/currency 합계를 보존한다. REST/SurvivalTick은 inventory/currency를 변경하지 않는다.
+
+| Reason | 의미 |
+|---|---|
+| INVALID_PAYLOAD / INVALID_DURATION / INVALID_QUANTITY | 정확한 payload 또는 양의 정수 계약 위반 |
+| UNKNOWN_ACTOR / INVALID_ENTITY | 실행 actor 없음 또는 malformed identity |
+| UNKNOWN_ITEM | 등록되지 않은 item; invalid inventory entry reference도 이 코드 |
+| UNKNOWN_INVENTORY_OWNER / INVALID_INVENTORY_STATE | owner/Entity 없음 또는 malformed inventory tables/identity/quantity |
+| INSUFFICIENT_QUANTITY | CONSUME에 필요한 자기 수량 없음 |
+| MISSING_SURVIVAL_STATE / INVALID_SURVIVAL_STATE | actor survival record 없음 또는 malformed table/pressure/effect |
+| ITEM_NOT_CONSUMABLE | inventory item은 있지만 survival 효과 없음 |
+| MISSING_WALLET / INVALID_WALLET | 대상 wallet 없음 또는 malformed table/정수 잔액 |
+| UNKNOWN_OFFER / INVALID_OFFER | offer 없음 또는 identity/price/active 형태 오류 |
+| OFFER_UNAVAILABLE / OFFER_CHANGED | inactive 또는 duration 동안 quote 의미 변경 |
+| SELF_PURCHASE | buyer와 seller가 동일 |
+| UNKNOWN_SELLER / INVALID_SELLER | seller Entity 없음 또는 malformed identity |
+| MISSING_POSITION / INVALID_POSITION | buyer 위치/Location 없음 또는 유효하지 않음 |
+| SELLER_MISSING_POSITION / SELLER_INVALID_POSITION | seller 위치/Location 없음 또는 유효하지 않음 |
+| OUT_OF_RANGE | buyer와 seller의 Location이 다름 |
+| INSUFFICIENT_FUNDS / INSUFFICIENT_STOCK | buyer 잔액 또는 seller 실제 수량 부족 |
+
+inventory의 내부 공개 helper는 동일 owner 이전을 SELF_TRANSFER로 거부한다. trade payment helper의 잘못된 total은 INVALID_PRICE다. 이 두 helper-only 코드는 등록된 actor payload에서 발생하지 않으며 Game 공개 allowlist에 추가하지 않았다. wallet/owner/item의 cross-module Entity/reference 무결성은 handler/query 시 검증하고 초기 builders는 자신이 받은 module records의 shape/중복/local references를 검증한다.
+
+시작 검증 실패는 REJECTED이며 제출 tick까지의 독립 세계 진행 이후 추가 시간을 소비하지 않는다. 완료 검증 실패는 FAILED로 시간·system commits를 유지하고 action 성공 mutation/Event를 남기지 않는다. resolve/serialization 예외는 기존 engine defect 경로이며 kernel ActionResult를 만들지 않고 live Game은 ENGINE_ERROR와 result 없는 trace를 남긴다. commit 뒤 delivery 예외는 두 module state/Event/성공 result와 연결된 trace를 보존한다. 자동 retry/idempotency는 없다.
+
+Observation의 `(40, inventory, resources)` content는 `{inventory: {item_id: quantity}}`, `(40, survival, resources)`는 `{survival: {hunger, fatigue}}`, `(40, trade, resources)`는 `{trade: {wallet: int, offers: [{offer_id, seller_id, item_id, unit_price, active}]}}`다. item ID와 offer ID 순서로 안정 정렬하며 같은 priority의 module 순서는 기존 pipeline 규칙이다. active local 타인 offer만 공개하고 자신의 seller listing은 제외한다. 다른 actor의 전체 inventory/wallet/survival, remote offer, effect configuration, future schedule, raw tables와 Research log는 contributor에 도달하지 않는다. 반복 observe는 canonical world/time/RNG/schedule을 변경하지 않는다.
+
+ReplayInput/ReplayHarness/ReplayReport와 Core kernel schema는 변경하지 않았다. kernel에 전달된 성공/REJECTED/FAILED ActionRequest와 versioned schedule로 결과, system outcomes, Event/order, world/digest, time/RNG draw count를 비교한다. live Observation과 Knowledge는 추가 replay 입력이 아니며 Knowledge는 기존 M4/M5 committed Event projection으로 별도 검증한다. 예제는 trusted caller가 고정 resource path를 GamePort로 제출하는 최소 실행이며 새 NPC policy/LLM controller는 없다. M7의 최종 schema compatibility, idempotency, budget/redaction/conformance 안정화는 남아 있다.
