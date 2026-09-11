@@ -41,7 +41,7 @@ Exit: 같은 fixture/seed/input을 반복해 동일 Event ordering과 digest를 
 
 Exit: 유효·무효 이동, 시간 비용, route 폐쇄와 invalid action atomicity가 검증된다.
 
-구현 완료: 최소 Entity와 movement-owned 모델, MOVE/WAIT 및 위 exit criteria를 자동화했다. route 폐쇄는 test fixture로만 구현했다. 다음 구현 범위는 M3다.
+구현 완료: 최소 Entity와 movement-owned 모델, MOVE/WAIT 및 위 exit criteria를 자동화했다. route 폐쇄는 test fixture로만 구현했다.
 
 ## M3 Perception + Knowledge
 
@@ -53,6 +53,10 @@ Exit: 유효·무효 이동, 시간 비용, route 폐쇄와 invalid action atomi
 - Game/Controller와 Research/Debug read boundary
 
 Exit: Knowledge Leak Test와 Authority Test가 통과하고 Observation→Action 추적이 가능하다.
+
+구현 완료: 자기 identity/위치만 통과시키는 perception, ordered contributor pipeline, immutable Observation history, source-aware 초기 KnowledgeLedger, actor 고정 GamePort와 별도 ResearchView, Observation→ActionRequest→ActionResult trace를 구현했다. hidden truth/다른 actor 지식/future schedule 누출 반례, 위조 authority, contributor mutation/ordering, 기존 replay 회귀를 자동화했다. runtime Knowledge mutation은 M3 exit에 필요하지 않아 추가하지 않았다. 초기 지식은 명시적 입력만 허용하고 관찰/정보 전달 projection은 M4/M5에서 공통 mutation boundary와 함께 구현한다. 다음 범위는 M4다.
+
+2026-09-11 adversarial audit gate 통과: WIP checkpoint에서 발견한 mutable live request identity의 기록 오염과 handler 내부 registry 오류의 오분류를 수정했다. 회귀 테스트를 포함한 전체 pytest/Ruff/format/mypy와 diff 검사를 통과한 뒤 위 M3 완료 상태를 확정했다. runtime Knowledge writer나 M4+ 기능은 추가하지 않았다.
 
 ## M4 Alderwick Bridge Vertical Slice + ScriptedController
 

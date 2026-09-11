@@ -11,11 +11,13 @@ from journeymap.core.canonical import (
 )
 from journeymap.core.events import EventBus, EventEnvelope, EventSourceKind
 from journeymap.core.handlers import (
+    ActionHandlerNotFoundError,
     ActionRegistry,
     ActionRequest,
     ActionResult,
     ActionStatus,
     ActionValidationError,
+    HandlerNotFoundError,
     ResolutionContext,
     SystemEventOutcome,
     SystemEventRegistry,
@@ -200,7 +202,10 @@ class SimulationKernel:
         started_at = self.simulation_time
         self._transition_active = True
         try:
-            handler = self._action_registry.get(request.action_type, request.schema_version)
+            try:
+                handler = self._action_registry.get(request.action_type, request.schema_version)
+            except HandlerNotFoundError as error:
+                raise ActionHandlerNotFoundError(str(error)) from error
             handler_id = handler.handler_id
             timing = None
             try:

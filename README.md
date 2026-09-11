@@ -39,9 +39,11 @@ World progresses
 
 ## 현재 상태
 
-M2 Entity + Spatial Movement까지 구현되어 있다. M1의 결정적 kernel 위에 최소 Entity identity, movement-owned Location/단방향 Route/ActorPosition과 MOVE/WAIT를 추가했다. 시간 비용이 있는 action은 시작 검증 후 완료 tick까지 system event를 처리하고 현재 상태를 재검증한다. 완료 조건 실패는 action의 성공 mutation만 생략하며 경과 시간과 system commit은 유지한다. 다음 구현 범위는 [M3 Perception + Knowledge](docs/ROADMAP.md#m3-perception--knowledge)다. Observation/Knowledge와 Alderwick 실제 시나리오는 아직 없다.
+M3 Perception + Knowledge 구현과 adversarial audit gate를 통과했다. M2의 MOVE/WAIT와 deterministic kernel 위에 actor별 perception, immutable Observation history, source-aware 초기 Knowledge ledger와 별도의 Game/Research port를 추가했다. Game 경로는 실제 Observation의 run/actor 권한을 검증하고 Observation → ActionRequest → ActionResult 관계를 기록한다. 기존 kernel replay는 Observation stream 없이 계속 실행된다. 다음 범위는 M4이며 Alderwick 시나리오, ScriptedController와 runtime 지식 갱신은 아직 없다.
 
 M2 composition은 `MovementModule.register_actions(action_registry)`로 MOVE를, `action_registry.register("WAIT", 1, WaitHandler())`로 WAIT를 명시적으로 등록한다. 초기 canonical state는 `{"entities": entity_state(...), "movement": movement_state(...)}`로 구성하고 module·registry·state를 `create_kernel`에 전달한다. payload와 시간 계약은 [API의 M2 절](docs/API.md#8-m2-구현-계약)을 따른다.
+
+M3 composition은 `application, research = create_application(kernel, initial_knowledge=...)`를 run당 한 번 호출한다. Controller에는 `application.game_for(actor_id)`가 반환하는 actor 고정 `GamePort`만 전달한다. `observe()`는 현재 tick의 자기 identity/위치와 명시적 기존 지식만 기록하며, `submit(request)`는 actor-visible receipt만 반환한다. kernel 수명주기·scenario 진행 권한과 `research`는 신뢰된 application 호출자가 보관한다. 상세 계약과 제한은 [API의 M3 절](docs/API.md#9-m3-구현-계약)에 있다.
 
 ## 개발 환경과 검증
 

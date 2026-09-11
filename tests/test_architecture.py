@@ -10,6 +10,7 @@ FORBIDDEN_CORE_IMPORTS = {
     "datetime",
     "fastapi",
     "journeymap.adapters",
+    "journeymap.application",
     "journeymap.bootstrap",
     "journeymap.modules",
     "openai",
@@ -80,3 +81,50 @@ def test_movement_imports_only_core_its_own_module_and_standard_library() -> Non
                 or imported.startswith("journeymap.core.")
                 or imported.startswith("journeymap.modules.movement.")
             ), f"{path}: {imported}"
+
+
+def test_core_does_not_own_knowledge_semantics() -> None:
+    forbidden = {
+        "KnowledgeRecord",
+        "KnowledgeLedger",
+        "subject_ref",
+        "predicate",
+        "confidence",
+        "supersedes_id",
+    }
+    for path in sorted(CORE_ROOT.rglob("*.py")):
+        tree = ast.parse(path.read_text(encoding="utf-8"))
+        for node in ast.walk(tree):
+            if isinstance(node, (ast.ClassDef, ast.Name, ast.Attribute)):
+                name = (
+                    node.name
+                    if isinstance(node, ast.ClassDef)
+                    else (node.id if isinstance(node, ast.Name) else node.attr)
+                )
+                assert name not in forbidden, f"{path}: {name}"
+            if isinstance(node, ast.Constant) and isinstance(node.value, str):
+                assert node.value not in forbidden, f"{path}: {node.value}"
+
+
+def test_controller_surface_has_no_engine_research_or_adapter_imports() -> None:
+    import sys
+
+    for imported in imported_names(CORE_ROOT / "controller.py"):
+        assert imported.split(".")[0] in sys.stdlib_module_names or imported in {
+            "journeymap.core.handlers",
+            "journeymap.core.observations",
+        }
+
+
+def test_knowledge_has_no_world_engine_movement_or_infrastructure_dependency() -> None:
+    import sys
+
+    root = REPOSITORY_ROOT / "src" / "journeymap" / "modules" / "knowledge"
+    for path in sorted(root.rglob("*.py")):
+        for imported in imported_names(path):
+            assert imported.split(".")[0] in sys.stdlib_module_names or imported in {
+                "journeymap.core.canonical",
+                "journeymap.core.observations",
+                "journeymap.core.modules",
+                "journeymap.modules.knowledge.records",
+            }, f"{path}: {imported}"

@@ -197,6 +197,10 @@ class HandlerNotFoundError(LookupError):
     """Raised when no handler exists for an exact type/schema pair."""
 
 
+class ActionHandlerNotFoundError(HandlerNotFoundError):
+    """Kernel's initial actor dispatch miss, not a lookup inside a handler."""
+
+
 class ActionRegistry:
     """Registry exclusively for actor action handlers."""
 
