@@ -1,12 +1,14 @@
 """Live Game authority and research tracing; engine replay bypasses this layer."""
 
-from dataclasses import dataclass, replace
+from dataclasses import asdict, dataclass, replace
+from typing import cast
 
 from journeymap.application.contracts import normalize_request, request_fingerprint
 from journeymap.application.observations import ObservationHistory, ObservationPipeline
 from journeymap.application.perception import PerceptionExtension, perceive
 from journeymap.application.reasons import PRIVATE_PURCHASE_REASONS, VISIBLE_DOMAIN_REASONS
 from journeymap.application.social import validate_claim
+from journeymap.core.canonical import JsonObject
 from journeymap.core.controller import ControllerActionResult, GamePort, GameSubmissionError
 from journeymap.core.entities import get_entity
 from journeymap.core.handlers import (
@@ -70,6 +72,7 @@ class SimulationApplication:
         knowledge_projector: KnowledgeProjector | None = None,
         perception_extension: PerceptionExtension | None = None,
         social: bool = False,
+        include_last_receipt: bool = False,
     ) -> None:
         if (
             knowledge.run_id != kernel.manifest.run_id
@@ -84,6 +87,7 @@ class SimulationApplication:
         self._knowledge_projector = knowledge_projector
         self._perception_extension = perception_extension
         self._social = social
+        self._include_last_receipt = include_last_receipt
         self._pipeline = pipeline
         self._observations = ObservationHistory(kernel.manifest.run_id)
         self._traces: list[ActionTrace] = []
@@ -146,6 +150,40 @@ class SimulationApplication:
                     perceived={
                         **context.perceived,
                         "social": perceive_social(self._kernel.events, actor_id),
+                    },
+                )
+            if self._include_last_receipt:
+                if "last_action" in context.perceived:
+                    raise ValueError("last_action perception scope is reserved")
+                latest = next(
+                    (
+                        trace
+                        for trace in reversed(self._traces)
+                        if trace.controller_result is not None
+                        and trace.controller_result.actor_id == actor_id
+                    ),
+                    None,
+                )
+                # Only the actor's public receipt and its own intent are perceived.
+                # No ActionResult/debug reason/digest or another actor's trace.
+                context = replace(
+                    context,
+                    perceived={
+                        **context.perceived,
+                        "last_action": None
+                        if latest is None
+                        else {
+                            "request": cast(JsonObject, asdict(latest.request)),
+                            "receipt": {
+                                **cast(
+                                    JsonObject,
+                                    asdict(cast(ControllerActionResult, latest.controller_result)),
+                                ),
+                                "status": str(
+                                    cast(ControllerActionResult, latest.controller_result).status
+                                ),
+                            },
+                        },
                     },
                 )
             return self._observations.generate(context, self._pipeline)

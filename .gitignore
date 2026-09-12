@@ -17,3 +17,4 @@ dist/
 *.db
 *.sqlite
 *.sqlite3
+trials/

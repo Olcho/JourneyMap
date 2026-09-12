@@ -307,4 +307,10 @@ request ID는 최종 live identity, attempt_sequence는 각 normalized 제출의
 
 state digest는 이 모든 application/cache/Observation/Knowledge/turn 기록을 포함하지 않는다. replay는 resolved 원 engine ActionRequest만 사용하며 retries/conflicts를 input에 중복하지 않는다. interrupted call을 포함한 Research history와 완전한 engine replay stream은 동일 개념이 아니다.
 
-Observation content budget은 65,536 canonical UTF-8 bytes이며 초과 시 record를 저장하지 않는다. Knowledge/social/Research 원본 이력은 삭제하지 않는다. 따라서 first-class history와 cache의 메모리 사용은 실행에 따라 증가한다. M8의 export/24h capacity 설계가 필요하며 새로운 persistence/resume 구현이 완료된 것으로 보지 않는다.
+Observation content budget은 65,536 canonical UTF-8 bytes이며 초과 시 record를 저장하지 않는다. Knowledge/social/Research 원본 이력은 삭제하지 않는다. 따라서 first-class history와 cache의 메모리 사용은 실행에 따라 증가한다. M8은 아래 export/24h capacity 관측을 추가하며 새로운 persistence/resume 구현이 완료된 것으로 보지 않는다.
+
+## 14. M8 trial/export records
+
+새 canonical table, DB migration, resume schema는 없다. 실험 계층은 immutable `Record` 안에 trial manifest, decision/activation provenance와 기존 Observation/ActionTrace/ActionResult/Event/Knowledge snapshots를 저장한다. decision의 raw model output→parsed wire→decoded DecisionCandidate→bound ActionRequest를 별도 필드로 연결한다. authority fields의 소유자는 trusted Controller/application이며 모델 후보는 두 intent fields뿐이다.
+
+run_id/trial_id와 decision/activation sequence, observation_id, request_id, ActionTrace attempt sequence가 join key다. schedule/initial world/initial knowledge/config identity와 최종 ReplayReport를 함께 export하므로 engine replay 및 Event-prefix Knowledge 재구성을 지원한다. Python/R/Pandas가 읽을 JSON/JSONL file schema와 immutable/export-failure 의미는 [M8 프로토콜 5절](M8_EXPERIMENT.md#5-researchexport-v1)이 기준이다. secret/credential은 어떤 record도 소유하지 않는다.

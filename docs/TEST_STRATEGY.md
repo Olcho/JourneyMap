@@ -1,8 +1,20 @@
 # Test Strategy
 
+M8 현재 offline gate: **770 passed**. M0–M7의 기존 656개와 최초 M8 87개 테스트 목적을 유지하고, 공식 trial 설계 재검토의 신규 27개를 추가했다. 실제 network/API는 자동 테스트에서 호출하지 않는다. 아래 M8 절과 [실험 프로토콜](M8_EXPERIMENT.md)을 함께 따른다.
+
 ## 1. 목적
 
 JourneyMap의 최우선 품질은 기능 수가 아니라 정보·권한 경계, 원자성, 결정론과 연구 추적성이다. 테스트 pyramid는 Python 3.12와 pytest의 빠른 unit/property test를 기반으로 module contract와 작은 통합 시나리오를 더하며 Ruff와 mypy를 M0 품질 gate로 사용한다.
+
+## M8 adapter/first-trial gate
+
+`test_m8_llm.py`는 8종 exact payload, missing/extra/bool/version/authority injection, malformed/duplicate/nonfinite/invalid UTF-8 JSON, provider/parser 예외, memory 출처/ordering, prompt leak, response duplication와 application exact retry, credential non-persistence를 검증한다. HTTP는 MagicMock으로 고정 destination/body, schema/medium config, refusal/incomplete/error/timeout을 검사하며 실제 API를 호출하지 않는다.
+
+`test_m8_experiment.py`는 full fake 24h, recorded engine inputs만의 replay, 반복 engine artifacts, export byte determinism/integrity/쓰기 실패, immutable records, call/decision/wall/연속 실패 bounds, horizon no-clipping, Observation overflow/no-truncation을 검증한다. 기존 20-tick assertion만 새 24h protocol에 맞췄고 실패/불변식 검사를 삭제하지 않았다.
+
+`test_m8_revision.py`의 27개는 모든 action의 trusted binding, REQUEST arbitrary JSON codec와 malformed subobject 거부, OpenAI strict schema subset, 별도 M8 schedule/M6 보존, M7 public receipt만의 actor scope, 새 response의 동일 intent, refusal/incomplete no-submit, requested alias/returned identity 분리를 검증한다.
+
+Ruff check/format, strict mypy, 전체 pytest 및 git diff --check를 실행한다. 이번 Windows 환경의 `.venv` Python 링크가 끊어져 Python 3.12.14 번들 런타임과 기존 dev packages를 사용했다. 오래된 temp/cache ACL 때문에 pytest 임시 파일은 새 `trials/pytest-*` 경로와 `cache_dir=trials/pytest-cache`를 사용한다. 테스트 실패를 skip/xfail로 숨기지 않는다. 정상 개발 환경은 README의 Python 3.12 venv 명령을 사용한다.
 
 ## 2. Release-gating 핵심 테스트
 

@@ -79,7 +79,7 @@ REJECTED는 시작/authority 검증 거부, FAILED는 duration 경과 후 완료
 
 `adapters.memory.MemoryPolicy.select(MemoryContext) -> tuple[Observation, ...]`도 최소 Protocol이다. MemoryContext는 `current, prior=()`만 가지며 prior는 같은 run/actor의 증가하는 sequence, 비역행 tick, current 이하 tick 및 current보다 이전 sequence를 가진 v1 Observation이어야 한다. 실제 합법적으로 전달한 기록만 넣는 것은 trusted caller의 책임이다. output은 이 prior의 부분집합이어야 하며 새로운 사실·다른 actor context를 만들지 않는다. `NoMemory.select`는 항상 빈 tuple을 반환한다.
 
-M8 LLMController는 Provider/MemoryPolicy/parser를 사용해 ActionRequest를 만들 예정이다. M7에는 실제 LLMController, API 호출/SDK, prompt engineering, tokenizer, retry/rate-limit framework, reflection/vector memory가 없다. 이 Protocol들은 Python capability 계약이며 악성 Python 코드의 closure/private-field introspection sandbox가 아니다.
+M8 LLMController는 Provider/MemoryPolicy/parser를 사용해 ActionRequest를 만든다. 아래 14절의 adapter 계약은 M7 Core Controller/Game 계약 위에 추가되며 SDK, tokenizer, retry/rate-limit framework, reflection/vector memory는 추가하지 않는다. 이 Protocol들은 Python capability 계약이며 악성 Python 코드의 closure/private-field introspection sandbox가 아니다.
 
 ## 3. System/Event interface
 
@@ -425,3 +425,11 @@ HumanController는 injected `Callable[[Observation], ActionRequest]`만 보관�
 ActionTrace의 `engine_submitted`는 실제 kernel 진입 여부, `retry_of_attempt`는 원 live attempt sequence다. retry/conflict의 `result=None`은 새 engine result가 없다는 의미이며 반환 receipt와 모순되지 않는다. 최초 post-commit delivery failure trace는 성공 result와 error_type을 보존하고 controller_result=None을 유지한다. cache의 복구 receipt는 다음 retry에서만 반환한다. ScheduledEvent는 actor trace를 만들지 않는다.
 
 ReplayInput/ReplayHarness/ReplayReport와 kernel semantics는 M7에서 변경하지 않았다. 완전히 resolved된 run의 engine action stream은 `trace.engine_submitted and trace.result is not None`인 원 요청들이다. 성공·REJECTED·FAILED는 포함하고 live duplicates/conflicts/boundary denials는 포함하지 않는다. unknown registry miss 또는 result 없는 interrupted engine call까지 있는 이력을 이 필터만으로 완전 재현했다고 주장하면 안 된다. 그러한 call의 독립 system 진행/중단 경계는 Research에 보존되며 자동 interrupted-run replay/resume는 범위 밖이다. trusted raw engine replay는 이미 승인·기록된 입력을 재생하고 live authority나 idempotency를 재구현하지 않는다.
+
+## 14. M8 DecisionCandidate / Provider / experiment 계약
+
+`LLMController.decide(Observation) -> ActionRequest`의 외부 signature는 같다. 모델 output은 exact `{action_type,payload}` wire object뿐이며 authority/envelope extra field를 거부한다. `decode_candidate`가 REQUEST의 `request_payload_json`만 strict JSON object로 복원하고, `parse_candidate(candidate,observation)`가 trusted current binding/ID/version을 생성해 `normalize_request`/`validate_action_contract`를 적용한다. 8 action의 M7 payload/handler/reason/idempotency/past-observation 계약은 바꾸지 않는다.
+
+`OpenAIProvider.generate`는 `ProviderRequest`의 기존 fields만 받는다. configuration `responses-structured-2`는 reasoning effort/max_output_tokens allowlist와 strict `text.format=json_schema`를 사용한다. `request_body(request)`는 key/network 없이 검토 가능한 HTTP body를 반환한다. `RawModelResponse`의 text/metadata는 parser와 분리되며 `ProviderFailure`는 sanitized kind/http_status만 제공한다. 실제 model identity는 응답 metadata로 기록한다.
+
+`run_trial`은 새 NoMemory LLMController 한 개를 받아 immutable `Record`를 반환한다. `export_trial`은 새 디렉터리로 JSON/JSONL을 쓰며 `replay_export`는 Provider 없이 기존 ReplayInput을 복원한다. M8 opt-in local/last_receipt sections와 protocol bounds, 실패 의미, versioned export의 정확한 필드는 [M8 프로토콜](M8_EXPERIMENT.md)을 따른다. API key 존재는 자동 live 실행을 의미하지 않으며 CLI의 `--live`는 승인 후에만 사용한다.
