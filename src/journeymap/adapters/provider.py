@@ -1,4 +1,4 @@
-"""M8 extension contracts only; no provider implementation or engine dependency."""
+"""Safe Provider contracts; no transport implementation or engine dependency."""
 
 from dataclasses import dataclass, field
 from typing import Protocol
@@ -51,3 +51,21 @@ class RawModelResponse:
 
 class Provider(Protocol):
     def generate(self, request: ProviderRequest) -> RawModelResponse: ...
+
+
+class ProviderFailure(RuntimeError):
+    """Allowlisted failure provenance, never an HTTP body/header/exception string."""
+
+    def __init__(self, kind: str, http_status: int | None = None) -> None:
+        if kind not in {
+            "CREDENTIAL_UNAVAILABLE",
+            "HTTP_ERROR",
+            "TIMEOUT",
+            "TRANSPORT_ERROR",
+            "SECRET_ECHO",
+            "RESPONSE_TOO_LARGE",
+        }:
+            raise ValueError("invalid provider failure kind")
+        self.kind = kind
+        self.http_status = http_status
+        super().__init__(f"PROVIDER_{kind}")

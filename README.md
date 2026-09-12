@@ -39,9 +39,18 @@ World progresses
 
 ## 현재 상태
 
+M8 LLM adapter와 첫 공식 live 24h 실험을 완료했다. OpenAI Responses `gpt-5.6-sol`/medium과 `json_schema` DecisionCandidate를 사용하며 trusted Controller가 M7 ActionRequest로 bind한다. NoMemory와 M8 전용 1 tick=1h, tick 0–24 schedule을 사용한다. fake 24h와 **770 tests**를 통과했고, 사용자 승인으로 한 번 실행한 공식 trial은 **10 calls / tick 24 / replay equality=true**로 완료했다. 정확한 설정·전송 범위는 [M8 프로토콜](docs/M8_EXPERIMENT.md), 사용량·비용·행동·한계는 [공식 결과](docs/M8_FIRST_OFFICIAL_TRIAL.md)를 따른다. 추가 유료 trial은 별도 승인이 필요하다.
+
+```text
+python -m journeymap.examples.alderwick_llm --trial-id offline-example --output trials/offline-example
+python -m journeymap.examples.alderwick_llm --replay trials/offline-example
+```
+
+`trials/`는 로컬 연구 산출물이며 Git에서 제외한다. 아래 M7 설명은 M8이 보존하는 기반 계약이다.
+
 M7 Complete Action/Observation Contracts를 구현했다. 0.1 actor action은 MOVE/WAIT/ASK/INFORM/REQUEST/REST/CONSUME/BUY의 strict v1이며 `observe()`는 별도 read다. application-owned idempotency로 exact retry는 기존 receipt를 반환하고 변경된 동일 ID는 `REQUEST_ID_CONFLICT`로 거부한다. kernel/replay에는 retry 정책을 넣지 않았다.
 
-Observation은 canonical JSON UTF-8 65,536 bytes까지 전체 내용을 제공하고 초과 시 fail-closed한다. 과거 Observation 참조, 상충 Knowledge와 전체 Research history를 보존한다. Scripted/Human/SocialNpc conformance, malformed output의 no-mutation turn helper, 최소 Provider/MemoryPolicy Protocol과 NoMemory를 제공한다. 실제 LLM adapter와 24시간 실험은 M8에 남아 있다. 최종 payload·reason·retry·budget·권한 계약은 [API](docs/API.md#13-m7-최종-compatibility--retry--observation--controller-계약), 회귀 목적 보존은 [테스트 전략](docs/TEST_STRATEGY.md#9-m7-contract-gate와-pre-m7-policy-전환)에 있다.
+Observation은 canonical JSON UTF-8 65,536 bytes까지 전체 내용을 제공하고 초과 시 fail-closed한다. 과거 Observation 참조, 상충 Knowledge와 전체 Research history를 보존한다. Scripted/Human/SocialNpc conformance, malformed output의 no-mutation turn helper, Provider/MemoryPolicy Protocol과 NoMemory를 제공한다. 최종 payload·reason·retry·budget·권한 계약은 [API](docs/API.md#13-m7-최종-compatibility--retry--observation--controller-계약), 회귀 목적 보존은 [테스트 전략](docs/TEST_STRATEGY.md#9-m7-contract-gate와-pre-m7-policy-전환)에 있다.
 
 trusted caller에서 `run_controller_turn(game, controller)`를 사용하면 observe→결정→출력 검증→submit을 한 번 실행하고 `ControllerTurnResult`를 받는다. Controller에는 Observation만 전달한다. 직접 GamePort.submit도 지원하며 application은 run당 한 번 생성해 모든 actor port가 공유해야 한다. idempotency는 이 메모리 수명에 한정되고 crash-safe persistence가 아니다.
 

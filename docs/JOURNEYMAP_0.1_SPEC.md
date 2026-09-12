@@ -124,6 +124,12 @@ M6 도메인 의미는 아래 M7에서도 보존한다. crafting/equipment/healt
 
 Observation 출력 상한은 full-log projection의 처리 비용이나 Research 메모리 상한이 아니다. M8은 24 simulation-hour의 tick 단위, 활동량, 용량과 export를 정하고 실제 Provider 실험을 수행해야 한다.
 
+### M8 구현 계약
+
+현재 단일 LLMController는 Observation→strict DecisionCandidate→trusted M7 ActionRequest 경계로 연결된다. Provider는 OpenAI Responses이며 첫 공식 목표는 `gpt-5.6-sol`/medium, memory는 NoMemory다. authority 필드는 모델이 생성하지 않는다. M8의 `social-resources-24h-1` scenario는 1 tick=1h, start 0/end 24, SurvivalTick 1–24와 기존 bridge collapse를 명시하고 기존 M6 fixture는 바꾸지 않는다. M8 opt-in local affordances/자기 receipt만 trusted perception에 추가한다.
+
+fake 24h 연구 기록·용량 측정·Provider 없는 engine equality를 자동화했다. 원문, wire candidate, decoded candidate, final ActionRequest, engine 결과와 Knowledge history를 따로 보존한다. 실제 API 전송은 승인 전 수행하지 않는다. 전체 실행·실패·export 의미와 현재 완료 상태는 [M8 프로토콜](M8_EXPERIMENT.md)이 기준이다.
+
 ## 7. 실행과 시간 의미
 
 - 하나의 `SimulationRun`은 불변 seed, scenario/version, engine version과 초기 상태 참조를 가진다.

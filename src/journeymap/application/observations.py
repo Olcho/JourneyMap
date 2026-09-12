@@ -6,6 +6,14 @@ from journeymap.core.observations import Observation, ObservationContributor, Pe
 DEFAULT_OBSERVATION_BUDGET_BYTES = 65_536
 
 
+class ObservationBudgetExceeded(ValueError):
+    """Trusted diagnostic; public Game errors remain sanitized."""
+
+    def __init__(self, content_bytes: int) -> None:
+        self.content_bytes = content_bytes
+        super().__init__("Observation content budget exceeded")
+
+
 class ObservationPipeline:
     def __init__(self, *, max_content_bytes: int = DEFAULT_OBSERVATION_BUDGET_BYTES) -> None:
         if type(max_content_bytes) is not int or max_content_bytes <= 0:
@@ -47,8 +55,9 @@ class ObservationPipeline:
                 }
             )
         content: JsonObject = {"sections": sections}
-        if len(canonical_json(content).encode("utf-8")) > self._max_content_bytes:
-            raise ValueError("Observation content budget exceeded")
+        content_bytes = len(canonical_json(content).encode("utf-8"))
+        if content_bytes > self._max_content_bytes:
+            raise ObservationBudgetExceeded(content_bytes)
         return content
 
 
@@ -91,3 +100,7 @@ class ObservationHistory:
 
 def contribute_self(context: PerceptionContext) -> JsonObject:
     return {"self": context.perceived["self"]}
+
+
+def contribute_last_receipt(context: PerceptionContext) -> JsonObject:
+    return {"last_action": context.perceived.get("last_action")}

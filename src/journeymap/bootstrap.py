@@ -27,6 +27,7 @@ def create_alderwick_kernel(
     event_bus: EventBus | None = None,
     social: bool = False,
     resources: bool = False,
+    experiment: bool = False,
 ) -> SimulationKernel:
     """Unbooted scenario v1 kernel, also the unchanged ReplayHarness factory.
 
@@ -40,9 +41,12 @@ def create_alderwick_kernel(
     from journeymap.modules.survival import SurvivalModule
     from journeymap.modules.trade import TradeModule
     from journeymap.scenarios.alderwick import AlderwickModule
+    from journeymap.scenarios.alderwick.experiment import EXPERIMENT_SCENARIO_VERSION
     from journeymap.scenarios.alderwick.fixture import initial_world
     from journeymap.scenarios.alderwick.resources import resource_world
 
+    if experiment and not (social and resources):
+        raise ValueError("experiment requires social and resources")
     state = resource_world() if resources else initial_world()
     movement, alderwick = MovementModule(), AlderwickModule()
     actions, systems = ActionRegistry(), SystemEventRegistry()
@@ -71,7 +75,7 @@ def create_alderwick_kernel(
         manifest=RunManifest(
             run_id,
             "alderwick",
-            "resources-1" if resources else "1",
+            EXPERIMENT_SCENARIO_VERSION if experiment else "resources-1" if resources else "1",
             __version__,
             1,
             seed,
@@ -89,11 +93,14 @@ def create_alderwick_application(
     *,
     social: bool = False,
     resources: bool = False,
+    experiment: bool = False,
+    pipeline: ObservationPipeline | None = None,
 ) -> tuple[SimulationApplication, ResearchView]:
     """Explicit trusted composition; generic M3 composition remains unchanged."""
     from journeymap.modules.social.perception import contribute_social
     from journeymap.scenarios.alderwick.bridge import perceive_bridge
     from journeymap.scenarios.alderwick.contributors import contribute_bridge
+    from journeymap.scenarios.alderwick.experiment import EXPERIMENT_SCENARIO_VERSION
     from journeymap.scenarios.alderwick.fixture import initial_knowledge
     from journeymap.scenarios.alderwick.knowledge import project_bridge_knowledge
     from journeymap.scenarios.alderwick.resource_contributors import (
@@ -104,14 +111,29 @@ def create_alderwick_application(
     from journeymap.scenarios.alderwick.resources import perceive_resources
     from journeymap.scenarios.alderwick.social import social_initial_knowledge
 
-    version = "resources-1" if resources else "1"
+    version = EXPERIMENT_SCENARIO_VERSION if experiment else "resources-1" if resources else "1"
     if (kernel.manifest.scenario_id, kernel.manifest.scenario_version) != ("alderwick", version):
         raise ValueError("Alderwick application requires the matching scenario version")
     if resources and not {"inventory", "survival", "trade"} <= set(kernel.module_ids):
         raise ValueError("resource application requires inventory/survival/trade modules")
     if social and "social" not in kernel.module_ids:
         raise ValueError("social application requires the social module")
-    pipeline = ObservationPipeline()
+    if experiment and not (resources and social):
+        raise ValueError("experiment requires social and resources")
+    pipeline = pipeline if pipeline is not None else ObservationPipeline()
+    if experiment:
+        from journeymap.application.observations import contribute_last_receipt
+        from journeymap.scenarios.alderwick.experiment import contribute_local
+
+        pipeline.register(
+            priority=16, module_id="alderwick", contributor_id="local", contributor=contribute_local
+        )
+        pipeline.register(
+            priority=50,
+            module_id="application",
+            contributor_id="last_receipt",
+            contributor=contribute_last_receipt,
+        )
     pipeline.register(
         priority=0, module_id="core", contributor_id="self", contributor=contribute_self
     )
@@ -146,6 +168,11 @@ def create_alderwick_application(
             pipeline.register(
                 priority=40, module_id=module, contributor_id="resources", contributor=contributor
             )
+    extension = perceive_resources if resources else perceive_bridge
+    if experiment:
+        from journeymap.scenarios.alderwick.experiment import perceive_experiment
+
+        extension = perceive_experiment
     return create_application(
         kernel,
         initial_knowledge=(
@@ -155,8 +182,9 @@ def create_alderwick_application(
         ),
         pipeline=pipeline,
         knowledge_projector=project_bridge_knowledge,
-        perception_extension=perceive_resources if resources else perceive_bridge,
+        perception_extension=extension,
         social=social,
+        include_last_receipt=experiment,
     )
 
 
@@ -206,6 +234,7 @@ def create_application(
     knowledge_projector: KnowledgeProjector | None = None,
     perception_extension: PerceptionExtension | None = None,
     social: bool = False,
+    include_last_receipt: bool = False,
 ) -> tuple[SimulationApplication, ResearchView]:
     """Compose once per run; give Controllers only application.game_for(actor).
 
@@ -248,5 +277,6 @@ def create_application(
         knowledge_projector=knowledge_projector,
         perception_extension=perception_extension,
         social=social,
+        include_last_receipt=include_last_receipt,
     )
     return application, ResearchView(kernel, application, knowledge)

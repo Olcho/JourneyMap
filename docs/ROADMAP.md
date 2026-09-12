@@ -133,6 +133,8 @@ M7 최종 gate: 기존 543개 연구/안전 회귀를 유지한 **656 passed (�
 
 Exit: LLM 없이 engine replay가 가능하고, 복수 LLM trial을 통계적으로 비교할 완전한 기록이 생성된다.
 
+M8 구현과 첫 공식 live trial을 완료했다. OpenAI Responses adapter(표준 라이브러리), `gpt-5.6-sol`/medium, strict DecisionCandidate→trusted ActionRequest binding, NoMemory, M8 전용 tick 0–24/hour schedule, versioned prompt/provenance/JSONL export를 추가했다. 기존 743 테스트 목적을 보존하고 재감사 27개를 더한 770 tests와 fake full 24h/replay equality를 확인했다. M6의 finite 1–20 schedule과 M0–M7 의미는 그대로다. 사용자 승인으로 `m8-first-official-sol`을 한 번 실행해 10 calls, tick 24, COMPLETED/HORIZON, invalid/provider failure 0, replay equality=true를 확인했다. M8 exit criteria를 충족하며 후속 통계 비교 실험은 별도 승인 대상이다. [프로토콜](M8_EXPERIMENT.md)과 [실측 결과·한계](M8_FIRST_OFFICIAL_TRIAL.md)를 참고한다.
+
 ## 이후 후보
 
 weather, combat, economy, employment, law, politics, religion, magic은 0.1 결과가 필요성을 입증한 뒤 별도 제안으로 검토한다. microservices, 외부 broker, full ECS/event sourcing도 실제 규모와 병목의 근거 없이는 도입하지 않는다.

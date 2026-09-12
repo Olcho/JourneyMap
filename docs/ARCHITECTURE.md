@@ -15,7 +15,7 @@ JourneyMap 0.x는 단일 배포 단위의 **modular monolith**다. 모듈 간 �
 
 ```text
 Adapters / Composition Root
-  ├─ Controller adapters (scripted, human, later LLM)
+  ├─ Controller adapters (scripted, human, LLM)
   ├─ Provider adapters
   ├─ persistence / CLI / research tooling
   └─ ModuleRegistry composition
@@ -152,7 +152,7 @@ MemoryPolicy는 NoMemory, recent/episodic, reflection 등 실험 조건을 교�
 - persistence는 simulation kernel이 의존하는 interface 뒤에 둔다. SQLite는 표준 라이브러리 `sqlite3` 기반의 필요 최소 수준부터 사용하되 DB schema나 ORM model이 Core domain을 지배하지 않게 한다.
 - SQLAlchemy/Alembic은 실제 persistence 및 migration 요구가 구체화되는 마일스톤에서 도입 여부를 결정한다.
 
-snapshot 주기와 concrete LLM provider 같은 나머지 선택은 해당 마일스톤까지 연기하며 위 경계와 결정론 불변식을 바꾸지 않는다.
+snapshot 주기 같은 나머지 선택은 필요한 마일스톤까지 연기한다. M8의 concrete Provider는 아래 18절에서 결정하며 위 경계와 결정론 불변식을 바꾸지 않는다.
 
 ## 10. M0 패키지 의존 규칙
 
@@ -279,6 +279,12 @@ ObservationPipeline은 whole-content canonical UTF-8 byte size를 검사한 뒤 
 
 `application.turns.run_controller_turn`은 GamePort와 Controller를 trusted caller로부터 받아 Observation 하나만 Controller.decide에 전달한다. output type/normalization/binding/v1 payload를 검증한 뒤 submit한다. 실패 결과는 caller가 저장할 ControllerTurnResult이며 새 canonical state/DB schema가 아니다. submit 이전 실패는 no-engine-mutation, submit 오류는 이미 commit되었을 수 있는 SUBMISSION_ERROR로 구분한다. 일반 agent loop나 자동 fallback/retry는 없다.
 
-`adapters.human`은 decision source만 보관한다. `adapters.provider`와 `adapters.memory`는 safe data envelope/Protocol만 정의하고 NoMemory를 제공한다. Provider는 versioned prompt/model config만, Memory는 같은 actor에게 이미 전달한 ordered prior Observations만 다룬다. M8의 LLMController가 이 Protocol과 parser를 사용할 예정이며 Core/Module은 adapters/provider/memory/SDK를 import하지 않는다. injected callable/record의 합법적인 출처는 composition 책임이며 Python sandbox를 주장하지 않는다.
+`adapters.human`은 decision source만 보관한다. `adapters.provider`와 `adapters.memory`는 safe data envelope/Protocol과 sanitized failure, NoMemory를 제공한다. Provider는 versioned prompt/model config만, Memory는 같은 actor에게 이미 전달한 ordered prior Observations만 다룬다. M8의 LLMController가 이 Protocol과 parser를 사용하며 Core/Module은 adapters/provider/memory/SDK를 import하지 않는다. injected callable/record의 합법적인 출처는 composition 책임이며 Python sandbox를 주장하지 않는다.
 
 ActionTrace에 engine_submitted/retry_of_attempt를 추가해 normalized live attempts와 engine inputs를 구분한다. retries/conflicts는 새 kernel result가 없고 Research에서 원 attempt에 연결된다. 기존 ReplayInput/Report, kernel, EventBus, scheduler, RNG와 state schema는 변경하지 않았다. interrupted engine call이 있는 run에 완전한 replay/resume 보장을 추가하지 않는다. 자세한 receipt·오류·replay 정책은 [API 13절](API.md#13-m7-최종-compatibility--retry--observation--controller-계약)을 따른다.
+
+## 18. M8 adapter와 experiment orchestration
+
+`adapters.llm`은 prompt, raw/parsed decision snapshot과 trusted Observation binding을 소유한다. `decision_schema`는 strict wire 표현만, `openai_provider`는 고정 HTTPS transport만 소유한다. REQUEST의 object string codec은 adapter에서 종료되고 Core/domain에는 들어가지 않는다. `experiments.alderwick`만 application/GamePort/Research/kernel을 조합하고 actor activation, wall/simulation bounds, budget monitoring, export와 기존 ReplayHarness equality를 수행한다. Controller에는 이 capability들을 주입하지 않는다.
+
+bootstrap의 M8 opt-in은 scenario-owned local perception과 application-owned 자기 public receipt contributor를 등록한다. world의 local route/actor filtering은 contributor 전에 끝난다. `ObservationBudgetExceeded`는 trusted monitor용 byte 진단이며 public Game 오류 계약은 그대로다. provider exception/parse failure는 no-submit, engine/submission failure는 이미 발생한 commit 보존이다. 파일 write는 완료된 immutable trial을 입력으로 받으므로 canonical transaction/rollback과 연결되지 않는다. protocol/schema/승인 경계는 [M8 프로토콜](M8_EXPERIMENT.md)을 따른다.
