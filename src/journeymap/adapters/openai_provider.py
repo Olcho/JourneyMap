@@ -7,7 +7,12 @@ import os
 
 from journeymap.adapters.decision_schema import response_format
 from journeymap.adapters.llm import parameters_v1
-from journeymap.adapters.provider import ProviderFailure, ProviderRequest, RawModelResponse
+from journeymap.adapters.provider import (
+    ProviderFailure,
+    ProviderIdentity,
+    ProviderRequest,
+    RawModelResponse,
+)
 from journeymap.core.canonical import JsonObject, canonical_json
 
 
@@ -86,3 +91,7 @@ class OpenAIProvider:
             raise ProviderFailure("TRANSPORT_ERROR") from None
         finally:
             connection.close()
+
+    @property
+    def identity(self) -> ProviderIdentity:
+        return ProviderIdentity(self.name, self.version, "live", self.timeout_seconds)

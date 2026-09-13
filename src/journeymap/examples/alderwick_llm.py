@@ -9,9 +9,20 @@ from typing import cast
 
 from journeymap.adapters.llm import DEFAULT_MODEL, LLMController
 from journeymap.adapters.openai_provider import OpenAIProvider
-from journeymap.adapters.provider import Provider, ProviderRequest, RawModelResponse
+from journeymap.adapters.provider import (
+    Provider,
+    ProviderIdentity,
+    ProviderRequest,
+    RawModelResponse,
+)
 from journeymap.core.canonical import JsonObject
-from journeymap.experiments.alderwick import TrialPolicy, export_trial, replay_export, run_trial
+from journeymap.experiments.alderwick import (
+    TrialPolicy,
+    audit_export,
+    export_trial,
+    replay_export,
+    run_trial,
+)
 
 
 class ProtocolFakeProvider:
@@ -19,6 +30,10 @@ class ProtocolFakeProvider:
 
     def __init__(self) -> None:
         self.calls = 0
+
+    @property
+    def identity(self) -> ProviderIdentity:
+        return ProviderIdentity("fake", "fixture-1")
 
     def generate(self, request: ProviderRequest) -> RawModelResponse:
         data = json.loads(request.prompt.split("\nINPUT_JSON\n", 1)[1])
@@ -67,14 +82,18 @@ class ProtocolFakeProvider:
         self.calls += 1
         return RawModelResponse(
             json.dumps({"action_type": action, "payload": payload}),
-            {"provider": "fake", "model": "protocol-fixture-1"},
+            {"provider": "fake", "adapter_version": "fixture-1", "model": request.model},
         )
 
 
 def main() -> None:
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument("--live", action="store_true", help="Opt in to paid OpenAI API calls")
-    parser.add_argument("--replay", type=Path, help="Replay an export without any Provider calls")
+    mode = parser.add_mutually_exclusive_group()
+    mode.add_argument("--live", action="store_true", help="Opt in to paid OpenAI API calls")
+    mode.add_argument("--replay", type=Path, help="Replay an export without any Provider calls")
+    mode.add_argument(
+        "--audit", type=Path, help="Recompute export inclusion without Provider calls"
+    )
     parser.add_argument("--output", type=Path)
     parser.add_argument("--trial-id")
     parser.add_argument("--model", default=os.environ.get("JOURNEYMAP_MODEL", DEFAULT_MODEL))
@@ -89,6 +108,10 @@ def main() -> None:
     parser.add_argument("--wall-timeout", type=float, default=300)
     parser.add_argument("--provider-timeout", type=float, default=30)
     args = parser.parse_args()
+    if args.audit:
+        audit = audit_export(args.audit)
+        print(json.dumps(audit, indent=2))
+        raise SystemExit(0 if audit["status"] == "INCLUDED" else 1)
     if args.replay:
         report = replay_export(args.replay)
         print(
@@ -119,8 +142,6 @@ def main() -> None:
         policy=TrialPolicy(
             args.max_decisions, args.max_provider_calls, wall_timeout_seconds=args.wall_timeout
         ),
-        provider_name="openai" if args.live else "fake",
-        provider_version=OpenAIProvider.version if args.live else "fixture-1",
     )
     export_trial(trial, output)
     replay_export(output)

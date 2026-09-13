@@ -44,7 +44,10 @@ M8 LLM adapter와 첫 공식 live 24h 실험을 완료했다. OpenAI Responses `
 ```text
 python -m journeymap.examples.alderwick_llm --trial-id offline-example --output trials/offline-example
 python -m journeymap.examples.alderwick_llm --replay trials/offline-example
+python -m journeymap.examples.alderwick_llm --audit trials/offline-example
 ```
+
+Pre-Experiment Hardening 이후 package/engine은 **0.1.0**, 새 export는 schema v2다. 첫 공식 trial의 실제 `engine_version=0.0.0`과 raw artifact는 소급 변경하지 않는다. 실행 완료와 연구 inclusion을 분리하며 `--audit`는 파일·설정·trace·engine replay를 다시 검증한다. 상세 provenance/제외 기준과 Event Memory 후속 범위는 [hardening 계약](docs/M8_EXPERIMENT.md#8-pre-experiment-hardening--export-v2)을 따른다.
 
 `trials/`는 로컬 연구 산출물이며 Git에서 제외한다. 아래 M7 설명은 M8이 보존하는 기반 계약이다.
 
