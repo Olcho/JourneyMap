@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "journeymap"
-version = "0.0.0"
+version = "0.1.0"
 description = "A deterministic research environment for situated agents"
 readme = "README.md"
 requires-python = ">=3.12"

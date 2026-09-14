@@ -2,7 +2,6 @@
 
 import json
 import math
-import subprocess
 from collections import Counter
 from dataclasses import asdict, dataclass, is_dataclass
 from datetime import UTC, datetime
@@ -11,17 +10,32 @@ from pathlib import Path
 from time import monotonic
 from typing import cast
 
-from journeymap.adapters.llm import PROMPT_VERSION, LLMController, Record, observation_json
+from journeymap.adapters.llm import (
+    CONFIGURATION_VERSION,
+    PROMPT_VERSION,
+    LLMController,
+    Record,
+    observation_json,
+)
 from journeymap.adapters.social_npc import SocialNpcController
 from journeymap.application.observations import ObservationBudgetExceeded, ObservationPipeline
 from journeymap.application.turns import run_controller_turn
 from journeymap.bootstrap import create_alderwick_application, create_alderwick_kernel
 from journeymap.core.canonical import JsonObject, JsonValue, canonical_json, state_digest
 from journeymap.core.controller import ControllerActionResult, GamePort, GameSubmissionError
-from journeymap.core.handlers import ActionRequest
+from journeymap.core.handlers import ActionRequest, ActionValidationError, ValidationContext
+from journeymap.core.kernel import SimulationKernel
 from journeymap.core.observations import PerceptionContext
 from journeymap.core.replay import ReplayHarness, ReplayInput, ReplayReport
 from journeymap.core.scheduler import ScenarioSchedule, ScheduledEventSpec
+from journeymap.experiments.inclusion import (
+    TRIAL_FIELDS,
+    assess_inclusion,
+    inclusion_result,
+    record_digest,
+)
+from journeymap.experiments.provenance import code_identity, runtime_identity
+from journeymap.modules.movement.handlers import MoveHandler
 from journeymap.scenarios.alderwick.experiment import (
     EXPERIMENT_SCENARIO_VERSION,
     experiment_schedule,
@@ -66,6 +80,10 @@ class BudgetMonitor(ObservationPipeline):
         super().__init__(max_content_bytes=max_content_bytes)
         self.attempts: list[JsonObject] = []
 
+    @property
+    def max_content_bytes(self) -> int:
+        return self._max_content_bytes
+
     def assemble(self, context: PerceptionContext) -> JsonObject:
         try:
             content = super().assemble(context)
@@ -90,37 +108,22 @@ class BudgetMonitor(ObservationPipeline):
         return content
 
 
-def code_identity() -> JsonObject:
-    root = Path(__file__).resolve().parents[3]
-    commit: str | None = None
-    dirty: bool | None = None
-    try:
-        commit = subprocess.run(
-            ["git", "rev-parse", "HEAD"],
-            cwd=root,
-            check=True,
-            capture_output=True,
-            text=True,
-            timeout=5,
-        ).stdout.strip()
-        dirty = bool(
-            subprocess.run(
-                ["git", "status", "--porcelain"],
-                cwd=root,
-                check=True,
-                capture_output=True,
-                text=True,
-                timeout=5,
-            ).stdout.strip()
-        )
-    except (OSError, subprocess.SubprocessError):
-        pass
-    digest = sha256()
-    for path in sorted((root / "src" / "journeymap").rglob("*.py")):
-        digest.update(path.relative_to(root).as_posix().encode("utf-8"))
-        digest.update(b"\0")
-        digest.update(path.read_bytes())
-    return {"git_commit": commit, "working_tree_dirty": dirty, "source_sha256": digest.hexdigest()}
+def action_duration(request: ActionRequest, context: ValidationContext) -> int:
+    """Trusted protocol precheck; MOVE timing comes from its domain handler.
+
+    Start-invalid MOVE still reaches Game/engine and is recorded as REJECTED.
+    No Ground Truth capability is passed to a Controller or Provider.
+    """
+    if request.action_type == "MOVE":
+        handler = MoveHandler()
+        try:
+            handler.validate(request, context)
+            return handler.prepare(request, context).duration
+        except ActionValidationError:
+            return 0
+    if request.action_type in ("WAIT", "REST"):
+        return cast(int, request.payload["duration"])
+    return 1
 
 
 def run_trial(
@@ -130,7 +133,7 @@ def run_trial(
     seed: int = 42,
     policy: TrialPolicy | None = None,
     monitor: BudgetMonitor | None = None,
-    provider_name: str = "fake",
+    provider_name: str | None = None,
     provider_version: str | None = None,
 ) -> Record:
     if not trial_id or type(trial_id) is not str:
@@ -141,6 +144,14 @@ def run_trial(
     # One fresh controller per trial; no prior actor context or cross-trial state.
     if controller.last_decision is not None:
         raise ValueError("trial requires a fresh controller")
+    identity = controller.provider_identity
+    if (provider_name is not None and provider_name != identity["name"]) or (
+        provider_version is not None and provider_version != identity["version"]
+    ):
+        raise ValueError("caller provider identity differs from adapter")
+    provider_name = cast(str, identity["name"])
+    provider_version = cast(str, identity["version"])
+    source = code_identity()
     started = datetime.now(UTC).isoformat()
     start_wall = monotonic()
     run_id = f"{trial_id}:run"
@@ -164,19 +175,27 @@ def run_trial(
         calls = failures = 0
         status = "COMPLETED"
         stop_reason = "HORIZON"
+        precheck_failure: str | None = None
 
         def limited_port(actor: str) -> GamePort:
             game = app.game_for(actor)
 
             def submit(request: ActionRequest) -> ControllerActionResult:
+                nonlocal precheck_failure
+                precheck_failure = None
                 if monotonic() - start_wall >= policy.wall_timeout_seconds:
+                    precheck_failure = "WALL_TIMEOUT"
                     raise GameSubmissionError("WALL_TIMEOUT")
-                # All M4 Alderwick routes cost two ticks; domain handler remains
-                # authoritative about existence/passability and start/completion.
-                duration = 2 if request.action_type == "MOVE" else 1
-                if request.action_type in ("WAIT", "REST"):
-                    duration = cast(int, request.payload["duration"])
+                try:
+                    duration = action_duration(
+                        request,
+                        ValidationContext(run_id, kernel.simulation_time, kernel.state_snapshot),
+                    )
+                except Exception:
+                    precheck_failure = "TIMING_PRECHECK_ERROR"
+                    raise GameSubmissionError("TIMING_PRECHECK_ERROR") from None
                 if kernel.simulation_time + duration > END_TICK:
+                    precheck_failure = "HORIZON_ACTION"
                     raise GameSubmissionError("HORIZON_ACTION")
                 return game.submit(request)
 
@@ -243,15 +262,8 @@ def run_trial(
             calls += int(decision.get("provider_called") is True)
             # Distinguish policy refusal from engine errors, without changing the
             # existing turn helper/public submission exception contract.
-            if (
-                turn.failure_code == "SUBMISSION_ERROR"
-                and len(research.action_traces) == trace_offset
-            ):
-                decision["protocol_failure"] = (
-                    "WALL_TIMEOUT"
-                    if monotonic() - start_wall >= policy.wall_timeout_seconds
-                    else "HORIZON_ACTION"
-                )
+            if turn.failure_code == "SUBMISSION_ERROR" and precheck_failure is not None:
+                decision["protocol_failure"] = precheck_failure
             decisions.append(decision)
             activations.append(
                 {
@@ -326,13 +338,18 @@ def run_trial(
         ]
         metrics = summarize(decisions, pipeline.attempts, actions, expected, knowledge)
         manifest: JsonObject = {
-            "schema_version": 1,
+            "schema_version": 2,
             "trial_id": trial_id,
             "run_id": run_id,
             "executed_at": started,
             "finished_at": datetime.now(UTC).isoformat(),
             "engine_manifest": json_value(kernel.manifest),
-            "code": code_identity(),
+            "code": source,
+            "source_unchanged_during_trial": source == code_identity(),
+            "python_runtime": runtime_identity(),
+            "provider_identity": identity,
+            "configuration_version": CONFIGURATION_VERSION,
+            "observation_budget_bytes": pipeline.max_content_bytes,
             "scenario_composition": EXPERIMENT_SCENARIO_VERSION,
             "schedule_digest": state_digest(cast(JsonObject, json_value(schedule))),
             "initial_knowledge_digest": sha256(
@@ -374,27 +391,28 @@ def run_trial(
             "replay_equal": replay_equal,
             "wall_seconds": monotonic() - start_wall,
         }
-        return Record.capture(
-            {
-                "manifest": manifest,
-                "metrics": metrics,
-                "decisions": decisions,
-                "activations": activations,
-                "observations": json_value(observations),
-                "observation_attempts": cast(list[JsonValue], pipeline.attempts),
-                "action_requests": json_value(actions),
-                "action_traces": json_value(traces),
-                "action_results": json_value(expected.action_results),
-                "events": json_value(expected.events),
-                "system_event_outcomes": json_value(expected.system_event_outcomes),
-                "knowledge": json_value(knowledge),
-                "initial_knowledge": json_value(social_initial_knowledge(run_id)),
-                "initial_state": initial_state,
-                "final_state": expected.final_state,
-                "replay_input": json_value(replay_input),
-                "engine_report": json_value(expected),
-            }
-        )
+        data: JsonObject = {
+            "manifest": manifest,
+            "metrics": metrics,
+            "decisions": decisions,
+            "activations": activations,
+            "observations": json_value(observations),
+            "observation_attempts": cast(list[JsonValue], pipeline.attempts),
+            "action_requests": json_value(actions),
+            "action_traces": json_value(traces),
+            "action_results": json_value(expected.action_results),
+            "events": json_value(expected.events),
+            "system_event_outcomes": json_value(expected.system_event_outcomes),
+            "knowledge": json_value(knowledge),
+            "initial_knowledge": json_value(social_initial_knowledge(run_id)),
+            "initial_state": initial_state,
+            "final_state": expected.final_state,
+            "replay_input": json_value(replay_input),
+            "engine_report": json_value(expected),
+        }
+        manifest["record_sha256"] = record_digest(data)
+        manifest["research_inclusion"] = assess_inclusion(data)
+        return Record.capture(data)
     finally:
         kernel.close()
 
@@ -502,12 +520,15 @@ def export_trial(trial: Record, directory: Path) -> None:
 def replay_export(directory: Path) -> ReplayReport:
     """Rehydrate the existing ReplayInput only; never instantiate a Controller."""
     manifest = json.loads((directory / "manifest.json").read_text(encoding="utf-8"))
+    if manifest.get("schema_version") not in (1, 2):
+        raise ValueError("unsupported export schema")
     for filename, digest in manifest["files_sha256"].items():
         if (
             Path(filename).name != filename
             or sha256((directory / filename).read_bytes()).hexdigest() != digest
         ):
             raise ValueError("export integrity failure")
+    data = _read_new_export(directory, manifest) if manifest.get("schema_version") == 2 else None
     value = json.loads((directory / "replay_input.json").read_text(encoding="utf-8"))
     schedule = value["schedule"]
     replay_input = ReplayInput(
@@ -520,16 +541,91 @@ def replay_export(directory: Path) -> ReplayReport:
         value["advance_to"],
     )
     engine = manifest["engine_manifest"]
-    report = ReplayHarness(
-        lambda: create_alderwick_kernel(
+
+    def factory() -> SimulationKernel:
+        kernel = create_alderwick_kernel(
             run_id=engine["run_id"],
             seed=engine["seed"],
             social=True,
             resources=True,
             experiment=engine["scenario_version"] == EXPERIMENT_SCENARIO_VERSION,
         )
-    ).run(replay_input)
+        if data is not None and (
+            json_value(kernel.manifest) != engine
+            or kernel.state_snapshot != data["initial_state"]
+            or json_value(social_initial_knowledge(engine["run_id"])) != data["initial_knowledge"]
+        ):
+            kernel.close()
+            raise ValueError("replay configuration differs from recorded initial inputs")
+        return kernel
+
+    report = ReplayHarness(factory).run(replay_input)
     expected = json.loads((directory / "engine_report.json").read_text(encoding="utf-8"))
     if json_value(report) != expected:
         raise ValueError("replayed engine report differs")
     return report
+
+
+def _read_new_export(directory: Path, manifest: JsonObject) -> JsonObject:
+    """New records require the complete inventory and config+artifact seal."""
+    data: JsonObject = {"manifest": manifest}
+    hashes = cast(JsonObject, manifest["files_sha256"])
+    object_fields = {"metrics", "initial_state", "final_state", "replay_input", "engine_report"}
+    filenames = {
+        name: f"{name}.json" if name in object_fields else f"{name}.jsonl"
+        for name in TRIAL_FIELDS - {"manifest"}
+    }
+    if set(hashes) != set(filenames.values()):
+        raise ValueError("export integrity failure: incomplete inventory")
+    for name, filename in filenames.items():
+        payload = (directory / filename).read_bytes()
+        if sha256(payload).hexdigest() != hashes[filename]:
+            raise ValueError("export integrity failure")
+        text = payload.decode("utf-8")
+        data[name] = (
+            json.loads(text)
+            if name in object_fields
+            else [json.loads(line) for line in text.splitlines()]
+        )
+    if manifest.get("record_sha256") != record_digest(data):
+        raise ValueError("export record integrity failure")
+    return data
+
+
+def audit_export(directory: Path) -> JsonObject:
+    """Research admission rechecks files/config and engine replay, provider-free.
+
+    Historical v1 remains replayable but is not silently admitted under v2 rules.
+    Audit failures never modify or discard the original artifact.
+    """
+    manifest: JsonObject = {}
+    try:
+        manifest = json.loads((directory / "manifest.json").read_text(encoding="utf-8"))
+        if not isinstance(manifest, dict):
+            raise ValueError("invalid manifest")
+        if manifest.get("schema_version") != 2:
+            return inclusion_result(["NEW_PROVENANCE_REQUIRED"])
+        data = _read_new_export(directory, manifest)
+        result = assess_inclusion(data)
+        try:
+            replay_export(directory)
+        except Exception:
+            result = inclusion_result([*cast(list[str], result["reasons"]), "REPLAY_MISMATCH"])
+    except (OSError, KeyError, TypeError, ValueError):
+        result = inclusion_result(["EXPORT_INTEGRITY"])
+    stored = manifest.get("research_inclusion") if isinstance(manifest, dict) else None
+    matches = stored == result
+    audit = inclusion_result(
+        [
+            *cast(list[str], result["reasons"]),
+            *([] if matches else ["STORED_INCLUSION_MISMATCH"]),
+        ]
+    )
+    audit.update(
+        {
+            "stored_inclusion": stored,
+            "recomputed_inclusion": result,
+            "stored_inclusion_matches": matches,
+        }
+    )
+    return audit

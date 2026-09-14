@@ -8,7 +8,13 @@ from typing import cast
 
 from journeymap.adapters.decision_schema import DECISION_SCHEMA_VERSION, decision_schema
 from journeymap.adapters.memory import MemoryContext, MemoryPolicy, NoMemory
-from journeymap.adapters.provider import Provider, ProviderFailure, ProviderRequest
+from journeymap.adapters.provider import (
+    Provider,
+    ProviderFailure,
+    ProviderRequest,
+    provider_identity,
+    response_identity_matches,
+)
 from journeymap.application.contracts import normalize_request, validate_action_contract
 from journeymap.core.canonical import JsonObject, JsonValue, canonical_json
 from journeymap.core.handlers import ActionRequest
@@ -191,6 +197,10 @@ class LLMController:
         self._response_ids: set[str] = set()
 
     @property
+    def provider_identity(self) -> JsonObject:
+        return provider_identity(self._provider)
+
+    @property
     def parameters(self) -> JsonObject:
         return self._parameters.data
 
@@ -216,6 +226,8 @@ class LLMController:
             "provider_request": None,
             "raw_output": None,
             "provider_metadata": {},
+            "provider_identity": self.provider_identity,
+            "provider_identity_consistent": None,
             "parsed_candidate": None,
             "parsed_wire_candidate": None,
             "decision_schema_version": DECISION_SCHEMA_VERSION,
@@ -277,6 +289,14 @@ class LLMController:
                 )
                 if key in response.metadata
             }
+            phase = "PROVIDER_IDENTITY_MISMATCH"
+            data["provider_identity_consistent"] = response_identity_matches(
+                cast(JsonObject, data["provider_identity"]),
+                self.model,
+                cast(JsonObject, data["provider_metadata"]),
+            )
+            if not data["provider_identity_consistent"]:
+                raise ValueError("provider response identity mismatch")
             phase = "INVALID_OUTPUT"
             data["parser_outcome"] = "REJECTED"
             response_id = response.metadata.get("response_id")

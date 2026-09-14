@@ -66,7 +66,7 @@ M8에서만 `create_alderwick_kernel/application(...,social=True,resources=True,
 | 20 tick × 72분 | M6 schedule을 그대로 실행 | fixture 범위가 세계 시간 정의를 결정하고 hour 해석이 불편함; 공식 trial에서 제외 |
 | 24 tick × 1시간 | tick/hour 일치, 24개 pressure input 명시, 기존 M6 회귀 독립 | 별도 scenario/schedule version 필요; 최종 채택 |
 
-MOVE는 기존 2 tick, social/BUY/CONSUME는 1 tick, WAIT/REST는 payload duration을 전부 소비한다. 이는 첫 연구의 거친 시간 척도이며 현실 여행/거래 소요 시간의 보정된 물리 모델이 아니다. kernel tick이나 resource per-tick 계수를 바꾸지 않는다.
+현재 fixture의 MOVE는 2 tick, social/BUY/CONSUME는 1 tick, WAIT/REST는 payload duration을 전부 소비한다. runner의 MOVE horizon 검사는 `MoveHandler.validate/prepare`의 authoritative duration을 읽는다. 시작부터 무효인 MOVE는 engine에 제출하여 REJECTED를 보존하고, 유효하지만 horizon을 넘는 MOVE는 제출하지 않는다. 이는 첫 연구의 거친 시간 척도이며 현실 여행/거래 소요 시간의 보정된 물리 모델이 아니다. kernel tick이나 resource per-tick 계수를 바꾸지 않는다.
 
 처음 Stranger를 tick 0에서 activate한다. 시간이 진행된 LLM turn 뒤에는 기존 `NPC_ACTIVATIONS=(hugh,thomas,hugh,thomas,hugh)` cycle의 다음 NPC 한 명을 기존 SocialNpcController로 activate하고, 완료 직후 다시 Stranger 차례다. 별도 idle tick을 넣지 않는다. NPC REJECTED는 그대로 기록한다. Marta/Edwin은 기존 passive fixture 역할을 유지한다. system event는 이 activation 목록의 actor가 아니며 ActionRequest로 변환하지 않는다. 긴 action 중에는 기존 synchronous kernel이 system events를 처리하고 NPC activation은 다음 완료 경계까지 기다린다.
 
@@ -133,3 +133,37 @@ Observation 22개 전체 max **3,875 bytes**, mean **3,058.09 bytes**, LLM 관�
 [Sol 공식 단가](https://developers.openai.com/api/docs/models/gpt-5.6-sol) 입력 $4/1M, 출력 $20/1M을 적용하고 cache 할인 없이 계산하면 계획 범위 **약 $0.16–$0.85**다. 24 calls 모두 4,096 output tokens를 쓰고 input이 위 fake 관측 범위 상단에 머무르면 약 **$2.28**이다. 이는 입력 성장까지 보장하는 USD hard cap이 아니다. NoMemory라도 Knowledge/social history 증가로 current Observation이 커질 수 있다. 실제 usage를 받아야 실비를 확정할 수 있다. Terra 단가는 입력 $2/1M, 출력 $12/1M이며 첫 공식 Sol trial을 자동 대체하지 않는다.
 
 승인 후 공식 trial은 10 calls, tick 0→24, COMPLETED/HORIZON, replay equality=true로 끝났다. M8의 first-live 및 기록/replay exit criteria를 충족했다. 단일 live run의 결과이며 복수 모델·trial 통계 비교는 하지 않았다. commit/push와 추가 유료 trial은 수행하지 않는다.
+
+## 8. Pre-Experiment Hardening / export v2
+
+첫 공식 trial은 실제 **engine_version=0.0.0**에서 수행된 historical export v1이다. 이후 package/engine **0.1.0**과 export v2를 추가하며 `trials/m8-first-official-sol/` 및 과거 실측 문서는 migration/rewrite하지 않는다. deterministic engine replay는 recorded ActionRequest의 결과 재현이며 LLM decision replay가 아니다. `--replay trials/m8-first-official-sol`은 Provider/key 없이 원래 final digest를 검증한다. v1에 새 provenance가 없다는 사실은 과거 결과를 변조할 이유가 아니며 strict audit는 `NEW_PROVENANCE_REQUIRED`를 반환한다.
+
+새 manifest는 기존 engine version/seed/scenario와 prompt/protocol/model/parameters/bounds에 다음을 추가한다.
+
+| 필드 | 의미 |
+|---|---|
+| `code.git_commit`, `working_tree_dirty`, `git_source_tree` | 실제 checkout commit/dirty 상태와 committed source tree 참조 |
+| `code.source_sha256` | 기존 `src/journeymap/**/*.py` path + NUL + raw bytes SHA-256 의미 유지 |
+| `code.working_source_sha256`, `source_identity_version`, `source_scope` | 실제 working source의 canonical identity, 알고리즘 `utf8-lf-path-lengths-1`, scope는 Python source + pyproject.toml |
+| `source_unchanged_during_trial` | 실행 전후 source provenance 일치 검사 |
+| `python_runtime` | Python implementation과 major/minor/patch 정수 3개 |
+| `provider_identity` | adapter-owned name/version/kind/implementation, socket timeout, versioned response-model policy |
+| `configuration_version`, `observation_budget_bytes` | 전송 설정 계약과 실제 Observation byte bound |
+| `record_sha256`, `research_inclusion` | configuration+전체 artifact seal과 별도 연구 inclusion 판정 |
+
+Canonical source identity는 algorithm label+NUL로 SHA-256을 시작하고 POSIX relative path를 UTF-8 byte 순서로 정렬한다. 각 path와 UTF-8 content를 각각 8-byte big-endian 길이로 framing한다. content의 CRLF만 LF로 정규화하며 bare CR과 다른 문자·공백·BOM·마지막 newline 유무는 보존한다. invalid UTF-8은 거부한다. 따라서 LF/CRLF는 같고 실제 source text 변화는 다른 identity를 낸다. 기존 byte hash의 의미는 바꾸지 않는다. environment dump/credential/header/error body를 provenance에 추가하지 않는다.
+
+Provider identity는 caller label이나 response metadata로 덮어쓰지 않는다. OpenAI는 `openai/responses-http-2/live`, protocol fake는 `fake/fixture-1/fixture`다. identity 없는 기존 test double은 fake fixture로 한정한다. 반환 provider/adapter/model 모순은 raw output과 failure를 보존하고 submit하지 않는다. OpenAI response policy `openai-alias-dated-snapshot-1`은 exact match 또는 동일 requested alias 뒤의 유효한 `-YYYY-MM-DD`를 허용한다. pinned 날짜 요청의 변경, 다른 alias/provider, 임의 suffix는 거부한다. 이는 naming compatibility 규칙이며 특정 snapshot의 실제 존재나 weights를 인증하지 않는다. requested `model`과 관측된 `response_models`는 계속 별도 필드다.
+
+Execution `COMPLETED/TERMINATED`와 `research_inclusion`의 `INCLUDED/EXCLUDED`는 독립이다. deterministic policy `pre-experiment-1`은 다음을 모두 요구한다.
+
+- COMPLETED/HORIZON, expected tick 24 도달 및 replay equality=true.
+- required provenance/configuration, 실제 protocol schedule, Observation·decision·activation·ActionRequest·ActionTrace·ActionResult 연결과 submitted trace의 result 완전성.
+- provider identity 일관성 및 protocol이 허용하지 않은 infrastructure failure 부재.
+- required export inventory, 각 payload SHA-256, configuration과 artifact를 함께 묶는 record seal, 초기 입력과 최종 engine report/digest 검증.
+
+REJECTED/OUT_OF_RANGE, 잘못된 predicate, 무효 model JSON, 정보 획득·task 실패나 비효율적인 행동 자체는 제외 사유가 아니다. horizon 등 다른 조건을 만족하면 포함한다. Provider transport/identity failure, memory/prompt/Observation infrastructure failure, engine error나 incomplete trace는 제외한다. 회복된 transport 실패도 제외하고 모델의 회복된 invalid output과 구분한다. fake INCLUDED는 fixture data-quality 판정이며 실제 모델 행동의 연구 증거가 아니다.
+
+`--audit <directory>`는 raw files를 다시 읽고 required hashes와 record seal을 검증한 뒤 structure/configuration을 재검사하고 engine replay를 실제 실행한다. 저장된 `research_inclusion`은 recomputation 입력에서 신뢰하지 않으며, `stored_inclusion`, `recomputed_inclusion`, `stored_inclusion_matches`로 비교 결과를 반환한다. 불일치 시 `STORED_INCLUSION_MISMATCH`와 EXCLUDED/exit 1을 반환한다. record seal은 manifest의 config도 포함하고 derived inclusion/file-hash/seal 필드만 제외한다. export read/audit는 원본을 쓰지 않는다. hashes는 실수·손상 검출이며 모든 기록과 hashes를 함께 재작성하는 공격자를 인증하지 않는다. source를 과거 checkout으로 자동 복원하지 않으며 현재 실행 코드와 recorded engine inputs의 호환 replay를 검사한다.
+
+Event Trace, Recency-based Event Memory, Selective Event Memory와 admission/retrieval/forgetting/reflection은 이번 branch 범위 밖이다. 실패한 Provider/invalid output 이후 동일 Observation 내용이 MemoryPolicy history에 반복될 수 있는 현상은 known issue로 남긴다. NoMemory는 그 history를 prompt에 선택하지 않는다. 후속 Event Memory 설계·구현에서 history의 의미와 중복 처리 정책을 별도로 결정한다. Python adapter identity는 trusted composition 계약이고 악성 Python sandbox가 아니며, wall timeout도 blocking custom Provider의 강제 종료 watchdog은 아니다.

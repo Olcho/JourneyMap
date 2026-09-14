@@ -1,6 +1,6 @@
 # Test Strategy
 
-M8 현재 offline gate: **770 passed**. M0–M7의 기존 656개와 최초 M8 87개 테스트 목적을 유지하고, 공식 trial 설계 재검토의 신규 27개를 추가했다. 실제 network/API는 자동 테스트에서 호출하지 않는다. 아래 M8 절과 [실험 프로토콜](M8_EXPERIMENT.md)을 함께 따른다.
+Pre-Experiment Hardening 최종 offline gate: **823 passed in 48.65s** (Python 3.12.14). M8 기준 770개 테스트를 그대로 유지하고 `test_pre_experiment_hardening.py`에 53개 회귀를 추가했다. Ruff check/format(120 files), strict mypy(109 source files), git diff --check와 fake full trial/replay/독립 audit, corrupted-copy rejection 및 historical 17개 raw 파일 hash 불변을 확인했다. 실제 network/API는 호출하지 않았다. 아래 M8 절과 [실험 프로토콜](M8_EXPERIMENT.md)을 함께 따른다.
 
 ## 1. 목적
 
@@ -13,6 +13,8 @@ JourneyMap의 최우선 품질은 기능 수가 아니라 정보·권한 경계,
 `test_m8_experiment.py`는 full fake 24h, recorded engine inputs만의 replay, 반복 engine artifacts, export byte determinism/integrity/쓰기 실패, immutable records, call/decision/wall/연속 실패 bounds, horizon no-clipping, Observation overflow/no-truncation을 검증한다. 기존 20-tick assertion만 새 24h protocol에 맞췄고 실패/불변식 검사를 삭제하지 않았다.
 
 `test_m8_revision.py`의 27개는 모든 action의 trusted binding, REQUEST arbitrary JSON codec와 malformed subobject 거부, OpenAI strict schema subset, 별도 M8 schedule/M6 보존, M7 public receipt만의 actor scope, 새 response의 동일 intent, refusal/incomplete no-submit, requested alias/returned identity 분리를 검증한다.
+
+`test_pre_experiment_hardening.py`의 53개는 package/engine/runtime/config provenance, LF/CRLF 및 UTF-8 ordering의 stable source identity, fake relabel 금지, response mismatch의 raw 보존/no-submit/no-world-mutation, 같은 alias의 날짜형 snapshot과 다른 identity 구분, completion/inclusion 분리, 모델 실패와 transport 실패 구분을 검증한다. 실제 traversal cost 1/3/25와 handler duration 7, tick 23의 start-invalid MOVE REJECTED를 검사한다. export 재감사는 hash를 다시 계산한 뒤에도 trace/result/Observation/activation/prompt/config 누락·모순, stored inclusion 조작, replay/final report 불일치와 필수 파일 누락을 검출해야 한다. CI에서는 로컬 raw trial 없이 synthetic schema v1/engine 0.0.0 fixture와 새 0.1.0 replay를 항상 검증한다. 실제 official artifact가 있는 로컬에서는 기존 17개 파일의 golden digest/byte 검사도 추가한다. 모든 replay는 Controller/Provider의 생성·호출을 금지한 상태로 실행하고 기존 17개 raw 파일의 byte/hash 불변을 확인한다. fixture/mocked HTTP만 사용하며 Event Memory 구현은 포함하지 않는다.
 
 Ruff check/format, strict mypy, 전체 pytest 및 git diff --check를 실행한다. 이번 Windows 환경의 `.venv` Python 링크가 끊어져 Python 3.12.14 번들 런타임과 기존 dev packages를 사용했다. 오래된 temp/cache ACL 때문에 pytest 임시 파일은 새 `trials/pytest-*` 경로와 `cache_dir=trials/pytest-cache`를 사용한다. 테스트 실패를 skip/xfail로 숨기지 않는다. 정상 개발 환경은 README의 Python 3.12 venv 명령을 사용한다.
 
