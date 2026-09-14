@@ -137,4 +137,8 @@ M8 구현과 첫 공식 live trial을 완료했다. OpenAI Responses adapter(표
 
 ## 이후 후보
 
+Event Memory Phase 1은 [별도 correctness 범위](EVENT_MEMORY_PHASE1.md)로
+Event Trace v1과 No Event Memory/Recency k=1만 구현한다. M8 historical protocol과
+공식 trial은 보존한다. Selective Memory/scoring/reflection/RL 및 성능 비교는 후속 범위다.
+
 weather, combat, economy, employment, law, politics, religion, magic은 0.1 결과가 필요성을 입증한 뒤 별도 제안으로 검토한다. microservices, 외부 broker, full ECS/event sourcing도 실제 규모와 병목의 근거 없이는 도입하지 않는다.

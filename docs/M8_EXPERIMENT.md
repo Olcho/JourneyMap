@@ -1,5 +1,9 @@
 # M8 single-actor experiment protocol and export
 
+후속 [Event Memory Phase 1](EVENT_MEMORY_PHASE1.md)은 별도 protocol/export schema 3으로
+구현한다. 아래 M8 protocol/prompt와 schema 1/2 historical replay/audit는 그대로 유지한다.
+이 문서의 Observation-history memory 및 Event Memory 비범위 설명은 M8 당시의 계약이다.
+
 상태: 구현 및 offline gate 완료. 사용자 승인으로 첫 공식 OpenAI trial `m8-first-official-sol`을 한 번 실행해 tick 24와 replay equality를 확인했다. [공식 결과 보고서](M8_FIRST_OFFICIAL_TRIAL.md)에 실측 usage·비용·행동·한계를 기록했다. 추가 유료 trial은 별도 승인 대기다. 이 문서는 M8 실행·전송·기록의 기준이며 M0–M7 도메인 의미를 대체하지 않는다.
 
 ## 1. Provider와 모델 설정

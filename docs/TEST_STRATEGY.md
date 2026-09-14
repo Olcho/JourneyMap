@@ -1,5 +1,27 @@
 # Test Strategy
 
+## Event Memory Phase 1 correctness gate
+
+`test_event_memory.py`는 deterministic fake Provider의 `[] → [E1] → [E2]`, 동일 초기
+실행의 trace equality, self-memory 배제, immutable snapshot, actor/run 격리, chronological
+ordering을 검사한다. Provider/identity/parser/refusal/incomplete failure의 research 보존과
+no-trace, 동일 tick retry lineage, 실제 REJECTED/다리 붕괴 FAILED, post-commit receipt 부재,
+invalid Controller output, horizon no-submit을 별도로 검증한다. NoMemory/Recency full 24h,
+policy/IDs/count/serialized bytes/prompt hash와 export 재구성, 재봉인한 corruption 거부,
+Provider-free replay/audit를 포함한다. 기존 823개 gate는 삭제하거나 완화하지 않는다.
+Phase 1 protocol과 correctness 판정 범위는 [계약](EVENT_MEMORY_PHASE1.md)을 따른다.
+
+2026-09-14 최종 offline gate: **879 passed in 47.86s** (기존 823 + 신규 56),
+Ruff check 통과, format 125 files, strict mypy 113 source files 통과, diff check 통과.
+실행 환경은 Python 3.12.14 번들 + 기존 `.venv/Lib/site-packages`이며 pytest/cache는
+새 `trials/pytest-event-full2`와 `trials/pytest-cache`를 사용했다. 실제 API는 호출하지 않았다.
+
+2026-09-15 최종 review gate: **894 passed in 47.66s** (위 879 + receipt/audit 회귀 15),
+Ruff check/format(125 files), strict mypy(113 source files), diff check 통과. direct receipt
+ingestion은 필수 engine-submitted 확인과 public receipt 타입/진단/status 검증을 거친다.
+NoMemory/Recency offline trial과 schema 1/2 replay를 다시 확인했고 historical 각 17개
+파일 hash는 불변이다. schema 1 audit의 NEW_PROVENANCE_REQUIRED는 기존 정책대로 유지한다.
+
 Pre-Experiment Hardening 최종 offline gate: **823 passed in 48.65s** (Python 3.12.14). M8 기준 770개 테스트를 그대로 유지하고 `test_pre_experiment_hardening.py`에 53개 회귀를 추가했다. Ruff check/format(120 files), strict mypy(109 source files), git diff --check와 fake full trial/replay/독립 audit, corrupted-copy rejection 및 historical 17개 raw 파일 hash 불변을 확인했다. 실제 network/API는 호출하지 않았다. 아래 M8 절과 [실험 프로토콜](M8_EXPERIMENT.md)을 함께 따른다.
 
 ## 1. 목적

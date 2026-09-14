@@ -10,6 +10,7 @@ from pathlib import Path
 from time import monotonic
 from typing import cast
 
+from journeymap.adapters.event_memory import EVENT_MEMORY_PROTOCOL_VERSION, RecencyEventMemory
 from journeymap.adapters.llm import (
     CONFIGURATION_VERSION,
     PROMPT_VERSION,
@@ -17,6 +18,7 @@ from journeymap.adapters.llm import (
     Record,
     observation_json,
 )
+from journeymap.adapters.memory import NoMemory
 from journeymap.adapters.social_npc import SocialNpcController
 from journeymap.application.observations import ObservationBudgetExceeded, ObservationPipeline
 from journeymap.application.turns import run_controller_turn
@@ -135,11 +137,19 @@ def run_trial(
     monitor: BudgetMonitor | None = None,
     provider_name: str | None = None,
     provider_version: str | None = None,
+    protocol_version: str = PROTOCOL_VERSION,
 ) -> Record:
     if not trial_id or type(trial_id) is not str:
         raise ValueError("trial_id required")
     policy = policy if policy is not None else TrialPolicy()
-    if not controller.uses_no_memory:
+    event_mode = protocol_version == EVENT_MEMORY_PROTOCOL_VERSION
+    if protocol_version not in (PROTOCOL_VERSION, EVENT_MEMORY_PROTOCOL_VERSION):
+        raise ValueError("unsupported experiment protocol")
+    if event_mode != controller.event_memory_enabled:
+        raise ValueError("protocol and Event Memory context must agree")
+    if event_mode and type(controller.event_memory_policy) not in (NoMemory, RecencyEventMemory):
+        raise ValueError("Phase 1 permits only No Event Memory or Recency k=1")
+    if not event_mode and not controller.uses_no_memory:
         raise ValueError("first protocol requires NoMemory")
     # One fresh controller per trial; no prior actor context or cross-trial state.
     if controller.last_decision is not None:
@@ -217,6 +227,20 @@ def run_trial(
             before = kernel.simulation_time
             trace_offset = len(research.action_traces)
             turn = run_controller_turn(limited_port("stranger"), controller)
+            closed_trace_id: str | None = None
+            if (
+                event_mode
+                and turn.observation is not None
+                and turn.request is not None
+                and turn.receipt is not None
+                and any(
+                    trace.engine_submitted and trace.request == turn.request
+                    for trace in research.action_traces[trace_offset:]
+                )
+            ):
+                closed_trace_id = controller.close_event_trace(
+                    turn.observation, turn.request, turn.receipt, engine_submitted=True
+                ).event_trace_id
             decision: JsonObject = (
                 controller.last_decision.data
                 if turn.observation is not None and controller.last_decision is not None
@@ -260,6 +284,8 @@ def run_trial(
                 }
             )
             calls += int(decision.get("provider_called") is True)
+            if event_mode:
+                decision["closed_event_trace_id"] = closed_trace_id
             # Distinguish policy refusal from engine errors, without changing the
             # existing turn helper/public submission exception contract.
             if turn.failure_code == "SUBMISSION_ERROR" and precheck_failure is not None:
@@ -338,7 +364,7 @@ def run_trial(
         ]
         metrics = summarize(decisions, pipeline.attempts, actions, expected, knowledge)
         manifest: JsonObject = {
-            "schema_version": 2,
+            "schema_version": 3 if event_mode else 2,
             "trial_id": trial_id,
             "run_id": run_id,
             "executed_at": started,
@@ -357,7 +383,11 @@ def run_trial(
             ).hexdigest(),
             "actor_id": "stranger",
             "controller": "LLMController",
-            "memory_policy": "NoMemory",
+            "memory_policy": (
+                controller.event_memory_policy.policy_id
+                if controller.event_memory_policy is not None
+                else "NoMemory"
+            ),
             "provider": provider_name,
             "provider_version": provider_version,
             "model": controller.model,
@@ -373,8 +403,8 @@ def run_trial(
                 )
             ),
             "parameters": controller.parameters,
-            "prompt_version": PROMPT_VERSION,
-            "protocol_version": PROTOCOL_VERSION,
+            "prompt_version": controller.prompt_version,
+            "protocol_version": protocol_version,
             "minutes_per_tick": 60,
             "target_simulation_hours": 24,
             "target_end_tick": END_TICK,
@@ -410,8 +440,17 @@ def run_trial(
             "replay_input": json_value(replay_input),
             "engine_report": json_value(expected),
         }
-        manifest["record_sha256"] = record_digest(data)
-        manifest["research_inclusion"] = assess_inclusion(data)
+        if event_mode:
+            from journeymap.experiments.event_memory import assess_event_memory
+
+            assert controller.event_memory_policy is not None
+            manifest["memory_policy_version"] = controller.event_memory_policy.policy_version
+            data["event_traces"] = [trace.to_json() for trace in controller.event_traces]
+            manifest["record_sha256"] = record_digest(data)
+            manifest["research_inclusion"] = assess_event_memory(data)
+        else:
+            manifest["record_sha256"] = record_digest(data)
+            manifest["research_inclusion"] = assess_inclusion(data)
         return Record.capture(data)
     finally:
         kernel.close()
@@ -520,7 +559,7 @@ def export_trial(trial: Record, directory: Path) -> None:
 def replay_export(directory: Path) -> ReplayReport:
     """Rehydrate the existing ReplayInput only; never instantiate a Controller."""
     manifest = json.loads((directory / "manifest.json").read_text(encoding="utf-8"))
-    if manifest.get("schema_version") not in (1, 2):
+    if manifest.get("schema_version") not in (1, 2, 3):
         raise ValueError("unsupported export schema")
     for filename, digest in manifest["files_sha256"].items():
         if (
@@ -528,7 +567,9 @@ def replay_export(directory: Path) -> ReplayReport:
             or sha256((directory / filename).read_bytes()).hexdigest() != digest
         ):
             raise ValueError("export integrity failure")
-    data = _read_new_export(directory, manifest) if manifest.get("schema_version") == 2 else None
+    data = (
+        _read_new_export(directory, manifest) if manifest.get("schema_version") in (2, 3) else None
+    )
     value = json.loads((directory / "replay_input.json").read_text(encoding="utf-8"))
     schedule = value["schedule"]
     replay_input = ReplayInput(
@@ -571,9 +612,12 @@ def _read_new_export(directory: Path, manifest: JsonObject) -> JsonObject:
     data: JsonObject = {"manifest": manifest}
     hashes = cast(JsonObject, manifest["files_sha256"])
     object_fields = {"metrics", "initial_state", "final_state", "replay_input", "engine_report"}
+    fields = (
+        TRIAL_FIELDS | {"event_traces"} if manifest.get("schema_version") == 3 else TRIAL_FIELDS
+    )
     filenames = {
         name: f"{name}.json" if name in object_fields else f"{name}.jsonl"
-        for name in TRIAL_FIELDS - {"manifest"}
+        for name in fields - {"manifest"}
     }
     if set(hashes) != set(filenames.values()):
         raise ValueError("export integrity failure: incomplete inventory")
@@ -603,10 +647,15 @@ def audit_export(directory: Path) -> JsonObject:
         manifest = json.loads((directory / "manifest.json").read_text(encoding="utf-8"))
         if not isinstance(manifest, dict):
             raise ValueError("invalid manifest")
-        if manifest.get("schema_version") != 2:
+        if manifest.get("schema_version") not in (2, 3):
             return inclusion_result(["NEW_PROVENANCE_REQUIRED"])
         data = _read_new_export(directory, manifest)
-        result = assess_inclusion(data)
+        if manifest.get("schema_version") == 3:
+            from journeymap.experiments.event_memory import assess_event_memory
+
+            result = assess_event_memory(data)
+        else:
+            result = assess_inclusion(data)
         try:
             replay_export(directory)
         except Exception:
@@ -628,4 +677,8 @@ def audit_export(directory: Path) -> JsonObject:
             "stored_inclusion_matches": matches,
         }
     )
+    if isinstance(manifest, dict) and manifest.get("schema_version") == 3:
+        from journeymap.experiments.event_memory import CORRECTNESS_VERSION
+
+        audit["policy_version"] = CORRECTNESS_VERSION
     return audit
