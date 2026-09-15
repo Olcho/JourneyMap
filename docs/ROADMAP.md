@@ -1,5 +1,13 @@
 # Roadmap
 
+## Memory Horizon offline preparation
+
+[Distinct Places preparation](MEMORY_HORIZON_OFFLINE.md) adds a separate versioned
+MOVE/WAIT scenario, shared task prompt and four memory conditions with offline
+correctness/replay/audit. It does not declare formal Phase 2B entry or completion.
+Phase 2A historical raw gate and Recency Window PR/merge remain outstanding.
+Actual model behavioral pilots are not run by this preparation.
+
 마일스톤은 의존성 순서다. 다음 단계의 기능을 앞당겨 넣지 않으며, 각 단계는 자동화된 exit criteria를 만족한 뒤 종료한다. 특히 LLM 통합은 결정적 엔진과 정보 경계 검증 이후에만 진행한다.
 
 ## M0 Repository/Foundation

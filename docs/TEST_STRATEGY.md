@@ -1,5 +1,23 @@
 # Test Strategy
 
+## Memory Horizon offline preparation gate
+
+`tests/test_memory_horizon.py` verifies the separate empty-schedule composition,
+four-condition input equality, no visit/receipt leakage, E1–E4 memory horizons,
+six target permutations, completion/repetition distinction, failed attempt versus
+submission counts, fixed-horizon termination, immutable stateless fixture behavior,
+historical prompt bytes/defaults, export/replay/audit and resealed corruption.
+All network access is forbidden in these tests. Existing tests remain intact.
+See [protocol and remaining historical gate](MEMORY_HORIZON_OFFLINE.md).
+This preparation does not close Phase 2A or certify actual historical raw artifacts.
+
+2026-09-15: **1007 passed (933 existing + 74 new)** in 97.97s, Python 3.12.10.
+Ruff check/format (134 files), mypy (120 files), and diff check passed.
+Six final offline exports reached tick 24 with replay equality, INCLUDED audit,
+stored inclusion equality and unchanged file hashes across reads. Existing four
+window exports also retained replay/audit and byte hashes. Actual official raw
+artifacts remain absent; no real API call or behavioral performance claim.
+
 ## Recency window correctness gate
 
 [Recency window 계약](EVENT_MEMORY_RECENCY_WINDOW.md)의 k=1/2/3에 대해 warm-up,
