@@ -6,6 +6,9 @@ Event Memory Phase 1 opt-in은 [별도 계약](EVENT_MEMORY_PHASE1.md)을 따른
 제출 확인은 필수 keyword이며 trusted caller가 실제 live attempt에서 확인해야 한다. 아래 M7/M8 historical
 `memory=MemoryPolicy` 계약과 Core Controller/GamePort/turn helper는 유지한다.
 
+Fixed recency window의 k 검증과 versioned protocol은
+[recency-window 계약](EVENT_MEMORY_RECENCY_WINDOW.md)을 따른다.
+
 M7에서 확정한 Python in-process 0.1 계약이다. HTTP/JSON transport는 구현하지 않는다. 아래 JSON은 실제 공개 필드의 표현이며 snake_case를 사용한다. 7–12절은 M1–M6의 도메인·실행 의미를 설명하고, live retry와 Controller 경계는 13절의 M7 정책을 따른다.
 
 ## 1. Game / Controller interface

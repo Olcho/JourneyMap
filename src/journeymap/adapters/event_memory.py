@@ -18,6 +18,7 @@ from journeymap.core.observations import Observation, validate_observation_v1
 EVENT_TRACE_VERSION = 1
 EVENT_MEMORY_PROMPT_VERSION = "alderwick-event-memory-decision-1"
 EVENT_MEMORY_PROTOCOL_VERSION = "alderwick-event-memory-phase1-1"
+RECENCY_WINDOW_PROTOCOL_VERSION = "alderwick-event-memory-recency-window-1"
 
 
 def observation_snapshot(observation: Observation) -> JsonObject:
@@ -102,13 +103,23 @@ class EventMemoryPolicy(Protocol):
 
 
 class RecencyEventMemory:
-    """Recency-based Event Memory, fixed k=1, ordered by closure sequence."""
+    """Fixed positive recency window, returned in chronological closure order."""
 
     policy_id = "Recency-based Event Memory"
     policy_version = "recency-event-memory-k1-1"
 
+    def __init__(self, k: int = 1) -> None:
+        if type(k) is not int or k <= 0:
+            raise ValueError("k must be a positive integer")
+        self._k = k
+        self.policy_version = f"recency-event-memory-k{k}-1"
+
+    @property
+    def k(self) -> int:
+        return self._k
+
     def select_events(self, context: EventMemoryContext) -> tuple[EventTrace, ...]:
-        return context.prior[-1:]
+        return context.prior[-self.k :]
 
 
 class EventTraceArchive:
