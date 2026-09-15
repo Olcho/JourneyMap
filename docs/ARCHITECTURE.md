@@ -1,5 +1,11 @@
 # Architecture
 
+Event Memory Phase 1은 adapter-owned immutable `EventTraceArchive`와 별도
+`EventMemoryPolicy`를 추가한다. trusted experiment orchestration만 engine 제출 여부를
+확인하고 공개 receipt를 ingestion하며, Controller/Provider에는 world/research capability를
+주입하지 않는다. Observation-history memory는 historical 경로로 격리한다.
+정확한 lifecycle와 export 경계는 [Phase 1](EVENT_MEMORY_PHASE1.md)을 따른다.
+
 ## 1. 형태와 설계 기준
 
 JourneyMap 0.x는 단일 배포 단위의 **modular monolith**다. 모듈 간 경계는 코드와 테스트로 강제하지만, 네트워크 서비스·외부 message broker·runtime plugin framework는 도입하지 않는다.

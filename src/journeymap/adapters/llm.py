@@ -7,6 +7,13 @@ from time import monotonic
 from typing import cast
 
 from journeymap.adapters.decision_schema import DECISION_SCHEMA_VERSION, decision_schema
+from journeymap.adapters.event_memory import (
+    EVENT_MEMORY_PROMPT_VERSION,
+    EventMemoryContext,
+    EventMemoryPolicy,
+    EventTrace,
+    EventTraceArchive,
+)
 from journeymap.adapters.memory import MemoryContext, MemoryPolicy, NoMemory
 from journeymap.adapters.provider import (
     Provider,
@@ -17,6 +24,7 @@ from journeymap.adapters.provider import (
 )
 from journeymap.application.contracts import normalize_request, validate_action_contract
 from journeymap.core.canonical import JsonObject, JsonValue, canonical_json
+from journeymap.core.controller import ControllerActionResult
 from journeymap.core.handlers import ActionRequest
 from journeymap.core.observations import Observation, validate_observation_v1
 
@@ -181,6 +189,7 @@ class LLMController:
         model: str = DEFAULT_MODEL,
         parameters: JsonObject | None = None,
         memory: MemoryPolicy | None = None,
+        event_memory: EventMemoryPolicy | None = None,
     ) -> None:
         self._provider = provider
         self.model = model
@@ -191,7 +200,11 @@ class LLMController:
                 else {"reasoning": {"effort": "medium"}, "max_output_tokens": 4096}
             )
         )
+        if memory is not None and event_memory is not None:
+            raise ValueError("legacy and Event Memory cannot be combined")
         self._memory = memory if memory is not None else NoMemory()
+        self._event_memory = event_memory
+        self._event_archive = EventTraceArchive()
         self._history: list[Observation] = []
         self._last: Record | None = None
         self._response_ids: set[str] = set()
@@ -206,7 +219,40 @@ class LLMController:
 
     @property
     def uses_no_memory(self) -> bool:
-        return type(self._memory) is NoMemory
+        return type(self._event_memory if self.event_memory_enabled else self._memory) is NoMemory
+
+    @property
+    def event_memory_enabled(self) -> bool:
+        return self._event_memory is not None
+
+    @property
+    def event_memory_policy(self) -> EventMemoryPolicy | None:
+        return self._event_memory
+
+    @property
+    def prompt_version(self) -> str:
+        return EVENT_MEMORY_PROMPT_VERSION if self.event_memory_enabled else PROMPT_VERSION
+
+    @property
+    def event_traces(self) -> tuple[EventTrace, ...]:
+        return self._event_archive.traces
+
+    def close_event_trace(
+        self,
+        observation: Observation,
+        request: ActionRequest,
+        receipt: ControllerActionResult,
+        *,
+        engine_submitted: bool,
+    ) -> EventTrace:
+        """Trusted orchestration calls only after confirmed engine submission/receipt."""
+        if not self.event_memory_enabled or self._last is None:
+            raise ValueError("no Event Memory decision")
+        if self._last.data["action_request"] != asdict(request):
+            raise ValueError("receipt does not belong to the recorded decision")
+        return self._event_archive.close(
+            observation, request, receipt, engine_submitted=engine_submitted
+        )
 
     @property
     def last_decision(self) -> Record | None:
@@ -220,7 +266,7 @@ class LLMController:
             "observation": observation_json(observation),
             "model": self.model,
             "parameters": self.parameters,
-            "prompt_version": PROMPT_VERSION,
+            "prompt_version": self.prompt_version,
             "memory_policy": type(self._memory).__name__,
             "memory_observation_ids": [],
             "provider_request": None,
@@ -242,26 +288,43 @@ class LLMController:
         }
         phase = "MEMORY_ERROR"
         try:
-            context = MemoryContext(observation, tuple(self._history))
-            selected = tuple(self._memory.select(context))
-            MemoryContext(observation, selected)
-            if any(record not in context.prior for record in selected):
-                raise ValueError("memory fabricated an Observation")
-            self._history.append(observation)
-            data["memory_observation_ids"] = [record.observation_id for record in selected]
-            phase = "PROMPT_ERROR"
-            prompt = (
-                PROMPT
-                + "\nINPUT_JSON\n"
-                + canonical_json(
+            if self._event_memory is not None:
+                event_context = self._event_archive.begin(observation)
+                data.update(
                     {
-                        "observation": observation_json(observation),
-                        "memory": [observation_json(item) for item in selected],
+                        "decision_opportunity_id": event_context.decision_opportunity_id,
+                        "opportunity_sequence": event_context.opportunity_sequence,
+                        "opportunity_attempt": event_context.attempt,
+                        "memory_policy": self._event_memory.policy_id,
+                        "memory_policy_version": self._event_memory.policy_version,
                     }
                 )
-            )
+                event_input, provenance = event_memory_input(event_context, self._event_memory)
+                data.update(provenance)
+                prompt = event_memory_prompt(event_input)
+            else:
+                # Isolated historical extension path. NoMemory needs no local history.
+                context = MemoryContext(observation, tuple(self._history))
+                selected = tuple(self._memory.select(context))
+                MemoryContext(observation, selected)
+                if any(record not in context.prior for record in selected):
+                    raise ValueError("memory fabricated an Observation")
+                if type(self._memory) is not NoMemory:
+                    self._history.append(observation)
+                data["memory_observation_ids"] = [record.observation_id for record in selected]
+                prompt = (
+                    PROMPT
+                    + "\nINPUT_JSON\n"
+                    + canonical_json(
+                        {
+                            "observation": observation_json(observation),
+                            "memory": [observation_json(item) for item in selected],
+                        }
+                    )
+                )
+            phase = "PROMPT_ERROR"
             request = ProviderRequest(
-                prompt, PROMPT_VERSION, self.model, CONFIGURATION_VERSION, self.parameters
+                prompt, self.prompt_version, self.model, CONFIGURATION_VERSION, self.parameters
             )
             data["provider_request"] = cast(JsonObject, asdict(request))
             data["prompt_sha256"] = sha256(prompt.encode("utf-8")).hexdigest()
@@ -334,3 +397,42 @@ class LLMController:
             raise DecisionFailure(phase) from None
         finally:
             self._last = Record.capture(data)
+
+
+def event_memory_prompt(inputs: JsonObject) -> str:
+    instructions = PROMPT.replace(
+        "Use only the delivered Observation as evidence.",
+        "Use only the current Observation and delivered closed Event Memory as evidence.",
+    )
+    return instructions + "\nINPUT_JSON\n" + canonical_json(inputs)
+
+
+def event_memory_input(
+    context: EventMemoryContext, policy: EventMemoryPolicy
+) -> tuple[JsonObject, JsonObject]:
+    selected = tuple(policy.select_events(context))
+    EventMemoryContext(
+        context.current,
+        context.decision_opportunity_id,
+        context.opportunity_sequence,
+        context.attempt,
+        selected,
+    )
+    if any(trace not in context.prior for trace in selected):
+        raise ValueError("memory fabricated an Event Trace")
+    serialized = canonical_json([trace.to_json() for trace in selected])
+    return (
+        {
+            "observation": observation_json(context.current),
+            "event_memory": [trace.to_json() for trace in selected],
+        },
+        {
+            "retrieved_event_trace_ids": [trace.event_trace_id for trace in selected],
+            "retrieved_count": len(selected),
+            "serialized_event_memory": serialized,
+            "event_memory_bytes": len(serialized.encode("utf-8")),
+            "current_observation_content_bytes": len(
+                canonical_json(context.current.content).encode("utf-8")
+            ),
+        },
+    )

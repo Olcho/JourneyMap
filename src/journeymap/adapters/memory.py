@@ -1,4 +1,4 @@
-"""Memory may select already delivered actor context; it cannot acquire facts."""
+"""Legacy M7/M8 Observation memory; Phase 1 uses the separate EventMemoryPolicy."""
 
 from dataclasses import dataclass
 from typing import Protocol
@@ -37,6 +37,11 @@ class MemoryPolicy(Protocol):
 
 class NoMemory:
     __slots__ = ()
+    policy_id = "No Event Memory"
+    policy_version = "no-event-memory-1"
 
     def select(self, context: MemoryContext) -> tuple[Observation, ...]:
+        return ()
+
+    def select_events(self, context: object) -> tuple[()]:
         return ()

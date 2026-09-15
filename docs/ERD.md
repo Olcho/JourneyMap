@@ -1,5 +1,10 @@
 # ERD and Persistence Model
 
+Event Memory Phase 1은 canonical/DB state가 아닌 research record `EventTrace`를 추가한다.
+actor/run에 속한 closed Observation→ActionRequest→ControllerActionResult snapshot이며
+`event_traces.jsonl`로 독립 export한다. 전체 research attempts와 agent의 retrieved subset은
+별개다. [최종 schema](EVENT_MEMORY_PHASE1.md#event-trace-v1-schema)를 따른다.
+
 이 문서는 기술별 DDL이 아니라 0.1의 논리 데이터 모델과 소유권을 정의한다. 관계형 저장소를 가정한 표기는 예시이며 구현 기술이 바뀌어도 연구 핵심 기록의 정체성과 관계는 유지한다.
 
 ## 1. 분류 원칙
