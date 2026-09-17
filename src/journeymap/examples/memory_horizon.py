@@ -2,7 +2,7 @@
 
 import argparse
 import json
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from pathlib import Path
 from typing import cast
 
@@ -17,22 +17,23 @@ from journeymap.experiments.memory_horizon import run_trial
 from journeymap.experiments.memory_horizon_audit import audit_export, replay_export
 
 
-@dataclass(frozen=True, slots=True)
+@dataclass(slots=True)
 class HorizonFakeProvider:
-    """Stateless clock-scripted fixture, not a memory-based navigation model.
+    """Stateful harness script for offline mechanics, NOT behavioral evidence.
 
-    Immutable destinations define test cases. The only cursor is the delivered
-    simulation_time (four ticks per round trip). Location and legal route IDs
-    come from the current Observation. No calls counter, visited set, external
-    archive, researcher progress, or state hidden in a closure is consulted.
-    All four conditions use the same script, so success is NOT a memory effect.
+    A fresh internal cursor executes the same deterministic plan in all four
+    conditions. Only current location and exits are read from the prompt. No
+    Event Memory, archive, condition/k or clock is consulted. The cursor advances
+    on generated moves, not receipts: this fixture assumes successful delivery
+    of its valid plan and is not a retry/recovery or navigation model.
     """
 
     destinations: tuple[str, ...] = ("inn", "bakery", "well")
+    _cursor: int = field(default=0, init=False, repr=False)
 
     @property
     def identity(self) -> ProviderIdentity:
-        return ProviderIdentity("fake", "memory-horizon-clock-fixture-1")
+        return ProviderIdentity("fake", "memory-horizon-cursor-fixture-2")
 
     def generate(self, request: ProviderRequest) -> RawModelResponse:
         data = json.loads(request.prompt.split("\nINPUT_JSON\n", 1)[1])
@@ -42,8 +43,7 @@ class HorizonFakeProvider:
             for section in observation["content"]["sections"]
         }
         location = sections["position"]["position"]["location_id"]
-        tick = observation["simulation_time"]
-        slot = tick // 4
+        slot = self._cursor // 2
         destination = (
             "village-square"
             if location != "village-square"
@@ -55,9 +55,11 @@ class HorizonFakeProvider:
         route = next((e for e in exits if e["destination"] == destination), None)
         action: JsonObject = (
             {"action_type": "MOVE", "payload": {"route_id": route["route_id"]}}
-            if route is not None and tick + route["traversal_cost"] <= 24
-            else {"action_type": "WAIT", "payload": {"duration": max(1, 24 - tick)}}
+            if route is not None
+            else {"action_type": "WAIT", "payload": {"duration": 1}}
         )
+        if route is not None:
+            self._cursor += 1
         return RawModelResponse(
             json.dumps(action),
             {
@@ -99,7 +101,7 @@ def main() -> None:
     trial = run_trial(
         LLMController(
             HorizonFakeProvider(plans[args.fixture]),
-            model="memory-horizon-fixture-1",
+            model="memory-horizon-fixture-2",
             event_memory=memory,
             prompt_profile=PROFILE,
         ),

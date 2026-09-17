@@ -1,5 +1,10 @@
 # Memory Horizon / Distinct Places — offline preparation
 
+**Historical v1 specification and evidence.** New runs default to the
+[v2 semantic Decision Context protocol](MEMORY_HORIZON_V2.md). The descriptions,
+clock fixture, counts and verification results below retain their original v1
+meaning; existing raw exports are not changed or relabeled.
+
 This branch prepares a controlled behavioral pilot. It does **not** declare
 Phase 2A closed, or Phase 2B formally entered/completed. Phase 2A historical raw
 artifact gate and Recency Window PR/merge remain separate outstanding work.

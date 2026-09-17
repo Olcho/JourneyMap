@@ -6,6 +6,12 @@ Event Memory Phase 1은 adapter-owned immutable `EventTraceArchive`와 별도
 주입하지 않는다. Observation-history memory는 historical 경로로 격리한다.
 정확한 lifecycle와 export 경계는 [Phase 1](EVENT_MEMORY_PHASE1.md)을 따른다.
 
+[Memory Horizon v2](MEMORY_HORIZON_V2.md) narrows only the Provider's Decision
+Context through a pure profile-owned semantic projection after validated memory
+selection. Research retains full raw provenance plus exact projected input and
+canonical UTF-8 representation. Controller authority binding, perception, archive,
+Core and Recency policy are unchanged; no-profile/historical rendering is preserved.
+
 ## 1. 형태와 설계 기준
 
 JourneyMap 0.x는 단일 배포 단위의 **modular monolith**다. 모듈 간 경계는 코드와 테스트로 강제하지만, 네트워크 서비스·외부 message broker·runtime plugin framework는 도입하지 않는다.

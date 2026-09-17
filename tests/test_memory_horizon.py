@@ -2,7 +2,7 @@
 
 import json
 import socket
-from dataclasses import FrozenInstanceError, asdict, replace
+from dataclasses import replace
 from hashlib import sha256
 from itertools import permutations
 from pathlib import Path
@@ -24,7 +24,7 @@ from journeymap.adapters.llm import (
     event_memory_prompt,
 )
 from journeymap.adapters.memory import NoMemory
-from journeymap.adapters.memory_horizon_prompt import PROFILE
+from journeymap.adapters.memory_horizon_prompt import PROFILE, PROFILE_V1, semantic_input
 from journeymap.adapters.provider import (
     Provider,
     ProviderIdentity,
@@ -37,7 +37,7 @@ from journeymap.bootstrap import (
     create_memory_horizon_application,
     create_memory_horizon_kernel,
 )
-from journeymap.core.canonical import JsonValue, canonical_json
+from journeymap.core.canonical import JsonObject, JsonValue, canonical_json
 from journeymap.examples.memory_horizon import HorizonFakeProvider, main
 from journeymap.experiments.alderwick import (
     PROTOCOL_VERSION as M8_PROTOCOL,
@@ -55,9 +55,10 @@ from journeymap.experiments.alderwick import (
 )
 from journeymap.experiments.event_memory import assess_event_memory
 from journeymap.experiments.inclusion import record_digest
-from journeymap.experiments.memory_horizon import PROTOCOL_VERSION, run_trial
+from journeymap.experiments.memory_horizon import PROTOCOL_VERSION, PROTOCOL_VERSION_V1, run_trial
 from journeymap.experiments.memory_horizon_audit import (
     AUDIT_VERSION,
+    AUDIT_VERSION_V1,
     assess_trial,
     audit_export,
     obj,
@@ -85,7 +86,7 @@ def no_network(monkeypatch: pytest.MonkeyPatch) -> None:
 def controller(k: int = 3, provider: Provider | None = None) -> LLMController:
     return LLMController(
         provider if provider is not None else HorizonFakeProvider(),
-        model="memory-horizon-fixture-1",
+        model="memory-horizon-fixture-2",
         event_memory=RecencyEventMemory(k) if k else NoMemory(),
         prompt_profile=PROFILE,
     )
@@ -169,7 +170,12 @@ def test_actual_memory_horizon(k: int, expected: list[int], four_trials: dict[in
         prompt = cast(str, obj(d["provider_request"])["prompt"])
         inputs = json.loads(prompt.split("\nINPUT_JSON\n")[1])
         assert set(inputs) == {"observation", "event_memory"}
-        assert inputs["event_memory"] == json.loads(cast(str, d["serialized_event_memory"]))
+        assert inputs == semantic_input(
+            {
+                "observation": d["observation"],
+                "event_memory": json.loads(cast(str, d["serialized_event_memory"])),
+            }
+        )
         assert "last_action" not in prompt and "last_receipt" not in prompt
     assert (
         "inn-to-village-square" not in decision["serialized_event_memory"]
@@ -184,7 +190,16 @@ def test_actual_memory_horizon(k: int, expected: list[int], four_trials: dict[in
 def test_square_content_has_no_visit_information(four_trials: dict[int, Record]) -> None:
     data = four_trials[3].data
     observations = rows(data["observations"])
-    contents = [o["content"] for o in observations[::2]]
+    contents = [
+        o["content"]
+        for o in observations
+        if next(
+            obj(obj(s["content"])["position"])["location_id"]
+            for s in rows(obj(o["content"])["sections"])
+            if s["contributor_id"] == "position"
+        )
+        == "village-square"
+    ]
     assert all(content == contents[0] for content in contents)
     forbidden = (
         "visited_inn",
@@ -216,8 +231,8 @@ def test_six_permutations_complete_then_wait(order: tuple[str, ...]) -> None:
         "repeat_destination_count": 0,
         "task_completed": True,
         "decisions_to_completion": 6,
-        "decision_attempt_count": 7,
-        "engine_submission_count": 7,
+        "decision_attempt_count": 18,
+        "engine_submission_count": 18,
         "strict_no_repeat_success": True,
         "post_completion_repeat_count": 0,
     }
@@ -263,19 +278,26 @@ def test_missing_final_square_return() -> None:
 
 
 class FailureProvider:
-    """Failure injection keyed only by delivered attempt envelope; no hidden cursor."""
+    """Deterministic harness failures; no delivered progress cues are needed."""
+
+    def __init__(self) -> None:
+        self.calls = 0
 
     def generate(self, request: ProviderRequest) -> RawModelResponse:
-        observation = json.loads(request.prompt.split("\nINPUT_JSON\n")[1])["observation"]
-        if observation["observation_sequence"] == 1:
+        self.calls += 1
+        if self.calls == 1:
             raise TimeoutError()
-        if observation["observation_sequence"] == 2:
+        if self.calls == 2:
             return RawModelResponse("invalid JSON")
-        return RawModelResponse('{"action_type":"WAIT","payload":{"duration":24}}')
+        return RawModelResponse('{"action_type":"WAIT","payload":{"duration":1}}')
 
 
 def test_failure_attempts_do_not_create_memory_or_submissions() -> None:
-    data = run_trial(controller(provider=FailureProvider()), trial_id="failure").data
+    data = run_trial(
+        controller(provider=FailureProvider()),
+        trial_id="failure",
+        policy=TrialPolicy(max_decisions=3),
+    ).data
     metrics, decisions = obj(data["metrics"]), rows(data["decisions"])
     assert metrics["decision_attempt_count"] == 3 and metrics["engine_submission_count"] == 1
     assert len(rows(data["event_traces"])) == 1
@@ -406,17 +428,20 @@ def test_deeper_resealed_corruption(tamper: str, four_trials: dict[int, Record])
     assert assess_trial(data)["status"] == "EXCLUDED"
 
 
-def test_fake_has_no_private_progress(four_trials: dict[int, Record]) -> None:
-    fake = HorizonFakeProvider()
-    assert asdict(fake) == {"destinations": TARGETS}
-    with pytest.raises(FrozenInstanceError):
-        fake.destinations = ()  # type: ignore[misc]
-    decisions = rows(four_trials[3].data["decisions"])
-    request = ProviderRequest(**obj(decisions[4]["provider_request"]))  # type: ignore[arg-type]
-    response = fake.generate(request)
-    for decision in reversed(decisions):
-        fake.generate(ProviderRequest(**obj(decision["provider_request"])))  # type: ignore[arg-type]
-    assert fake.generate(request) == HorizonFakeProvider().generate(request) == response
+def test_fake_cursor_ignores_memory_and_condition(four_trials: dict[int, Record]) -> None:
+    baseline = rows(four_trials[0].data["decisions"])
+    for k in (0, 1, 2, 3):
+        fake = HorizonFakeProvider()
+        for decision, expected in zip(
+            rows(four_trials[k].data["decisions"]), baseline, strict=True
+        ):
+            request = ProviderRequest(**obj(decision["provider_request"]))  # type: ignore[arg-type]
+            inputs = json.loads(request.prompt.split("\nINPUT_JSON\n")[1])
+            # No history/condition/provenance is available even as a fallback.
+            request = replace(
+                request, prompt=PROFILE.render({"observation": inputs["observation"]})
+            )
+            assert fake.generate(request).text == expected["raw_output"]
 
 
 def test_historical_prompt_bytes_and_default_profiles() -> None:
@@ -517,21 +542,22 @@ def test_decision_and_call_bounds(bound: str) -> None:
 
 def test_tick_23_move_is_not_submitted() -> None:
     class LateMove:
+        def __init__(self) -> None:
+            self.calls = 0
+
         def generate(self, request: ProviderRequest) -> RawModelResponse:
-            tick = json.loads(request.prompt.split("\nINPUT_JSON\n")[1])["observation"][
-                "simulation_time"
-            ]
+            self.calls += 1
             return RawModelResponse(
-                '{"action_type":"WAIT","payload":{"duration":23}}'
-                if tick == 0
+                '{"action_type":"WAIT","payload":{"duration":1}}'
+                if self.calls <= 23
                 else '{"action_type":"MOVE","payload":{"route_id":"village-square-to-inn"}}'
             )
 
     data = run_trial(controller(provider=LateMove()), trial_id="late").data
     assert obj(data["manifest"])["simulation_end"] == 23
     assert obj(data["manifest"])["stop_reason"] == "HORIZON_ACTION"
-    assert len(rows(data["event_traces"])) == 1
-    assert obj(data["metrics"])["engine_submission_count"] == 1
+    assert len(rows(data["event_traces"])) == 23
+    assert obj(data["metrics"])["engine_submission_count"] == 23
     assert assess_trial(data)["status"] == "INCLUDED"
 
 
@@ -564,3 +590,289 @@ def test_fresh_controller_required(four_trials: dict[int, Record]) -> None:
     run_trial(c, trial_id="first")
     with pytest.raises(ValueError, match="fresh"):
         run_trial(c, trial_id="second")
+
+
+# Independent schema oracle: do not use the production projection here.
+def semantic_experience(trace: JsonObject) -> JsonObject:
+    action, receipt = obj(trace["action_request"]), obj(trace["actor_visible_receipt"])
+    return {
+        "observation": {"content": obj(trace["observation"])["content"]},
+        "action": {"action_type": action["action_type"], "payload": action["payload"]},
+        "receipt": {"status": receipt["status"], "reason_code": receipt["reason_code"]},
+    }
+
+
+def strings_in(value: JsonValue) -> set[str]:
+    if isinstance(value, dict):
+        return set(value) | set().union(*(strings_in(v) for v in value.values()))
+    if isinstance(value, list):
+        return set().union(*(strings_in(v) for v in value))
+    return {value} if isinstance(value, str) else set()
+
+
+@pytest.mark.parametrize("k", [0, 1, 2, 3])
+def test_v2_exact_payload_and_recursive_provenance_exclusion(
+    k: int, four_trials: dict[int, Record]
+) -> None:
+    data = four_trials[k].data
+    traces = rows(data["event_traces"])
+    forbidden = {
+        "observation_id",
+        "run_id",
+        "observation_sequence",
+        "simulation_time",
+        "content_digest",
+        "event_trace_id",
+        "sequence",
+        "decision_opportunity_id",
+        "opportunity_sequence",
+        "attempt",
+        "opened_at",
+        "closed_at",
+        "memory_eligible",
+        "action_request_id",
+        "based_on_observation_id",
+        "submitted_at",
+        "correlation_id",
+        "started_at",
+        "resolved_at",
+        "actor_id",
+        "schema_version",
+        "last_action",
+        "last_receipt",
+        "memory_policy",
+        "memory_policy_version",
+        "k",
+        "condition",
+        "visited_places",
+        "completed_targets",
+        "next_target",
+    }
+    # Opaque provenance values must not survive under renamed keys either.
+    for trace in traces:
+        for record in (
+            trace,
+            obj(trace["observation"]),
+            obj(trace["action_request"]),
+            obj(trace["actor_visible_receipt"]),
+        ):
+            forbidden.update(
+                value
+                for key, value in record.items()
+                if key in forbidden and isinstance(value, str) and key != "actor_id"
+            )
+    for index, decision in enumerate(rows(data["decisions"])):
+        prompt = cast(str, obj(decision["provider_request"])["prompt"])
+        inputs = json.loads(prompt.split("\nINPUT_JSON\n")[1])
+        selected = traces[max(0, index - k) : index] if k else []
+        expected: JsonObject = {
+            "observation": {"content": obj(decision["observation"])["content"]},
+            "event_memory": [semantic_experience(t) for t in selected],
+        }
+        assert inputs == expected == decision["model_visible_input"]
+        serialized = canonical_json(expected)
+        assert decision["model_visible_input_canonical"] == serialized
+        assert decision["model_visible_input_bytes"] == len(serialized.encode("utf-8"))
+        assert prompt == PROFILE.instructions + "\nINPUT_JSON\n" + serialized
+        assert decision["prompt_sha256"] == sha256(prompt.encode()).hexdigest()
+        assert not (strings_in(inputs) & forbidden)
+    assert "tick 0" not in PROFILE.instructions and "tick 24" not in PROFILE.instructions
+    assert "simulation_time" not in PROFILE.instructions
+
+
+def test_v2_square_bytes_and_only_selected_history_differs(four_trials: dict[int, Record]) -> None:
+    baseline = rows(four_trials[0].data["decisions"])
+    square = canonical_json(obj(baseline[0]["model_visible_input"])["observation"]).encode()
+    for trial in four_trials.values():
+        for index, (decision, reference) in enumerate(
+            zip(rows(trial.data["decisions"]), baseline, strict=True)
+        ):
+            inputs, other = (
+                obj(decision["model_visible_input"]),
+                obj(reference["model_visible_input"]),
+            )
+            assert set(inputs) == {"observation", "event_memory"}
+            assert (
+                canonical_json(inputs["observation"]).encode()
+                == canonical_json(other["observation"]).encode()
+            )
+            if index in (0, 2, 4) or index >= 6:
+                assert canonical_json(inputs["observation"]).encode() == square
+
+
+@pytest.mark.parametrize("k,indices", [(0, []), (1, [3]), (2, [2, 3]), (3, [1, 2, 3])])
+def test_v2_e1_e4_semantic_window(
+    k: int, indices: list[int], four_trials: dict[int, Record]
+) -> None:
+    data = four_trials[k].data
+    decision, traces = rows(data["decisions"])[4], rows(data["event_traces"])
+    assert obj(decision["model_visible_input"])["event_memory"] == [
+        semantic_experience(traces[i]) for i in indices
+    ]
+    assert decision["retrieved_event_trace_ids"] == [traces[i]["event_trace_id"] for i in indices]
+
+
+def test_v2_projection_is_pure_detached_and_retains_raw_archive(
+    four_trials: dict[int, Record],
+) -> None:
+    data = four_trials[3].data
+    decision = rows(data["decisions"])[4]
+    raw: JsonObject = {
+        "observation": decision["observation"],
+        "event_memory": json.loads(cast(str, decision["serialized_event_memory"])),
+    }
+    before = canonical_json(raw)
+    projected = semantic_input(raw)
+    assert canonical_json(raw) == before
+    assert projected == semantic_input(raw)
+    obj(obj(projected["observation"])["content"])["mutation"] = True
+    obj(rows(projected["event_memory"])[0]["action"])["payload"] = {"mutated": True}
+    assert canonical_json(raw) == before
+    for trace, d in zip(rows(data["event_traces"]), rows(data["decisions"]), strict=True):
+        assert trace["observation"] == d["observation"]
+        assert trace["action_request"] == d["action_request"]
+        assert trace["actor_visible_receipt"] == d["receipt"]
+        assert set(trace) == {
+            "event_trace_id",
+            "sequence",
+            "run_id",
+            "actor_id",
+            "decision_opportunity_id",
+            "opportunity_sequence",
+            "attempt",
+            "observation",
+            "action_request",
+            "actor_visible_receipt",
+            "opened_at",
+            "closed_at",
+            "memory_eligible",
+            "schema_version",
+        }
+        assert set(obj(trace["observation"])) == {
+            "observation_id",
+            "run_id",
+            "actor_id",
+            "observation_sequence",
+            "simulation_time",
+            "schema_version",
+            "content_digest",
+            "content",
+        }
+    assert data["observations"] == [d["observation"] for d in rows(data["decisions"])]
+
+
+@pytest.mark.parametrize(
+    "tamper", ["projection", "canonical", "bytes", "coherent-prompt", "leak", "boolean-alias"]
+)
+def test_v2_resealed_projection_tamper(tamper: str, four_trials: dict[int, Record]) -> None:
+    data = four_trials[3].data
+    decision = rows(data["decisions"])[8 if tamper == "boolean-alias" else 4]
+    inputs = obj(decision["model_visible_input"])
+    if tamper == "boolean-alias":
+        history = rows(inputs["event_memory"])
+        wait = next(obj(t["action"]) for t in history if obj(t["action"])["action_type"] == "WAIT")
+        obj(wait["payload"])["duration"] = True
+    elif tamper == "bytes":
+        decision["model_visible_input_bytes"] = 1
+    elif tamper == "canonical":
+        decision["model_visible_input_canonical"] = "{}"
+    else:
+        if tamper == "leak":
+            obj(inputs["observation"])["simulation_time"] = 8
+        else:
+            obj(rows(inputs["event_memory"])[0]["action"])["payload"] = {"route_id": "invented"}
+        if tamper in ("coherent-prompt", "leak"):
+            serialized = canonical_json(inputs)
+            decision["model_visible_input_canonical"] = serialized
+            decision["model_visible_input_bytes"] = len(serialized.encode())
+            prompt = PROFILE.render(inputs)
+            obj(decision["provider_request"])["prompt"] = prompt
+            decision["prompt_sha256"] = sha256(prompt.encode()).hexdigest()
+    obj(data["manifest"])["record_sha256"] = record_digest(data)
+    assert assess_trial(data)["status"] == "EXCLUDED"
+
+
+@pytest.mark.parametrize("duration", [2, 12, 24])
+def test_v2_nonfixed_wait_is_rejected_without_clipping(duration: int) -> None:
+    data = run_trial(
+        controller(
+            provider=ConstantProvider(
+                json.dumps({"action_type": "WAIT", "payload": {"duration": duration}})
+            )
+        ),
+        trial_id="fixed-wait",
+    ).data
+    assert obj(data["manifest"])["stop_reason"] == "WAIT_DURATION"
+    assert obj(data["manifest"])["simulation_end"] == 0
+    assert data["action_requests"] == data["event_traces"] == []
+    assert assess_trial(data)["status"] == "INCLUDED"
+
+
+def test_v2_wait_at_tick_23_is_safe_and_constant() -> None:
+    data = run_trial(
+        controller(provider=ConstantProvider('{"action_type":"WAIT","payload":{"duration":1}}')),
+        trial_id="wait-only",
+    ).data
+    decisions = rows(data["decisions"])
+    assert len(decisions) == 24
+    assert decisions[-1]["simulation_time"] == 23
+    assert obj(data["manifest"])["simulation_end"] == 24
+    assert {canonical_json(obj(d["model_visible_input"])["observation"]) for d in decisions} == {
+        canonical_json(obj(decisions[0]["model_visible_input"])["observation"])
+    }
+    assert assess_trial(data)["status"] == "INCLUDED"
+
+
+def test_v2_public_rejection_experience() -> None:
+    data = run_trial(
+        controller(
+            provider=ConstantProvider('{"action_type":"MOVE","payload":{"route_id":"absent"}}')
+        ),
+        trial_id="rejection-projection",
+    ).data
+    trace = rows(data["event_traces"])[0]
+    experience = rows(obj(rows(data["decisions"])[1]["model_visible_input"])["event_memory"])[0]
+    assert experience == semantic_experience(trace)
+    assert obj(experience["receipt"])["status"] == "REJECTED"
+    assert obj(experience["receipt"])["reason_code"] is not None
+
+
+def test_v1_protocol_prompt_and_audit_remain_readable(tmp_path: Path) -> None:
+    c = LLMController(
+        ConstantProvider('{"action_type":"WAIT","payload":{"duration":12}}'),
+        event_memory=RecencyEventMemory(3),
+        prompt_profile=PROFILE_V1,
+    )
+    trial = run_trial(c, trial_id="v1-regression", protocol_version=PROTOCOL_VERSION_V1)
+    data = trial.data
+    decision = rows(data["decisions"])[0]
+    manifest = obj(data["manifest"])
+    assert manifest["prompt_version"] == PROFILE_V1.version == "alderwick-memory-horizon-decision-1"
+    assert manifest["simulation_end"] == 24 and manifest["decisions"] == 2
+    assert sha256(PROFILE_V1.instructions.encode()).hexdigest() == (
+        "b428f687dd9cf4faa54dba7436c023b9b2aa3d334f88d51df409fd71c166d7ed"
+    )
+    assert "model_visible_input" not in decision
+    assert PROFILE_V1.input_projection is None
+    assert obj(decision["provider_request"])["prompt"] == PROFILE_V1.render(
+        {"observation": decision["observation"], "event_memory": []}
+    )
+    second = rows(data["decisions"])[1]
+    assert obj(second["provider_request"])["prompt"] == PROFILE_V1.render(
+        {
+            "observation": second["observation"],
+            "event_memory": cast(list[JsonValue], data["event_traces"])[:1],
+        }
+    )
+    assert assess_trial(data) == {
+        "status": "INCLUDED",
+        "policy_version": AUDIT_VERSION_V1,
+        "reasons": [],
+    }
+    directory = tmp_path / "v1"
+    export_trial(trial, directory)
+    before = {p.name: p.read_bytes() for p in directory.iterdir()}
+    assert replay_export(directory).final_simulation_time == 24
+    assert audit_export(directory)["policy_version"] == AUDIT_VERSION_V1
+    assert audit_export(directory)["stored_inclusion_matches"] is True
+    assert {p.name: p.read_bytes() for p in directory.iterdir()} == before

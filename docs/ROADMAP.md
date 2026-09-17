@@ -8,6 +8,11 @@ correctness/replay/audit. It does not declare formal Phase 2B entry or completio
 Phase 2A historical raw gate and Recency Window PR/merge remain outstanding.
 Actual model behavioral pilots are not run by this preparation.
 
+[Memory Horizon v2](MEMORY_HORIZON_V2.md) removes model-visible envelope progress
+and provenance through semantic projection, preserving raw evidence and v1
+audit meanings. Unit WAIT and an offline harness cursor replace clock-dependent
+prompt/fixture behavior. This changes no milestone or live-pilot authorization.
+
 마일스톤은 의존성 순서다. 다음 단계의 기능을 앞당겨 넣지 않으며, 각 단계는 자동화된 exit criteria를 만족한 뒤 종료한다. 특히 LLM 통합은 결정적 엔진과 정보 경계 검증 이후에만 진행한다.
 
 ## M0 Repository/Foundation

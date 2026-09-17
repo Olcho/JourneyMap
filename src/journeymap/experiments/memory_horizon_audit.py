@@ -16,7 +16,6 @@ from journeymap.adapters.llm import (
     parse_candidate,
     strict_json,
 )
-from journeymap.adapters.memory_horizon_prompt import PROFILE
 from journeymap.adapters.provider import ProviderRequest, response_identity_matches
 from journeymap.bootstrap import create_memory_horizon_application, create_memory_horizon_kernel
 from journeymap.core.canonical import JsonObject, JsonValue, canonical_json, state_digest
@@ -34,7 +33,9 @@ from journeymap.experiments.inclusion import TRIAL_FIELDS, record_digest
 from journeymap.experiments.memory_horizon import (
     END_TICK,
     PROTOCOL_VERSION,
+    PROTOCOL_VERSION_V1,
     memory_policy,
+    profile_for_protocol,
     protocol_precheck,
     summarize,
 )
@@ -44,7 +45,8 @@ from journeymap.scenarios.alderwick.memory_horizon import (
     memory_horizon_world,
 )
 
-AUDIT_VERSION = "memory-horizon-offline-correctness-1"
+AUDIT_VERSION_V1 = "memory-horizon-offline-correctness-1"
+AUDIT_VERSION = "memory-horizon-offline-correctness-2"
 
 
 def obj(value: JsonValue) -> JsonObject:
@@ -71,9 +73,9 @@ def _identity(data: JsonObject) -> JsonObject:
         type(manifest["schema_version"]) is int and manifest["schema_version"] == 3,
         "export version",
     )
-    require(manifest["protocol_version"] == PROTOCOL_VERSION, "protocol version")
+    profile = profile_for_protocol(cast(str, manifest["protocol_version"]))
     require(manifest["scenario_composition"] == SCENARIO_VERSION, "scenario version")
-    require(manifest["prompt_version"] == PROFILE.version, "prompt version")
+    require(manifest["prompt_version"] == profile.version, "prompt version")
     require(manifest["configuration_version"] == CONFIGURATION_VERSION, "configuration version")
     require(manifest["record_sha256"] == record_digest(data), "record seal")
     require(
@@ -157,6 +159,8 @@ def _attempts(data: JsonObject, manifest: JsonObject) -> None:
     Reconstructing actual Observations also checks nested memory for visit leaks.
     Public receipts must match live Game output, not researcher-invented results.
     """
+    protocol = cast(str, manifest["protocol_version"])
+    profile = profile_for_protocol(protocol)
     engine = obj(manifest["engine_manifest"])
     kernel = create_memory_horizon_kernel(
         run_id=cast(str, manifest["run_id"]), seed=cast(int, engine["seed"])
@@ -217,16 +221,25 @@ def _attempts(data: JsonObject, manifest: JsonObject) -> None:
                 "memory_policy": memory.policy_id,
                 "memory_policy_version": memory.policy_version,
                 "memory_observation_ids": [],
-                "prompt_version": PROFILE.version,
+                "prompt_version": profile.version,
                 "model": manifest["model"],
                 "parameters": manifest["parameters"],
                 "provider_identity": manifest["provider_identity"],
             }
             require(all(decision.get(k) == v for k, v in expected.items()), "memory provenance")
-            prompt = PROFILE.render(inputs)
+            if profile.input_projection is not None:
+                inputs = profile.input_projection(inputs)
+                serialized = canonical_json(inputs)
+                require(
+                    canonical_json(decision["model_visible_input"]) == serialized
+                    and decision["model_visible_input_canonical"] == serialized
+                    and decision["model_visible_input_bytes"] == len(serialized.encode("utf-8")),
+                    "model-visible input reconstruction",
+                )
+            prompt = profile.render(inputs)
             request = ProviderRequest(
                 prompt,
-                PROFILE.version,
+                profile.version,
                 cast(str, manifest["model"]),
                 CONFIGURATION_VERSION,
                 obj(manifest["parameters"]),
@@ -277,7 +290,9 @@ def _attempts(data: JsonObject, manifest: JsonObject) -> None:
                     "accepted decision",
                 )
                 refusal = protocol_precheck(
-                    action, ValidationContext(kernel.manifest.run_id, before, kernel.state_snapshot)
+                    action,
+                    ValidationContext(kernel.manifest.run_id, before, kernel.state_snapshot),
+                    protocol_version=protocol,
                 )
                 if decision.get("protocol_failure") == "WALL_TIMEOUT":
                     # Wall time is recorded provenance, not deterministic simulation input.
@@ -383,9 +398,9 @@ def _attempts(data: JsonObject, manifest: JsonObject) -> None:
         kernel.close()
 
 
-def result(reasons: list[str]) -> JsonObject:
+def result(reasons: list[str], protocol: str = PROTOCOL_VERSION) -> JsonObject:
     return {
-        "policy_version": AUDIT_VERSION,
+        "policy_version": AUDIT_VERSION_V1 if protocol == PROTOCOL_VERSION_V1 else AUDIT_VERSION,
         "status": "EXCLUDED" if reasons else "INCLUDED",
         "reasons": cast(list[JsonValue], reasons),
     }
@@ -393,13 +408,15 @@ def result(reasons: list[str]) -> JsonObject:
 
 def assess_trial(data: JsonObject) -> JsonObject:
     """INCLUDED certifies offline record correctness, including valid failed trials."""
+    protocol = PROTOCOL_VERSION
     try:
+        protocol = cast(str, obj(data["manifest"])["protocol_version"])
         manifest = _identity(data)
         replay_record(data)
         _attempts(data, manifest)
     except (KeyError, TypeError, ValueError, GameSubmissionError, OverflowError):
-        return result(["MEMORY_HORIZON_INTEGRITY"])
-    return result([])
+        return result(["MEMORY_HORIZON_INTEGRITY"], protocol)
+    return result([], protocol)
 
 
 def read_export(directory: Path) -> JsonObject:
@@ -422,7 +439,8 @@ def audit_export(directory: Path) -> JsonObject:
             [
                 *cast(list[str], recomputed["reasons"]),
                 *([] if matches else ["STORED_INCLUSION_MISMATCH"]),
-            ]
+            ],
+            cast(str, obj(data["manifest"])["protocol_version"]),
         )
         audit.update(
             {

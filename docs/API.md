@@ -3,7 +3,12 @@
 ## Memory Horizon offline opt-in
 
 `LLMController(..., event_memory=..., prompt_profile=PROFILE)` accepts a frozen
-versioned text profile only in Event Memory mode. The default profile remains
+versioned profile only in Event Memory mode. Its optional input projection is
+applied before rendering; unconfigured profiles preserve their previous bytes.
+Memory Horizon defaults to [v2 semantic input](MEMORY_HORIZON_V2.md), unit WAIT,
+and separate exact model-input/canonical UTF-8 research fields. Raw archive and
+generic `event_memory_input()` are unchanged. Explicit v1 profile/protocol pairs
+and version-dispatched audit preserve historical v1 semantics. The default profile remains
 implicit and preserves historical M8/Phase 1 prompt bytes. Historical `run_trial`
 rejects an explicit profile. New `experiments.memory_horizon.run_trial` requires
 the exact Distinct Places profile and a fixture Provider; only its new composition

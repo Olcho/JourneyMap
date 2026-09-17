@@ -1,5 +1,6 @@
 """Immutable task text for explicitly opted-in Event Memory experiments."""
 
+from collections.abc import Callable
 from dataclasses import dataclass
 
 from journeymap.core.canonical import JsonObject, canonical_json
@@ -9,6 +10,7 @@ from journeymap.core.canonical import JsonObject, canonical_json
 class PromptProfile:
     version: str
     instructions: str
+    input_projection: Callable[[JsonObject], JsonObject] | None = None
 
     def __post_init__(self) -> None:
         if not self.version or not self.instructions:

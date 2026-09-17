@@ -312,6 +312,19 @@ class LLMController:
                 )
                 event_input, provenance = event_memory_input(event_context, self._event_memory)
                 data.update(provenance)
+                if (
+                    self._prompt_profile is not None
+                    and self._prompt_profile.input_projection is not None
+                ):
+                    event_input = self._prompt_profile.input_projection(event_input)
+                    serialized_input = canonical_json(event_input)
+                    data.update(
+                        {
+                            "model_visible_input": event_input,
+                            "model_visible_input_canonical": serialized_input,
+                            "model_visible_input_bytes": len(serialized_input.encode("utf-8")),
+                        }
+                    )
                 prompt = (
                     self._prompt_profile.render(event_input)
                     if self._prompt_profile is not None

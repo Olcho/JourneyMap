@@ -8,7 +8,8 @@ from typing import cast
 from journeymap.adapters.event_memory import EventMemoryPolicy, RecencyEventMemory
 from journeymap.adapters.llm import CONFIGURATION_VERSION, LLMController, Record, observation_json
 from journeymap.adapters.memory import NoMemory
-from journeymap.adapters.memory_horizon_prompt import PROFILE
+from journeymap.adapters.memory_horizon_prompt import PROFILE, PROFILE_V1
+from journeymap.adapters.prompt_profile import PromptProfile
 from journeymap.application.turns import run_controller_turn
 from journeymap.bootstrap import create_memory_horizon_application, create_memory_horizon_kernel
 from journeymap.core.canonical import JsonObject, JsonValue, canonical_json, state_digest
@@ -25,8 +26,17 @@ from journeymap.scenarios.alderwick.memory_horizon import (
     memory_horizon_schedule,
 )
 
-PROTOCOL_VERSION = "alderwick-memory-horizon-offline-1"
+PROTOCOL_VERSION_V1 = "alderwick-memory-horizon-offline-1"
+PROTOCOL_VERSION = "alderwick-memory-horizon-offline-2"
 END_TICK = 24
+
+
+def profile_for_protocol(version: str) -> PromptProfile:
+    if version == PROTOCOL_VERSION_V1:
+        return PROFILE_V1
+    if version == PROTOCOL_VERSION:
+        return PROFILE
+    raise ValueError("unsupported Memory Horizon protocol")
 
 
 def memory_policy(policy_id: str, version: str) -> EventMemoryPolicy:
@@ -40,11 +50,23 @@ def memory_policy(policy_id: str, version: str) -> EventMemoryPolicy:
     raise ValueError("unsupported Memory Horizon condition")
 
 
-def protocol_precheck(request: ActionRequest, context: ValidationContext) -> str | None:
+def protocol_precheck(
+    request: ActionRequest,
+    context: ValidationContext,
+    *,
+    protocol_version: str = PROTOCOL_VERSION,
+) -> str | None:
+    profile_for_protocol(protocol_version)
     if request.action_type not in ("MOVE", "WAIT"):
         return "UNSUPPORTED_ACTION"
     if context.simulation_time + action_duration(request, context) > END_TICK:
         return "HORIZON_ACTION"
+    if (
+        protocol_version == PROTOCOL_VERSION
+        and request.action_type == "WAIT"
+        and request.payload.get("duration") != 1
+    ):
+        return "WAIT_DURATION"
     return None
 
 
@@ -104,13 +126,15 @@ def run_trial(
     seed: int = 42,
     policy: TrialPolicy | None = None,
     monitor: BudgetMonitor | None = None,
+    protocol_version: str = PROTOCOL_VERSION,
 ) -> Record:
     """One fresh fixture Controller. No live adapter is admitted by this protocol."""
     if type(trial_id) is not str or not trial_id:
         raise ValueError("trial_id required")
+    profile = profile_for_protocol(protocol_version)
     memory = controller.event_memory_policy
     if (
-        controller.prompt_profile != PROFILE
+        controller.prompt_profile != profile
         or type(memory) not in (NoMemory, RecencyEventMemory)
         or controller.last_decision is not None
         or controller.event_traces
@@ -148,6 +172,7 @@ def run_trial(
                     precheck_failure = protocol_precheck(
                         request,
                         ValidationContext(run_id, kernel.simulation_time, kernel.state_snapshot),
+                        protocol_version=protocol_version,
                     )
                 except Exception:
                     precheck_failure = "TIMING_PRECHECK_ERROR"
@@ -194,7 +219,7 @@ def run_trial(
                     "provider_called": False,
                     "raw_output": None,
                     "failure": "OBSERVATION_UNAVAILABLE",
-                    "prompt_version": PROFILE.version,
+                    "prompt_version": profile.version,
                     "parser_outcome": "NOT_RUN",
                 }
             )
@@ -277,8 +302,8 @@ def run_trial(
             "memory_policy_version": memory.policy_version,
             "model": controller.model,
             "parameters": controller.parameters,
-            "prompt_version": PROFILE.version,
-            "protocol_version": PROTOCOL_VERSION,
+            "prompt_version": profile.version,
+            "protocol_version": protocol_version,
             "minutes_per_tick": 60,
             "target_simulation_hours": 24,
             "target_end_tick": END_TICK,
