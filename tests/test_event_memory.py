@@ -12,6 +12,7 @@ import pytest
 
 from journeymap.adapters.event_memory import (
     EVENT_MEMORY_PROTOCOL_VERSION,
+    RECENCY_WINDOW_PROTOCOL_VERSION,
     EventMemoryContext,
     EventTraceArchive,
     RecencyEventMemory,
@@ -626,3 +627,175 @@ def test_audit_malformed_normalized_request_returns_exclusion(full_trial: Record
             action["correlation_id"] = 123
     obj(data["manifest"])["record_sha256"] = record_digest(data)
     assert assess_event_memory(data)["status"] == "EXCLUDED"
+
+
+@pytest.mark.parametrize("k", [0, -1, True, False, 1.0, "2", None, [], 2.5])
+def test_recency_window_rejects_invalid_k(k: object) -> None:
+    with pytest.raises(ValueError, match="positive integer"):
+        RecencyEventMemory(k=k)  # type: ignore[arg-type]
+
+
+@pytest.mark.parametrize("k", [None, 1, 2, 3, 1000])
+def test_recency_window_warmup_rollover_and_provenance(k: int | None) -> None:
+    memory = RecencyEventMemory() if k is None else RecencyEventMemory(k=k)
+    width = 1 if k is None else k
+    assert memory.k == width
+    assert memory.policy_id == "Recency-based Event Memory"
+    assert memory.policy_version == f"recency-event-memory-k{width}-1"
+    provider = FakeProvider(['{"action_type":"WAIT","payload":{"duration":1}}'] * 6)
+    controller = LLMController(provider, event_memory=memory)
+    with game_fixture() as game:
+        for index in range(6):
+            prior = controller.event_traces
+            complete(game, controller)
+            selected = [t.to_json() for t in prior[max(0, index - width) :]]
+            assert provider.inputs[index]["event_memory"] == selected
+            assert controller.last_decision is not None
+            decision = controller.last_decision.data
+            serialized = canonical_json(cast(JsonValue, selected))
+            assert decision["retrieved_count"] == len(selected)
+            assert decision["retrieved_event_trace_ids"] == [t["event_trace_id"] for t in selected]
+            assert decision["serialized_event_memory"] == serialized
+            assert decision["event_memory_bytes"] == len(serialized.encode("utf-8"))
+            assert controller.event_traces[-1].to_json() not in selected
+
+
+@pytest.mark.parametrize("k", [2, 3])
+@pytest.mark.parametrize("failure", [TimeoutError(), "invalid json"])
+def test_window_failure_retry_consumes_no_slot(k: int, failure: str | Exception) -> None:
+    wait = '{"action_type":"WAIT","payload":{"duration":1}}'
+    provider = FakeProvider([wait, failure, wait, wait])
+    controller = LLMController(provider, event_memory=RecencyEventMemory(k))
+    decisions = []
+    with game_fixture() as game:
+        for _ in range(4):
+            complete(game, controller)
+            assert controller.last_decision is not None
+            decisions.append(controller.last_decision.data)
+    traces = controller.event_traces
+    assert len(traces) == 3
+    assert (
+        provider.inputs[1]["event_memory"]
+        == provider.inputs[2]["event_memory"]
+        == [traces[0].to_json()]
+    )
+    assert provider.inputs[3]["event_memory"] == [t.to_json() for t in traces[:2]]
+    assert [d["opportunity_attempt"] for d in decisions] == [1, 1, 2, 1]
+    assert decisions[1]["decision_opportunity_id"] == decisions[2]["decision_opportunity_id"]
+    assert traces[1].attempt == 2
+
+
+@pytest.mark.parametrize("k", [2, 3])
+def test_window_rejected_consumes_slot(k: int) -> None:
+    wait = '{"action_type":"WAIT","payload":{"duration":1}}'
+    provider = FakeProvider(
+        [wait, '{"action_type":"MOVE","payload":{"route_id":"absent"}}', wait, wait]
+    )
+    controller = LLMController(provider, event_memory=RecencyEventMemory(k))
+    with game_fixture() as game:
+        for _ in range(4):
+            complete(game, controller)
+    traces = controller.event_traces
+    assert [t.actor_visible_receipt.status for t in traces[:3]] == [
+        "SUCCEEDED",
+        "REJECTED",
+        "SUCCEEDED",
+    ]
+    assert traces[1].opened_at == traces[1].closed_at
+    assert provider.inputs[3]["event_memory"] == [t.to_json() for t in traces[3 - k : 3]]
+
+
+@pytest.mark.parametrize("k", [2, 3])
+@pytest.mark.parametrize(
+    "changed", ["actor", "run", "future_close", "current", "future", "eligible"]
+)
+def test_larger_window_cannot_bypass_context_isolation(k: int, changed: str) -> None:
+    from journeymap.adapters.llm import event_memory_input
+
+    controller = LLMController(FakeProvider(), event_memory=RecencyEventMemory(k))
+    with game_fixture() as game:
+        complete(game, controller)
+        observation = game.observe()
+    trace = controller.event_traces[0]
+    altered = {
+        "actor": replace(trace, actor_id="hugh"),
+        "run": replace(trace, run_id="other"),
+        "future_close": replace(trace, closed_at=observation.simulation_time + 1),
+        "current": replace(trace, opportunity_sequence=2),
+        "future": replace(trace, opportunity_sequence=3),
+        "eligible": replace(trace, memory_eligible=False),
+    }[changed]
+    with pytest.raises(ValueError):
+        event_memory_input(
+            EventMemoryContext(observation, "next", 2, 1, (altered,)), RecencyEventMemory(k)
+        )
+
+
+@pytest.mark.parametrize("k", [1, 2, 3])
+def test_window_full_offline_trial_replay_audit(
+    k: int, tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    trial = run_trial(
+        LLMController(ProtocolFakeProvider(), model="fixture", event_memory=RecencyEventMemory(k)),
+        trial_id=f"window-k{k}",
+        protocol_version=RECENCY_WINDOW_PROTOCOL_VERSION,
+    )
+    data = trial.data
+    manifest = obj(data["manifest"])
+    assert (manifest["status"], manifest["stop_reason"], manifest["simulation_end"]) == (
+        "COMPLETED",
+        "HORIZON",
+        24,
+    )
+    assert manifest["replay_equal"] is True and manifest["schema_version"] == 3
+    assert manifest["memory_policy_version"] == f"recency-event-memory-k{k}-1"
+    traces = rows(data["event_traces"])
+    for i, decision in enumerate(rows(data["decisions"])):
+        selected = traces[max(0, i - k) : i]
+        assert json.loads(cast(str, decision["serialized_event_memory"])) == selected
+        assert decision["retrieved_event_trace_ids"] == [t["event_trace_id"] for t in selected]
+        assert decision["retrieved_count"] == len(selected)
+    export_trial(trial, tmp_path / "trial")
+
+    def forbidden(*args: object, **kwargs: object) -> None:
+        raise AssertionError("provider/controller forbidden in replay and audit")
+
+    monkeypatch.setattr(ProtocolFakeProvider, "generate", forbidden)
+    monkeypatch.setattr(LLMController, "decide", forbidden)
+    assert replay_export(tmp_path / "trial").final_simulation_time == 24
+    assert audit_export(tmp_path / "trial")["status"] == "INCLUDED"
+    # Resealing does not let a record change its window or historical protocol.
+    manifest["memory_policy_version"] = "recency-event-memory-k4-1"
+    manifest["record_sha256"] = record_digest(data)
+    assert assess_event_memory(data)["status"] == "EXCLUDED"
+    if k > 1:
+        manifest["memory_policy_version"] = f"recency-event-memory-k{k}-1"
+        manifest["protocol_version"] = EVENT_MEMORY_PROTOCOL_VERSION
+        manifest["record_sha256"] = record_digest(data)
+        assert assess_event_memory(data)["status"] == "EXCLUDED"
+
+
+@pytest.mark.parametrize("k", [2, 3])
+def test_phase1_rejects_larger_windows_before_provider_call(k: int) -> None:
+    provider = FakeProvider()
+    with pytest.raises(ValueError, match="Phase 1"):
+        run_trial(
+            LLMController(provider, event_memory=RecencyEventMemory(k)),
+            trial_id="invalid",
+            protocol_version=EVENT_MEMORY_PROTOCOL_VERSION,
+        )
+    assert provider.inputs == []
+
+
+@pytest.mark.parametrize("memory", [NoMemory(), RecencyEventMemory(4)])
+def test_window_protocol_rejects_unsupported_conditions(
+    memory: NoMemory | RecencyEventMemory,
+) -> None:
+    provider = FakeProvider()
+    with pytest.raises(ValueError):
+        run_trial(
+            LLMController(provider, event_memory=memory),
+            trial_id="invalid",
+            protocol_version=RECENCY_WINDOW_PROTOCOL_VERSION,
+        )
+    assert provider.inputs == []

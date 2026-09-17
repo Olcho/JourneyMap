@@ -10,7 +10,11 @@ from pathlib import Path
 from time import monotonic
 from typing import cast
 
-from journeymap.adapters.event_memory import EVENT_MEMORY_PROTOCOL_VERSION, RecencyEventMemory
+from journeymap.adapters.event_memory import (
+    EVENT_MEMORY_PROTOCOL_VERSION,
+    RECENCY_WINDOW_PROTOCOL_VERSION,
+    RecencyEventMemory,
+)
 from journeymap.adapters.llm import (
     CONFIGURATION_VERSION,
     PROMPT_VERSION,
@@ -142,13 +146,31 @@ def run_trial(
     if not trial_id or type(trial_id) is not str:
         raise ValueError("trial_id required")
     policy = policy if policy is not None else TrialPolicy()
-    event_mode = protocol_version == EVENT_MEMORY_PROTOCOL_VERSION
-    if protocol_version not in (PROTOCOL_VERSION, EVENT_MEMORY_PROTOCOL_VERSION):
+    event_mode = protocol_version in (
+        EVENT_MEMORY_PROTOCOL_VERSION,
+        RECENCY_WINDOW_PROTOCOL_VERSION,
+    )
+    if protocol_version not in (
+        PROTOCOL_VERSION,
+        EVENT_MEMORY_PROTOCOL_VERSION,
+        RECENCY_WINDOW_PROTOCOL_VERSION,
+    ):
         raise ValueError("unsupported experiment protocol")
     if event_mode != controller.event_memory_enabled:
         raise ValueError("protocol and Event Memory context must agree")
     if event_mode and type(controller.event_memory_policy) not in (NoMemory, RecencyEventMemory):
         raise ValueError("Phase 1 permits only No Event Memory or Recency k=1")
+    memory = controller.event_memory_policy
+    if (
+        protocol_version == EVENT_MEMORY_PROTOCOL_VERSION
+        and isinstance(memory, RecencyEventMemory)
+        and memory.k != 1
+    ):
+        raise ValueError("Phase 1 permits only No Event Memory or Recency k=1")
+    if protocol_version == RECENCY_WINDOW_PROTOCOL_VERSION and (
+        type(memory) is not RecencyEventMemory or memory.k not in (1, 2, 3)
+    ):
+        raise ValueError("recency window protocol requires Recency k=1, 2 or 3")
     if not event_mode and not controller.uses_no_memory:
         raise ValueError("first protocol requires NoMemory")
     # One fresh controller per trial; no prior actor context or cross-trial state.
@@ -678,7 +700,14 @@ def audit_export(directory: Path) -> JsonObject:
         }
     )
     if isinstance(manifest, dict) and manifest.get("schema_version") == 3:
-        from journeymap.experiments.event_memory import CORRECTNESS_VERSION
+        from journeymap.experiments.event_memory import (
+            CORRECTNESS_VERSION,
+            RECENCY_WINDOW_CORRECTNESS_VERSION,
+        )
 
-        audit["policy_version"] = CORRECTNESS_VERSION
+        audit["policy_version"] = (
+            RECENCY_WINDOW_CORRECTNESS_VERSION
+            if manifest.get("protocol_version") == RECENCY_WINDOW_PROTOCOL_VERSION
+            else CORRECTNESS_VERSION
+        )
     return audit

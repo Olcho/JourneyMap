@@ -1,5 +1,19 @@
 # Test Strategy
 
+## Recency window correctness gate
+
+[Recency window 계약](EVENT_MEMORY_RECENCY_WINDOW.md)의 k=1/2/3에 대해 warm-up,
+chronological rolling replacement, self/future/actor/run 격리, Provider/parser no-slot,
+REJECTED slot, same-tick retry lineage, IDs/count/serialized UTF-8 bytes를 검증한다.
+새 protocol의 full 24-tick trial/replay/audit와 Phase 1 k=1 제한을 함께 검사한다.
+기존 894개 테스트를 보존하며 실제 API는 호출하지 않는다.
+
+2026-09-15 gate: **933 passed (894 + 39)**, Ruff check/format(126 files),
+strict mypy(113 files), diff check 통과. k1/k2/k3 및 No Memory CLI는 tick 24,
+COMPLETED/HORIZON, replay=true, audit INCLUDED다. pytest cache 권한 경고 1건이
+있었으며 테스트 실패는 없다. 현재 checkout에 historical raw가 없어 schema 1/2
+fixture 호환성과 각 17개 파일 hash 불변만 검증했다. 실제 원본 재검증은 남아 있다.
+
 ## Event Memory Phase 1 correctness gate
 
 `test_event_memory.py`는 deterministic fake Provider의 `[] → [E1] → [E2]`, 동일 초기

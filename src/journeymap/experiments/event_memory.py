@@ -7,6 +7,7 @@ from typing import cast
 from journeymap.adapters.event_memory import (
     EVENT_MEMORY_PROMPT_VERSION,
     EVENT_MEMORY_PROTOCOL_VERSION,
+    RECENCY_WINDOW_PROTOCOL_VERSION,
     EventMemoryPolicy,
     EventTraceArchive,
     RecencyEventMemory,
@@ -21,6 +22,7 @@ from journeymap.core.observations import Observation
 from journeymap.experiments.inclusion import TRIAL_FIELDS, record_digest
 
 CORRECTNESS_VERSION = "event-memory-phase1-correctness-1"
+RECENCY_WINDOW_CORRECTNESS_VERSION = "event-memory-recency-window-correctness-1"
 
 
 def _object(value: JsonValue) -> JsonObject:
@@ -62,16 +64,24 @@ def assess_event_memory(data: JsonObject) -> JsonObject:
         if (
             set(data) != TRIAL_FIELDS | {"event_traces"}
             or manifest["schema_version"] != 3
-            or manifest["protocol_version"] != EVENT_MEMORY_PROTOCOL_VERSION
+            or manifest["protocol_version"]
+            not in (EVENT_MEMORY_PROTOCOL_VERSION, RECENCY_WINDOW_PROTOCOL_VERSION)
             or manifest["prompt_version"] != EVENT_MEMORY_PROMPT_VERSION
             or manifest["record_sha256"] != record_digest(data)
         ):
             raise ValueError("invalid Phase 1 record identity")
         policy: EventMemoryPolicy
-        if manifest["memory_policy"] == NoMemory.policy_id:
+        window = manifest["protocol_version"] == RECENCY_WINDOW_PROTOCOL_VERSION
+        if manifest["memory_policy"] == NoMemory.policy_id and not window:
             policy = NoMemory()
         elif manifest["memory_policy"] == RecencyEventMemory.policy_id:
-            policy = RecencyEventMemory()
+            candidates = [RecencyEventMemory(k) for k in ((1, 2, 3) if window else (1,))]
+            matching = [
+                p for p in candidates if p.policy_version == manifest["memory_policy_version"]
+            ]
+            if not matching:
+                raise ValueError("unsupported recency window")
+            policy = matching[0]
         else:
             raise ValueError("unsupported memory condition")
         if manifest["memory_policy_version"] != policy.policy_version:
@@ -170,7 +180,13 @@ def assess_event_memory(data: JsonObject) -> JsonObject:
     except (KeyError, TypeError, ValueError, GameSubmissionError):
         reasons.append("EVENT_MEMORY_INTEGRITY")
     return {
-        "policy_version": CORRECTNESS_VERSION,
+        "policy_version": (
+            RECENCY_WINDOW_CORRECTNESS_VERSION
+            if isinstance(data.get("manifest"), dict)
+            and cast(JsonObject, data["manifest"]).get("protocol_version")
+            == RECENCY_WINDOW_PROTOCOL_VERSION
+            else CORRECTNESS_VERSION
+        ),
         "status": "EXCLUDED" if reasons else "INCLUDED",
         "reasons": cast(list[JsonValue], reasons),
     }

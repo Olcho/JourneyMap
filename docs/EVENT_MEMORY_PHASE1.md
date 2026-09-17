@@ -4,6 +4,9 @@ Phase 1은 Event Trace v1 + Recency-based Event Memory k=1의 offline correctnes
 성능 비교, scoring, embedding, reflection, RL, admission/eviction/decay는 포함하지 않는다.
 기존 M8 protocol `alderwick-24h-2`와 official artifact의 의미는 유지한다.
 
+후속 k=2/3 검증은 [별도 recency-window protocol](EVENT_MEMORY_RECENCY_WINDOW.md)을 따른다.
+기존 Phase 1의 k=1 의미와 identity는 유지한다.
+
 ## 세 종류의 기록
 
 - Research records: 모든 성공한 Observation, Provider/parser attempt, failure,
