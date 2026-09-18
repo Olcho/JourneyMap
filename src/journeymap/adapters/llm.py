@@ -15,6 +15,7 @@ from journeymap.adapters.event_memory import (
     EventTraceArchive,
 )
 from journeymap.adapters.memory import MemoryContext, MemoryPolicy, NoMemory
+from journeymap.adapters.prompt_profile import PromptProfile
 from journeymap.adapters.provider import (
     Provider,
     ProviderFailure,
@@ -190,6 +191,7 @@ class LLMController:
         parameters: JsonObject | None = None,
         memory: MemoryPolicy | None = None,
         event_memory: EventMemoryPolicy | None = None,
+        prompt_profile: PromptProfile | None = None,
     ) -> None:
         self._provider = provider
         self.model = model
@@ -202,6 +204,9 @@ class LLMController:
         )
         if memory is not None and event_memory is not None:
             raise ValueError("legacy and Event Memory cannot be combined")
+        if prompt_profile is not None and event_memory is None:
+            raise ValueError("prompt profile requires explicit Event Memory mode")
+        self._prompt_profile = prompt_profile
         self._memory = memory if memory is not None else NoMemory()
         self._event_memory = event_memory
         self._event_archive = EventTraceArchive()
@@ -231,7 +236,13 @@ class LLMController:
 
     @property
     def prompt_version(self) -> str:
+        if self._prompt_profile is not None:
+            return self._prompt_profile.version
         return EVENT_MEMORY_PROMPT_VERSION if self.event_memory_enabled else PROMPT_VERSION
+
+    @property
+    def prompt_profile(self) -> PromptProfile | None:
+        return self._prompt_profile
 
     @property
     def event_traces(self) -> tuple[EventTrace, ...]:
@@ -301,7 +312,24 @@ class LLMController:
                 )
                 event_input, provenance = event_memory_input(event_context, self._event_memory)
                 data.update(provenance)
-                prompt = event_memory_prompt(event_input)
+                if (
+                    self._prompt_profile is not None
+                    and self._prompt_profile.input_projection is not None
+                ):
+                    event_input = self._prompt_profile.input_projection(event_input)
+                    serialized_input = canonical_json(event_input)
+                    data.update(
+                        {
+                            "model_visible_input": event_input,
+                            "model_visible_input_canonical": serialized_input,
+                            "model_visible_input_bytes": len(serialized_input.encode("utf-8")),
+                        }
+                    )
+                prompt = (
+                    self._prompt_profile.render(event_input)
+                    if self._prompt_profile is not None
+                    else event_memory_prompt(event_input)
+                )
             else:
                 # Isolated historical extension path. NoMemory needs no local history.
                 context = MemoryContext(observation, tuple(self._history))

@@ -1,5 +1,21 @@
 # API Contracts
 
+## Memory Horizon offline opt-in
+
+`LLMController(..., event_memory=..., prompt_profile=PROFILE)` accepts a frozen
+versioned profile only in Event Memory mode. Its optional input projection is
+applied before rendering; unconfigured profiles preserve their previous bytes.
+Memory Horizon defaults to [v2 semantic input](MEMORY_HORIZON_V2.md), unit WAIT,
+and separate exact model-input/canonical UTF-8 research fields. Raw archive and
+generic `event_memory_input()` are unchanged. Explicit v1 profile/protocol pairs
+and version-dispatched audit preserve historical v1 semantics. The default profile remains
+implicit and preserves historical M8/Phase 1 prompt bytes. Historical `run_trial`
+rejects an explicit profile. New `experiments.memory_horizon.run_trial` requires
+the exact Distinct Places profile and a fixture Provider; only its new composition
+omits `last_action`. Dedicated replay/audit lives in `memory_horizon_audit`.
+Export schema 3 and Event Trace v1 remain unchanged. See the
+[offline protocol](MEMORY_HORIZON_OFFLINE.md); this is not Phase 2A closure.
+
 Event Memory Phase 1 opt-in은 [별도 계약](EVENT_MEMORY_PHASE1.md)을 따른다.
 `LLMController(event_memory=NoMemory() | RecencyEventMemory())`와 trusted caller의
 `close_event_trace(observation, request, receipt, engine_submitted=True)`를 추가했다.

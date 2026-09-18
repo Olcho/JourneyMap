@@ -143,6 +143,8 @@ def run_trial(
     provider_version: str | None = None,
     protocol_version: str = PROTOCOL_VERSION,
 ) -> Record:
+    if controller.prompt_profile is not None:
+        raise ValueError("historical protocols require the default prompt")
     if not trial_id or type(trial_id) is not str:
         raise ValueError("trial_id required")
     policy = policy if policy is not None else TrialPolicy()

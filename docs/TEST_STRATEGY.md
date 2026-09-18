@@ -1,5 +1,36 @@
 # Test Strategy
 
+## Memory Horizon offline preparation gate
+
+`tests/test_memory_horizon.py` verifies the separate empty-schedule composition,
+four-condition input equality, no visit/receipt leakage, E1–E4 memory horizons,
+six target permutations, completion/repetition distinction, failed attempt versus
+submission counts, fixed-horizon termination, versioned offline fixture behavior,
+historical prompt bytes/defaults, export/replay/audit and resealed corruption.
+All network access is forbidden in these tests. Existing tests remain intact.
+See [protocol and remaining historical gate](MEMORY_HORIZON_OFFLINE.md).
+This preparation does not close Phase 2A or certify actual historical raw artifacts.
+
+[V2 gate](MEMORY_HORIZON_V2.md) adds independent semantic-shape expectations,
+recursive provenance key/value exclusion, repeated Square canonical UTF-8 equality,
+condition equality, selected experience ordering, raw archive preservation and
+projection detachment, resealed input/prompt tamper rejection, unit WAIT safety,
+cursor fixture isolation, and version-specific v1 audit/export compatibility.
+Historical M8/Phase 1 prompt hashes and schema 1/2/Recency regressions remain gates.
+
+2026-09-17 v2 gate: **1029 passed (1007 existing + 22 new)** in 116.99s,
+Python 3.12.10; Ruff check/format (135 files), mypy (120 files), diff check passed.
+Horizon has 96 cases; six existing test functions (14 cases) were adapted to v2.
+Existing six Horizon v1 and four Recency exports retain INCLUDED/original audit
+versions and all 180 raw file hashes. No live/API call, commit, push or PR.
+
+2026-09-15: **1007 passed (933 existing + 74 new)** in 97.97s, Python 3.12.10.
+Ruff check/format (134 files), mypy (120 files), and diff check passed.
+Six final offline exports reached tick 24 with replay equality, INCLUDED audit,
+stored inclusion equality and unchanged file hashes across reads. Existing four
+window exports also retained replay/audit and byte hashes. Actual official raw
+artifacts remain absent; no real API call or behavioral performance claim.
+
 ## Recency window correctness gate
 
 [Recency window 계약](EVENT_MEMORY_RECENCY_WINDOW.md)의 k=1/2/3에 대해 warm-up,

@@ -188,6 +188,66 @@ def create_alderwick_application(
     )
 
 
+def create_memory_horizon_kernel(*, run_id: str, seed: int = 42) -> SimulationKernel:
+    """Unbooted, separately versioned MOVE/WAIT-only offline composition."""
+    from journeymap.core.actions import WaitHandler
+    from journeymap.modules.knowledge import KnowledgeModule
+    from journeymap.modules.movement import MovementModule
+    from journeymap.scenarios.alderwick.memory_horizon import (
+        SCENARIO_VERSION,
+        memory_horizon_world,
+    )
+
+    state = memory_horizon_world()
+    movement = MovementModule()
+    actions = ActionRegistry()
+    movement.register_actions(actions)
+    actions.register("WAIT", 1, WaitHandler())
+    return create_kernel(
+        modules=(movement, KnowledgeModule()),
+        initial_state=state,
+        manifest=RunManifest(
+            run_id, "alderwick", SCENARIO_VERSION, __version__, 1, seed, 0, state_digest(state)
+        ),
+        action_registry=actions,
+        system_event_registry=SystemEventRegistry(),
+    )
+
+
+def create_memory_horizon_application(
+    kernel: SimulationKernel, *, pipeline: ObservationPipeline | None = None
+) -> tuple[SimulationApplication, ResearchView]:
+    """No receipt contributor, social projection, or visit-history Knowledge."""
+    from journeymap.scenarios.alderwick.memory_horizon import (
+        SCENARIO_VERSION,
+        contribute_local,
+        perceive_local,
+    )
+
+    if (kernel.manifest.scenario_id, kernel.manifest.scenario_version) != (
+        "alderwick",
+        SCENARIO_VERSION,
+    ):
+        raise ValueError("Memory Horizon requires its matching scenario")
+    pipeline = pipeline if pipeline is not None else ObservationPipeline()
+    for priority, module, identity, contributor in (
+        (0, "core", "self", contribute_self),
+        (10, "movement", "position", contribute_position),
+        (16, "alderwick", "local", contribute_local),
+        (20, "knowledge", "records", contribute_knowledge),
+    ):
+        pipeline.register(
+            priority=priority, module_id=module, contributor_id=identity, contributor=contributor
+        )
+    return create_application(
+        kernel,
+        initial_knowledge=(),
+        pipeline=pipeline,
+        perception_extension=perceive_local,
+        include_last_receipt=False,
+    )
+
+
 def create_kernel(
     *,
     database: str | Path = ":memory:",
