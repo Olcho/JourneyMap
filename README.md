@@ -1,79 +1,127 @@
 # JourneyMap
 
-JourneyMap은 중세 배경의 지속형 가상 세계에 단일 LLM 인격체를 한 명의 캐릭터 Controller로 투입하고, 제한된 정보와 능력 아래에서 어떻게 판단하고 행동하며 살아가는지 관찰하는 시뮬레이션 연구 프로젝트다.
+JourneyMap은 지속형 가상환경에서 단일 LLM Agent가 제한된 관찰, 지식, 과거 경험을 바탕으로 어떻게 판단하고 행동하며, 환경 변화 뒤 계획을 어떻게 수정하는지 통제된 조건에서 관찰하기 위한 deterministic simulation research platform이다.
 
-세계는 LLM 없이도 진행되어야 한다. LLM은 세계 관리자·서술자·판정자가 아니며, `Observation`을 받아 구조화된 `ActionRequest`를 반환하는 교체 가능한 Controller 중 하나다. 모든 canonical 상태 변화는 엔진 검증과 판정을 거친다.
+현재 실험 세계는 작은 중세 정착지 **Alderwick**를 사용한다. 세계의 실제 상태와 Agent가 아는 정보는 분리되며, LLM은 세계 관리자나 판정자가 아니라 한 Actor의 교체 가능한 Controller다. LLM은 자신에게 허용된 `Decision Context`를 보고 구조화된 `ActionRequest`를 제안하고, 실제 canonical 상태 변화는 Engine이 검증하고 처리한다.
 
-## 핵심 루프
+이 프로젝트가 관찰하는 대상은 숨겨진 chain-of-thought가 아니라 다음과 같은 외부에서 확인 가능한 기록이다.
+
+- Agent에게 실제로 제공된 `Observation`, `Knowledge`, `Retrieved Event Memory`
+- 모델이 제출한 구조화된 `ActionRequest`
+- Engine이 판정한 행동 결과
+- canonical world state 변화
+- 이후 생성된 Event Trace와 재현 가능한 연구 기록
+
+## 핵심 연구 루프
 
 ```text
-World progresses
-→ Perception
-→ Observation
-→ Controller decision
-→ ActionRequest
-→ engine validation
-→ engine resolution
-→ World Truth mutation
-→ Event logging
-→ Knowledge update
-→ next Observation
+Ground Truth
+    ↓
+Perception
+    ↓
+Current Observation ──────────────┐
+                                  │
+Agent Knowledge ──────────────────┼→ Decision Context → Controller / LLM
+                                  │                         ↓
+Event Trace Archive               │                    ActionRequest
+    ↓                             │                         ↓
+Memory Policy                     │                    Engine Validation
+    ↓                             │                         ↓
+Retrieved Event Memory ───────────┘                    World Mutation
+                                                            ↓
+                                                       Actor-visible Result
+                                                            ↓
+                                                       new Event Trace
 ```
 
-## 0.1 목표
+핵심 원칙은 다음과 같다.
 
-작은 중세 마을 Alderwick에서 단일 실험 대상 캐릭터, 소수의 비LLM NPC, 부분 관찰, 지식 전파, 이동, 최소 생존·소지품·거래, 구조화된 행동, 사건 기록과 결정적 엔진 재현을 검증한다.
+1. `Ground Truth`, `Observation`, `Agent Knowledge`, `Event Memory`를 섞지 않는다.
+2. LLM은 canonical world state를 직접 수정하지 않는다.
+3. Actor Action과 Scheduled/System Event는 서로 다른 입력 경로를 사용한다.
+4. 모든 canonical mutation은 검증된 handler와 deterministic mutation boundary를 통과한다.
+5. 같은 초기 상태, seed, recorded ActionRequest stream은 같은 Engine 결과와 Event 순서를 재현해야 한다.
+6. Research Archive와 Agent가 실제로 접근할 수 있는 정보 범위를 분리한다.
 
-첫 수직 슬라이스인 **A Stranger in Alderwick**에서는 예정된 시점에 East Bridge가 붕괴한다. 붕괴 전의 미래 사건은 World Truth에 사실로 존재하지 않으며, 발생 후에도 목격하거나 전달받은 인물만 이를 알 수 있다.
+## 현재 연구 질문
 
-## 문서 안내
+현재 연구는 크게 두 단계로 진행한다.
 
-- [0.1 명세](docs/JOURNEYMAP_0.1_SPEC.md): 목표, 범위, 시나리오, 수용 기준
+### 1. 과거 경험 접근 범위와 행동 연속성
+
+과거 Event Trace를 제공하지 않는 조건과 최근 경험을 `k=1/2/3` 범위로 제공하는 조건을 비교한다.
+
+현재 구현된 **Memory Horizon / Distinct Places** 시나리오에서는 Agent가 `Inn`, `Bakery`, `Well`을 각각 한 번 방문하고 매 방문 뒤 `Village Square`로 돌아오도록 한다. Engine은 방문 완료 목록이나 다음 목적지를 요약해서 알려주지 않는다.
+
+이 실험의 기술적 목적은 최근 과거 경험 접근 범위만 달라졌다고 말할 수 있는 통제 환경을 만드는 것이다. 다만 현재는 이 과제가 실제로 넓은 의미의 기억 활용을 측정하는지, 아니면 최근 방문 기록에서 이미 간 장소를 제외하는 단순 전략으로 해결되는지 **construct validity를 재검토 중**이다.
+
+따라서 아직 다음과 같은 결론은 주장하지 않는다.
+
+- Event Memory가 행동 성능을 향상한다.
+- `k=3`이 `k=1` 또는 `k=2`보다 낫다.
+- Distinct Places가 장기기억 구조 전체를 대표한다.
+- mock 또는 scripted provider 결과가 실제 LLM behavioral evidence다.
+
+### 2. 정보 변화와 재계획
+
+두 번째 연구 축은 Agent가 기존에 알고 있던 정보와 실제 환경이 달라졌을 때, 새로운 정보를 획득하고 이후 행동에 반영해 기존 계획을 수정하는지 관찰하는 것이다.
+
+이 실험은 현재 설계 단계이며 아직 구현 완료 상태가 아니다. 단순 obstacle avoidance가 아니라 다음을 구분할 수 있는 통제 시나리오를 목표로 한다.
+
+```text
+A. 필요한 새 정보를 획득하지 못함
+B. 새 정보를 획득했지만 행동에 사용하지 못함
+C. 새 정보를 사용했지만 판단 또는 계획이 잘못됨
+D. 적절하게 계획을 수정했으나 Engine 결과가 달랐음
+```
+
+## 구현 및 검증 상태
+
+M0부터 M8까지 deterministic research baseline을 구축한 뒤 Event Memory 연구 계층을 추가했다.
+
+| 단계 | 상태 | 의미 |
+| --- | --- | --- |
+| M0-M8 baseline | 완료 | deterministic kernel, movement, perception/knowledge, social, survival/trade, action contracts, LLM adapter, 첫 공식 24h trial |
+| Baseline Validation & Hardening | 완료 | provenance, inclusion, replay, provider identity, historical compatibility 검증 |
+| Experiment 01 Event Memory Foundation | 완료 | Event Trace v1, No Event Memory, Recency `k=1` correctness |
+| Experiment 02 Recency Window | 완료 | Recency `k=1/2/3` retrieval correctness와 backward compatibility |
+| Experiment 03 Memory Horizon v2 | 완료 | semantic Decision Context로 progress/provenance cue를 model-visible input에서 제거 |
+| Live Pilot Preflight | 완료 | 별도 live protocol/audit, 12-allocation cohort, Horizon wire schema, fresh runtime ownership, recording mock transport, journal/audit 경계 |
+| Actual Memory Horizon behavioral pilot | 미실행 | 연구 타당성과 최종 study 설정 검토 후 사용자 명시 승인 필요 |
+| Information change / replanning experiment | 설계 중 | 두 번째 핵심 연구 축, 아직 구현 완료 아님 |
+
+중요하게, **기술적 preflight 완료와 behavioral effect 입증은 다른 상태**다.
+
+현재 Live Pilot Preflight는 recording mock만 사용하는 기술 검증이다. 실제 network/API 호출, real OpenAI Provider, live-capable CLI, automatic resume는 포함하지 않는다. 자세한 범위는 [Memory Horizon Live Pilot Preflight](docs/MEMORY_HORIZON_LIVE_PREFLIGHT.md)를 따른다.
+
+과거 M8 공식 trial은 별도 historical evidence로 보존한다. 당시 raw artifact와 historical protocol을 현재 실험 의미에 맞춰 소급 변경하지 않는다.
+
+## 주요 문서
+
+처음 읽는 사람은 다음 순서를 권장한다.
+
+- [0.1 명세](docs/JOURNEYMAP_0.1_SPEC.md): 기본 목표, 범위, 시나리오, 수용 기준
 - [아키텍처](docs/ARCHITECTURE.md): Core/Module 경계와 의존성
-- [ERD](docs/ERD.md): 영속 데이터와 연구 기록
 - [API](docs/API.md): Game/Controller 및 Research/Debug 인터페이스
-- [테스트 전략](docs/TEST_STRATEGY.md): 결정론·권한·정보 누출 검증
-- [로드맵](docs/ROADMAP.md): M0부터 첫 24시간 실험까지
-- [연구 참고 문헌](docs/RESEARCH_REFERENCES.md): 조사할 선행 연구와 적용 질문
-- [Codex 작업 지침](AGENTS.md): 다음 세션이 지켜야 할 최소 규칙
+- [ERD](docs/ERD.md): 영속 데이터와 연구 기록
+- [테스트 전략](docs/TEST_STRATEGY.md): 결정론, 권한, 정보 누출 검증
+- [로드맵](docs/ROADMAP.md): M0-M8과 이후 연구 계보
+- [M8 실험 프로토콜](docs/M8_EXPERIMENT.md): 첫 공식 LLM trial의 protocol
+- [M8 공식 결과](docs/M8_FIRST_OFFICIAL_TRIAL.md): historical live trial 결과와 한계
+- [Event Memory Phase 1](docs/EVENT_MEMORY_PHASE1.md): Event Trace와 최소 memory correctness
+- [Recency Window](docs/EVENT_MEMORY_RECENCY_WINDOW.md): `k=1/2/3` correctness
+- [Memory Horizon Offline](docs/MEMORY_HORIZON_OFFLINE.md): Distinct Places offline preparation
+- [Memory Horizon v2](docs/MEMORY_HORIZON_V2.md): semantic Decision Context hardening
+- [Memory Horizon Readiness Audit](docs/MEMORY_HORIZON_READINESS_AUDIT.md): actual pilot 전 adversarial audit
+- [Memory Horizon Live Pilot Preflight](docs/MEMORY_HORIZON_LIVE_PREFLIGHT.md): 현재 technical preflight contract
+- [연구 참고 문헌](docs/RESEARCH_REFERENCES.md): 선행 연구와 적용 질문
+- [Codex 및 AI 작업 지침](AGENTS.md): repository 작업 전에 지켜야 할 규칙
 
-## 현재 상태
+구현 여부의 최종 기준은 GitHub `main`이다. 연구 질문과 실험 해석 범위는 코드 상태와 분리해 관리하며, 결과가 없는 상태에서 예상 효과를 실제 결과처럼 기록하지 않는다.
 
-M8 LLM adapter와 첫 공식 live 24h 실험을 완료했다. OpenAI Responses `gpt-5.6-sol`/medium과 `json_schema` DecisionCandidate를 사용하며 trusted Controller가 M7 ActionRequest로 bind한다. NoMemory와 M8 전용 1 tick=1h, tick 0–24 schedule을 사용한다. fake 24h와 **770 tests**를 통과했고, 사용자 승인으로 한 번 실행한 공식 trial은 **10 calls / tick 24 / replay equality=true**로 완료했다. 정확한 설정·전송 범위는 [M8 프로토콜](docs/M8_EXPERIMENT.md), 사용량·비용·행동·한계는 [공식 결과](docs/M8_FIRST_OFFICIAL_TRIAL.md)를 따른다. 추가 유료 trial은 별도 승인이 필요하다.
+## 개발 환경
 
-```text
-python -m journeymap.examples.alderwick_llm --trial-id offline-example --output trials/offline-example
-python -m journeymap.examples.alderwick_llm --replay trials/offline-example
-python -m journeymap.examples.alderwick_llm --audit trials/offline-example
-```
-
-Pre-Experiment Hardening 이후 package/engine은 **0.1.0**, 새 export는 schema v2다. 첫 공식 trial의 실제 `engine_version=0.0.0`과 raw artifact는 소급 변경하지 않는다. 실행 완료와 연구 inclusion을 분리하며 `--audit`는 파일·설정·trace·engine replay를 다시 검증한다. 상세 provenance/제외 기준과 Event Memory 후속 범위는 [hardening 계약](docs/M8_EXPERIMENT.md#8-pre-experiment-hardening--export-v2)을 따른다.
-
-`trials/`는 로컬 연구 산출물이며 Git에서 제외한다. 아래 M7 설명은 M8이 보존하는 기반 계약이다.
-
-M7 Complete Action/Observation Contracts를 구현했다. 0.1 actor action은 MOVE/WAIT/ASK/INFORM/REQUEST/REST/CONSUME/BUY의 strict v1이며 `observe()`는 별도 read다. application-owned idempotency로 exact retry는 기존 receipt를 반환하고 변경된 동일 ID는 `REQUEST_ID_CONFLICT`로 거부한다. kernel/replay에는 retry 정책을 넣지 않았다.
-
-Observation은 canonical JSON UTF-8 65,536 bytes까지 전체 내용을 제공하고 초과 시 fail-closed한다. 과거 Observation 참조, 상충 Knowledge와 전체 Research history를 보존한다. Scripted/Human/SocialNpc conformance, malformed output의 no-mutation turn helper, Provider/MemoryPolicy Protocol과 NoMemory를 제공한다. 최종 payload·reason·retry·budget·권한 계약은 [API](docs/API.md#13-m7-최종-compatibility--retry--observation--controller-계약), 회귀 목적 보존은 [테스트 전략](docs/TEST_STRATEGY.md#9-m7-contract-gate와-pre-m7-policy-전환)에 있다.
-
-trusted caller에서 `run_controller_turn(game, controller)`를 사용하면 observe→결정→출력 검증→submit을 한 번 실행하고 `ControllerTurnResult`를 받는다. Controller에는 Observation만 전달한다. 직접 GamePort.submit도 지원하며 application은 run당 한 번 생성해 모든 actor port가 공유해야 한다. idempotency는 이 메모리 수명에 한정되고 crash-safe persistence가 아니다.
-
-M6 Survival, Inventory + Trade Minimum을 구현했다. 명시적 `resources=True` Alderwick composition에서 inventory의 item/수량, survival의 hunger/fatigue, trade의 wallet/offer를 분리한다. BUY와 CONSUME는 기존 단일 TransitionPlan으로 두 모듈을 원자적으로 변경하고 REST는 실제 시간을 소비한다. 숨은 SurvivalTick은 tick 1–20에 pressure를 진행시키며 Observation은 자기 자원과 같은 장소의 active offer만 공개한다. 이 도메인 의미는 M7에서도 유지한다.
-
-M6 실행 예제: `python -m journeymap.examples.alderwick_resources`. WAIT→Bakery 이동→bread 2개 구매→1개 소비→3 tick 휴식을 실행하고 기존 ActionRequest-only ReplayHarness와 결과를 비교한다. tick 10의 Stranger는 bread 1, wallet 6, hunger 30, fatigue 11이다. 상세 계약은 [API M6 절](docs/API.md#12-m6-구현-계약), 상태 소유권은 [ERD M6 절](docs/ERD.md#12-m6-실제-canonical-resource-schema)을 따른다. 기존 M4/M5 예제와 generic application에는 자원이 자동 노출되지 않는다.
-
-M5 Non-LLM NPC Behavior + Social Information Transfer를 구현했다. M4의 8개 장소·5명 actor·숨은 bridge 붕괴와 직접 관찰 의미를 유지하며 ASK/INFORM/REQUEST, actor-scoped social perception, 비LLM NPC 응답과 간접 지식 출처를 추가했다. INFORM은 sender가 실제 Observation에서 접근한 자기 KnowledgeRecord를 전달하며 World Truth를 복사하지 않는다. 초기 지식 + committed Events에서 직접·간접 기록을 재구성하고 상충 주장을 함께 보존한다. NPC도 GamePort로 ActionRequest를 제출하며 기존 engine replay는 NPC 정책을 다시 실행하지 않는다.
-
-M5 실행 예제: `python -m journeymap.examples.alderwick_social`. 명시적 `social=True` composition에서 Hugh가 붕괴를 목격한 뒤 광장으로 이동하고 Thomas의 ASK에 INFORM한다. Thomas의 `intact(INITIAL)`와 `collapsed(INFORMED)`가 함께 남는다. 고정 activation 순서는 example/application 호출자가 소유하며 별도 NPC scheduler나 LLM은 없다. 상세 계약은 [API M5 절](docs/API.md#11-m5-구현-계약)을 따른다.
-
-실행 예제: `python -m journeymap.examples.alderwick`. tick 3에 붕괴하고 Stranger는 tick 4에 East Road에 도착해 직접 발견한다. 상세 계약은 [API의 M4 절](docs/API.md#10-m4-구현-계약), 검증 범위는 [테스트 전략](docs/TEST_STRATEGY.md)을 따른다.
-
-M2 composition은 `MovementModule.register_actions(action_registry)`로 MOVE를, `action_registry.register("WAIT", 1, WaitHandler())`로 WAIT를 명시적으로 등록한다. 초기 canonical state는 `{"entities": entity_state(...), "movement": movement_state(...)}`로 구성하고 module·registry·state를 `create_kernel`에 전달한다. payload와 시간 계약은 [API의 M2 절](docs/API.md#8-m2-구현-계약)을 따른다.
-
-M3 composition은 `application, research = create_application(kernel, initial_knowledge=...)`를 run당 한 번 호출한다. trusted turn 호출자는 `application.game_for(actor_id)`의 actor 고정 `GamePort`를 보관하고 Controller.decide에는 Observation만 전달한다. `observe()`는 현재 tick의 자기 identity/위치와 명시적 기존 지식만 기록하며, `submit(request)`는 actor-visible receipt만 반환한다. kernel 수명주기·scenario 진행 권한과 `research`는 신뢰된 application 호출자가 보관한다. 상세 계약과 제한은 [API의 M3 절](docs/API.md#9-m3-구현-계약)에 있다.
-
-## 개발 환경과 검증
-
-검증 기준은 Python 3.12다. 프로젝트 `.venv`를 활성화하고 개발용 의존성과 전체 품질 gate를 실행한다.
+검증 기준은 Python 3.12다.
 
 ```text
 python -m pip install -e ".[dev]"
@@ -86,4 +134,34 @@ git diff --check
 git status
 ```
 
-기능 또는 계약을 변경할 때는 같은 변경에서 관련 테스트와 문서를 갱신한다. milestone 범위를 바꾸는 변경은 `docs/ROADMAP.md`, 논리 계약은 `docs/API.md`, 상태·저장 소유권은 `docs/ERD.md`, 계층과 의존 방향은 `docs/ARCHITECTURE.md`, 검증 규칙은 `docs/TEST_STRATEGY.md`에 반영한다.
+기능 또는 계약을 변경할 때는 관련 테스트와 문서를 같은 변경에서 갱신한다. milestone 범위를 바꾸는 변경은 `docs/ROADMAP.md`, 논리 계약은 `docs/API.md`, 상태와 저장 소유권은 `docs/ERD.md`, 계층과 의존 방향은 `docs/ARCHITECTURE.md`, 검증 규칙은 `docs/TEST_STRATEGY.md`에 반영한다.
+
+## 실행 예제
+
+기본 Alderwick 예제:
+
+```text
+python -m journeymap.examples.alderwick
+```
+
+Social 정보 전달 예제:
+
+```text
+python -m journeymap.examples.alderwick_social
+```
+
+Survival, Inventory, Trade 예제:
+
+```text
+python -m journeymap.examples.alderwick_resources
+```
+
+M8 offline trial, replay, audit:
+
+```text
+python -m journeymap.examples.alderwick_llm --trial-id offline-example --output trials/offline-example
+python -m journeymap.examples.alderwick_llm --replay trials/offline-example
+python -m journeymap.examples.alderwick_llm --audit trials/offline-example
+```
+
+`trials/`는 로컬 연구 산출물이며 Git에서 제외한다. 실제 외부 LLM/API 호출은 실험 조건과 기록 방식을 먼저 동결하고 사용자 명시 승인을 받은 경우에만 수행한다.
