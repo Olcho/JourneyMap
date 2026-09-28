@@ -1,6 +1,6 @@
 # AGENTS.md
 
-JourneyMap은 Verdandi, URDR, Norn을 계승하지 않는 새 프로젝트다. 레거시 코드를 복사하거나 그 구조를 전제로 삼지 않는다.
+JourneyMap은 독립 프로젝트다. 다른 프로젝트나 레거시 코드를 복사하거나 그 구조를 전제로 삼지 않는다.
 
 ## 먼저 읽을 문서
 
@@ -21,6 +21,6 @@ JourneyMap은 Verdandi, URDR, Norn을 계승하지 않는 새 프로젝트다. �
 - Action은 `ActionRegistry`, Observation은 perception 이후의 contributor pipeline으로 확장한다. 중앙 거대 분기문을 만들지 않는다.
 - 0.x EventBus는 in-process, synchronous, deterministic으로 유지한다.
 - 일반 NPC는 우선 scripted/schedule/utility 방식으로 구현한다.
-- 현재 milestone 밖의 기능, 불필요한 추상화·의존성·마이크로서비스를 추가하지 않는다.
-- M0 기준은 Python 3.12, pytest, Ruff, mypy와 표준 라이브러리 우선이다. FastAPI·LLM SDK·ORM은 필요가 구체화되기 전에 추가하지 않는다.
+- 현재 milestone 밖의 기능, 불필요한 추상화, 의존성, 마이크로서비스를 추가하지 않는다.
+- M0 기준은 Python 3.12, pytest, Ruff, mypy와 표준 라이브러리 우선이다. FastAPI, LLM SDK, ORM은 필요가 구체화되기 전에 추가하지 않는다.
 - 변경 후 관련 테스트와 문서를 함께 갱신한다. 커밋 전 `docs/TEST_STRATEGY.md`의 연구 핵심 불변식을 확인한다.
