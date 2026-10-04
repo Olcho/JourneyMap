@@ -1,5 +1,11 @@
 # Roadmap
 
+2026-10-04 작업 브랜치에서 Experiment 03의 코드 기준선, 수령처 안내 진단 및 Full prefix
+정보충분 대조조건을 별도 offline protocol/evaluator로 구현했다.
+[범위와 실행법](EXPERIMENT03_BASELINE_DIAGNOSTIC.md),
+[검증 기록](EXPERIMENT03_OFFLINE_REPORT_2026-10-04.md)을 따른다.
+이후 본실험 설정 동결과 사용자 승인 후 live pilot은 별도 gate이며 Experiment 04는 이 변경에 없다.
+
 ## 현재 상태와 문서 역할
 
 이 문서는 JourneyMap의 **개발 계보와 연구 단계가 어떤 순서로 형성되었는지**를 보존한다. 현재 작업 우선순위와 최신 연구 해석은 `README.md`와 각 experiment 문서를 함께 확인한다. 과거 milestone의 당시 테스트 수, 구현 범위, 제한은 역사 기록으로 유지하며 현재 상태처럼 재해석하지 않는다.

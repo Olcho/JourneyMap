@@ -248,6 +248,66 @@ def create_memory_horizon_application(
     )
 
 
+def create_pickup_cue_kernel(*, run_id: str, target: str, seed: int = 42) -> SimulationKernel:
+    """Separate diagnostic composition with immutable scenario-owned notice data."""
+    from journeymap.core.actions import WaitHandler
+    from journeymap.modules.knowledge import KnowledgeModule
+    from journeymap.modules.movement import MovementModule
+    from journeymap.scenarios.alderwick.pickup_cue import SCENARIO_VERSION, pickup_world
+
+    state = pickup_world(target)
+    movement, actions = MovementModule(), ActionRegistry()
+    movement.register_actions(actions)
+    actions.register("WAIT", 1, WaitHandler())
+    return create_kernel(
+        modules=(movement, KnowledgeModule()),
+        initial_state=state,
+        manifest=RunManifest(
+            run_id, "alderwick", SCENARIO_VERSION, __version__, 1, seed, 0, state_digest(state)
+        ),
+        action_registry=actions,
+        system_event_registry=SystemEventRegistry(),
+    )
+
+
+def create_pickup_cue_application(
+    kernel: SimulationKernel,
+) -> tuple[SimulationApplication, ResearchView]:
+    from journeymap.scenarios.alderwick.memory_horizon import contribute_local
+    from journeymap.scenarios.alderwick.pickup_cue import (
+        SCENARIO_VERSION,
+        contribute_pickup,
+        perceive_pickup,
+    )
+
+    if (kernel.manifest.scenario_id, kernel.manifest.scenario_version) != (
+        "alderwick",
+        SCENARIO_VERSION,
+    ):
+        raise ValueError("Pickup diagnostic requires its matching scenario")
+    pipeline = ObservationPipeline()
+    for priority, module, identity, contributor in (
+        (0, "core", "self", contribute_self),
+        (10, "movement", "position", contribute_position),
+        (16, "alderwick", "local", contribute_local),
+        (17, "alderwick", "pickup_notice", contribute_pickup),
+        (20, "knowledge", "records", contribute_knowledge),
+    ):
+        pipeline.register(
+            priority=priority,
+            module_id=module,
+            contributor_id=identity,
+            contributor=contributor,
+        )
+    return create_application(
+        kernel,
+        initial_knowledge=(),
+        pipeline=pipeline,
+        perception_extension=perceive_pickup,
+        include_last_receipt=False,
+    )
+
+
 def create_kernel(
     *,
     database: str | Path = ":memory:",

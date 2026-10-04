@@ -1,5 +1,14 @@
 # Test Strategy
 
+## Experiment 03 기준선·진단 gate
+
+`tests/test_pickup_cue.py`는 상태 없는 직전 장소 규칙의 수작업 기대표, 40개 조합의 cue
+포함표/current·전체 ProviderRequest 동등성, 실제 5-action prefix, one-shot 응답/제출,
+실패 분류와 불완전 evidence 제외, provider-free replay/관찰 재구성/평가 재계산,
+재봉인 변조와 case 누락·중복·오연결 거부를 검증한다. network socket은 차단한다.
+기존 테스트/지표/원본 schema는 유지한다. [계약](EXPERIMENT03_BASELINE_DIAGNOSTIC.md)과
+[실제 gate 결과](EXPERIMENT03_OFFLINE_REPORT_2026-10-04.md)를 참고한다.
+
 ## Memory Horizon offline preparation gate
 
 `tests/test_memory_horizon.py` verifies the separate empty-schedule composition,

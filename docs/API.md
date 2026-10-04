@@ -1,5 +1,10 @@
 # API Contracts
 
+Experiment 03의 추가 offline API는 `experiments.pickup_cue.run_case/run_matrix`,
+`export_case`와 별도 `pickup_cue_audit` reader/replay/audit다. runner는 concrete inert
+Fixture만 받으며 live Provider/transport는 받지 않는다. 기존 API/protocol 의미는 유지한다.
+입력·행동·실패·export 계약은 [진단 문서](EXPERIMENT03_BASELINE_DIAGNOSTIC.md)를 따른다.
+
 ## Memory Horizon offline opt-in
 
 `LLMController(..., event_memory=..., prompt_profile=PROFILE)` accepts a frozen
