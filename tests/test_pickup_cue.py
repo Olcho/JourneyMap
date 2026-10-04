@@ -2,6 +2,7 @@
 
 import json
 import socket
+import subprocess
 from collections.abc import Iterator
 from dataclasses import replace
 from hashlib import sha256
@@ -755,6 +756,51 @@ def test_prompt_lf_and_fixed_bytes() -> None:
     assert PROFILE.instructions.endswith("with no duplicate keys.\n")
     assert len(PROFILE.instructions.encode("utf-8")) == 1027
     assert INSTRUCTIONS_SHA256 == "a250e897c928f06d25939700c6f65e4895a3729fd38a355186208ebd5e88f1b4"
+
+
+def test_checkout_identity_records_detached_head_as_null() -> None:
+    branch = subprocess.run(
+        ["git", "branch", "--show-current"],
+        cwd=Path(__file__).resolve().parents[1],
+        capture_output=True,
+        text=True,
+        check=True,
+    ).stdout.strip()
+    data = run_case(case_id="checkout", target="inn", d=1, condition="full-prefix").data
+    assert obj(data["source"])["branch"] == (branch or None)
+    assert audit_record(data)["status"] == "INCLUDED"
+
+
+@pytest.mark.parametrize("branch", [None, "codex/named-checkout"])
+def test_audit_accepts_named_and_detached_provenance(branch: JsonValue) -> None:
+    data = run_case(case_id="provenance", target="inn", d=1, condition="full-prefix").data
+    obj(data["source"])["branch"] = branch
+    seal(data)
+    assert audit_record(data)["status"] == "INCLUDED"
+
+
+@pytest.mark.parametrize(
+    "field,value",
+    [
+        ("branch", ""),
+        ("branch", " "),
+        ("branch", 1),
+        ("git_commit", None),
+        ("working_source_sha256", None),
+    ],
+)
+def test_audit_rejects_invalid_checkout_provenance(field: str, value: JsonValue) -> None:
+    data = run_case(case_id="provenance", target="inn", d=1, condition="full-prefix").data
+    obj(data["source"])[field] = value
+    seal(data)
+    assert audit_record(data)["status"] == "EXCLUDED"
+
+
+def test_audit_requires_explicit_branch_field() -> None:
+    data = run_case(case_id="provenance", target="inn", d=1, condition="full-prefix").data
+    del obj(data["source"])["branch"]
+    seal(data)
+    assert audit_record(data)["status"] == "EXCLUDED"
 
 
 def test_unknown_engine_outcome_is_not_behavioral_failure(monkeypatch: pytest.MonkeyPatch) -> None:

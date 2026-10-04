@@ -180,6 +180,10 @@ case는 source/branch/HEAD/source digest/runtime, 버전, researcher-only 설정
 report/state/digest/time, 평가 및 integrity를 보존한다. raw invalid UTF-8 응답도 JSON escape로
 보존하고 reader를 decision parser와 구분한다. exception message/credential/환경변수를 수집하지 않는다.
 
+PR CI와 같은 detached HEAD 실행은 `source.branch = null`로 기록한다. branch 필드는
+필수이며 값은 null 또는 비어 있지 않은 이름이다. HEAD commit과 working source digest는
+계속 필수다. 브랜치 이름이 없다는 이유로 정상 실행을 제외하지 않는다.
+
 audit는 Provider/Controller를 생성하거나 호출하지 않고 다음을 수행한다.
 
 1. versioned 초기 world, seed, 저장된 ActionRequest stream을 ReplayHarness로 재생한다.

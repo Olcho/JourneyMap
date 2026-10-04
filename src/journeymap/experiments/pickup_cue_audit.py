@@ -111,9 +111,11 @@ def identity(data: JsonObject) -> JsonObject:
     same(data["knowledge"], [], "final Knowledge")
     same(data["schedule"], json_value(pickup_schedule()), "schedule")
     source, runtime = obj(data["source"]), obj(data["runtime"])
+    branch = source.get("branch")
     require(
         bool(source.get("git_commit"))
-        and bool(source.get("branch"))
+        and "branch" in source
+        and (branch is None or (type(branch) is str and bool(branch.strip())))
         and bool(source.get("working_source_sha256"))
         and bool(runtime.get("version")),
         "provenance",

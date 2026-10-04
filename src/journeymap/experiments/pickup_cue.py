@@ -266,13 +266,16 @@ def run_case(
         game, archive = app.game_for("stranger"), EventTraceArchive()
         provider = PickupFixtureProvider(fixture)
         source = code_identity()
-        source["branch"] = subprocess.run(
-            ["git", "branch", "--show-current"],
-            cwd=Path(__file__).resolve().parents[3],
-            capture_output=True,
-            text=True,
-            check=True,
-        ).stdout.strip()
+        source["branch"] = (
+            subprocess.run(
+                ["git", "branch", "--show-current"],
+                cwd=Path(__file__).resolve().parents[3],
+                capture_output=True,
+                text=True,
+                check=True,
+            ).stdout.strip()
+            or None
+        )
         decision = step_record("evaluation")
         decision.update(
             {
