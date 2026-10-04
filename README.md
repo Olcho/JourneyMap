@@ -77,6 +77,13 @@ D. 적절하게 계획을 수정했으나 Engine 결과가 달랐음
 
 ## 구현 및 검증 상태
 
+Experiment 03의 추가 오프라인 범위로 직전 장소 기반 코드 기준선과 수령처 안내 진단
+(2 target × 4 cue distance × 5 memory condition)을 구현했다. 별도 진단 평가,
+Provider-free replay/입력 재구성/audit를 제공하며 기존 방문 지표와 live 계획은 유지한다.
+정확한 계약과 실행법은 [기준선·진단 문서](docs/EXPERIMENT03_BASELINE_DIAGNOSTIC.md),
+실행 증거는 [2026-10-04 검증 기록](docs/EXPERIMENT03_OFFLINE_REPORT_2026-10-04.md)을 따른다.
+fixture 결과는 실제 LLM 효과의 증거가 아니다.
+
 M0부터 M8까지 deterministic research baseline을 구축한 뒤 Event Memory 연구 계층을 추가했다.
 
 | 단계 | 상태 | 의미 |

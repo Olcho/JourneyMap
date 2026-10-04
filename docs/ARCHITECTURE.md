@@ -1,5 +1,10 @@
 # Architecture
 
+Experiment 03의 [수령처 진단](EXPERIMENT03_BASELINE_DIAGNOSTIC.md)은 별도 composition의
+scenario-owned notice를 trusted perception 뒤 contributor로 전달한다. 준비 orchestration은
+GamePort와 정식 archive를 사용하고 평가 Provider에는 렌더링된 semantic 입력만 준다.
+기존 Controller의 receipt guard와 Core/mutation boundary는 변경하지 않는다.
+
 Event Memory Phase 1은 adapter-owned immutable `EventTraceArchive`와 별도
 `EventMemoryPolicy`를 추가한다. trusted experiment orchestration만 engine 제출 여부를
 확인하고 공개 receipt를 ingestion하며, Controller/Provider에는 world/research capability를

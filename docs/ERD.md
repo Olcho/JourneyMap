@@ -1,5 +1,10 @@
 # ERD and Persistence Model
 
+Experiment 03 수령처 진단은 초기 world의 scenario-owned `pickup_cue.pickup_location`과
+독립 `pickup-cue-offline-record-1` 연구 snapshot을 추가한다. 안내는 빈 Knowledge에
+저장하지 않으며 raw 경험과 model-visible projection은 분리한다. DB migration은 없다.
+필드·소유권·재구성 계약은 [진단 문서](EXPERIMENT03_BASELINE_DIAGNOSTIC.md)를 따른다.
+
 Event Memory Phase 1은 canonical/DB state가 아닌 research record `EventTrace`를 추가한다.
 actor/run에 속한 closed Observation→ActionRequest→ControllerActionResult snapshot이며
 `event_traces.jsonl`로 독립 export한다. 전체 research attempts와 agent의 retrieved subset은
