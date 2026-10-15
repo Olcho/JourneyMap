@@ -32,7 +32,8 @@ def perceive_experiment(world: JsonObject, actor_id: str) -> JsonObject:
         identity
         for identity, position in sorted(positions.items())
         if isinstance(position, dict)
-        and position.get("location_id") == location
+        and location is not None
+        and perceive_position(world, identity).get("location_id") == location
         and identity != actor_id
     ]
     exits: list[JsonValue] = [

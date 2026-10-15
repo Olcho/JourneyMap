@@ -1,5 +1,56 @@
 # Roadmap
 
+## 2026-10-15 Phase4.3.2 응답 보관 역방향 감사
+
+Phase4.3.1 독립 검토 F1의 owner 회수 원문 누락 및 READY 상태 우회를 수정한다.
+[현재 계약](PHASE4_3_2_RESPONSE_AUDIT.md)을 따른다. 실제 실행은 재검토·별도 승인 대상이다.
+
+## 2026-10-15 Phase4.3.1 저장 감사 완전성
+
+독립 검토의 삭제·회계 변조 반례를 수정하고 memory/file replay를 공통 감사 경로로 연결한다.
+[현재 계약](PHASE4_3_1_AUDIT.md)을 따른다. 실제 키/API 실행으로 진행하지 않는다.
+
+## 2026-10-15 Phase 4.3 유료 경로 구현·오프라인 검증
+
+승인/run/source 결합, 생활용 HTTP, 영속 journal, late 회계와 data-only replay를 구현한다.
+[계약](PHASE4_3_PAID_PATH.md)의 구체적 명령은 독립 검토와 별도 승인 전에는 실행하지 않는다.
+실제 모델 성과나 연구 behavioral gate 완료를 의미하지 않는다.
+
+## 2026-10-15 Phase 4.2 생활 Responses 사전 검증
+
+Phase 4.1 독립 통과 후 recording wire adapter의 요청/응답/usage/한도와 엔진 연결을 검증한다.
+[고정 실행 제안](PHASE4_2_LIVE_PREFLIGHT.md)은 별도 승인 대상이며, 현재 network/key/live CLI나
+연구 behavioral 실행을 추가하지 않는다.
+
+## 2026-10-15 본체 Phase 4
+
+기본 전원 RULE과 기존 연구 의미를 유지한 선택적 생활 Provider 오프라인 통합이다.
+Ada만 literal response fixture adapter로 실행하고 나머지는 기존 규칙 정책이다.
+방향별 지도, 대기 중 세계 동결, 오류/한도, 혼합 checkpoint와 무재호출 replay를 제공한다.
+[계약과 다음 실제 실행의 별도 승인 계획](PHASE4_OFFLINE_LLM.md)을 따른다.
+실제 모델의 생활 성과나 기억 효과를 검증한 단계가 아니다.
+
+## 2026-10-15 본체 Phase 3
+
+기존 Phase 1+2 미커밋 구현에서 5명/최대 7일의 로컬 live 관찰과 직접 checkpoint를 추가한다.
+새 프로세스 재개와 배속/조회 독립성, 정보 경계와 horizon을 검증한다.
+[계약과 실행법](PHASE3_LIVE_CHECKPOINT.md)을 따른다. LLM/장기 경제/건강/조달은 확장하지 않는다.
+
+## 2026-10-14 본체 Phase 2
+
+Phase 1 미커밋 구현 위에 노동/원료 변환/임금 이전, 168시간의 유한 욕구 입력과
+Observation 기반 생활 정책을 opt-in 조립했다. 정상·부족·폐쇄 조건과 자원 회계, live attempt replay를
+검증한다. [계약](PHASE2_LIFE_LOOP.md)과 [완료 근거](PHASE2_REPORT_2026-10-14.md)를 따른다.
+다음 관찰 UI/영속 저장은 별도 단계이며 연구 LLM 호출 승인을 포함하지 않는다.
+
+## 2026-10-14 본체 통합 개발 Phase 1
+
+사용자 결정으로 E05 완료를 기다리지 않고 본체 시간 실행 통합을 시작했다.
+별도 concurrent-v1에 행동 접수/완료 분리, 겹치는 이동, 환경 우선 완료 재검증,
+완료 시 재고 경쟁과 순환 우선권, Observation 기반 유한 재활성화 및 실행 중 frame replay를
+추가했다. [범위·제약](PHASE1_CONCURRENT_RUNTIME.md)과 [실제 검증](PHASE1_REPORT_2026-10-14.md)을
+따른다. 경제 생활 순환/UI/LLM/기억 선택과 영속 save/restore는 이 단계 밖이다.
+
 ## 현재 상태와 문서 역할
 
 이 문서는 JourneyMap의 **개발 계보와 연구 단계가 어떤 순서로 형성되었는지**를 보존한다. 현재 작업 우선순위와 최신 연구 해석은 `README.md`와 각 experiment 문서를 함께 확인한다. 과거 milestone의 당시 테스트 수, 구현 범위, 제한은 역사 기록으로 유지하며 현재 상태처럼 재해석하지 않는다.

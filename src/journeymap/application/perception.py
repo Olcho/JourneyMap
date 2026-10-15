@@ -6,7 +6,7 @@ from journeymap.core.canonical import JsonObject, JsonValue, clone_json_object
 from journeymap.core.entities import get_entity
 from journeymap.core.observations import PerceptionContext
 from journeymap.modules.knowledge.projection import KnowledgeReader
-from journeymap.modules.movement.perception import perceive_position
+from journeymap.modules.movement.perception import perceive_movement
 
 type PerceptionExtension = Callable[[JsonObject, str], JsonObject]
 
@@ -32,7 +32,7 @@ def perceive(
     ]
     perceived: JsonObject = {
         "self": entity.to_json(),
-        "movement": perceive_position(world, actor_id),
+        "movement": perceive_movement(world, actor_id),
     }
     if extension is not None:
         extra = clone_json_object(extension(clone_json_object(world), actor_id))

@@ -103,6 +103,11 @@ class SimulationKernel:
         return clone_json_object(self._state)
 
     @property
+    def perception_snapshot(self) -> JsonObject:
+        """Trusted spatial context; synchronous mode has no execution overlay."""
+        return self.state_snapshot
+
+    @property
     def state_digest(self) -> str:
         return state_digest(self._state)
 
@@ -363,14 +368,14 @@ class SimulationKernel:
         return ValidationContext(
             run_id=self.manifest.run_id,
             simulation_time=self.simulation_time,
-            state=self.state_snapshot,
+            state=self.perception_snapshot,
         )
 
     def _resolution_context(self, rng: DeterministicRng) -> ResolutionContext:
         return ResolutionContext(
             run_id=self.manifest.run_id,
             simulation_time=self.simulation_time,
-            state=self.state_snapshot,
+            state=self.perception_snapshot,
             rng=rng,
         )
 

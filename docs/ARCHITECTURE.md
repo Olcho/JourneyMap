@@ -1,5 +1,61 @@
 # Architecture
 
+Phase4.3.2는 paid_audit의 OWNER_PACKET과 최종 호출 상태 대조만 보완한다.
+transport/engine/Provider 실행 경로는 유지한다. [응답 보관 계약](PHASE4_3_2_RESPONSE_AUDIT.md)을 따른다.
+
+Phase4.3.1의 paid_audit는 transport 없는 snapshot/lifecycle/회계 대조다.
+PaidLifeSession.export_report를 memory와 CLI replay가 공유하며 기존 engine replay에 결합한다.
+[완전성 경계](PHASE4_3_1_AUDIT.md)를 따른다. HTTP wire와 생활 도메인은 확장하지 않는다.
+
+Phase 4.3의 life_admission/life_http는 승인·SQLite journal·생활 전용 HTTP를 소유한다.
+PaidLifeSession/PaidDecisionService만 live composition과 owner disposition을 조립하며
+paid_replay는 기록된 입력으로 engine을 재생한다. 기존 offline/연구 adapter와 Core는 유지한다.
+[실행 경계](PHASE4_3_PAID_PATH.md)를 따른다.
+
+Phase 4.2의 adapters.life_responses는 기존 생활 prompt/schema를 재사용하는 wire/usage/budget
+사전 검증 adapter다. 구체적인 recording transport만 허용하며 fixture Provider로 engine에 연결한다.
+offline envelope와 제안 wire를 구분하고 Core 및 paid network composition은 변경하지 않는다.
+[범위와 연결 전제](PHASE4_2_LIVE_PREFLIGHT.md)를 따른다.
+
+Phase 4.1의 life_decisions는 주입 가능한 단조 clock과 runtime 완료 packet을 사용한다.
+mailbox publication/empty-timeout 판정만 lock으로 직렬화하고 canonical 변경은 계속 owner만 한다.
+공용 연구 parser는 유지하며 생활 경계의 RecursionError를 일관된 오류 정지로 처리한다.
+[후속 계약](PHASE4_1_ERROR_BOUNDARIES.md)을 참고한다.
+
+## 본체 Phase 4
+
+adapters.life_llm은 기존 Provider/strict parsing/body builder에 별도 생활 prompt/schema를 조립한다.
+experiments.mixed_life와 life_decisions는 actor 한 명의 판단 기회와 남은 activation 순서를 보존한다.
+worker는 Provider만 소유하고 owner thread만 canonical 접수/시간을 진행한다.
+checkpoint v2가 base runtime과 controller config/state를 함께 직접 복원한다.
+[전체 경계](PHASE4_OFFLINE_LLM.md)를 따른다. 과거 LLMController와 연구 runner는 변경하지 않는다.
+
+## 본체 Phase 3
+
+experiments.live.LiveLife는 단일 소유 thread에서 LifeSession을 제어한다.
+examples.life_ui의 표준 라이브러리 loopback HTTP UI는 domain mutation API를 노출하지 않는다.
+experiments.checkpoint는 고정 LifeSession composition의 data-only hydration adapter다.
+Core는 생활/UI/저장 도메인을 추가로 import하지 않는다.
+[시간·조회·복원 경계](PHASE3_LIVE_CHECKPOINT.md)를 따른다.
+
+## 본체 Phase 2
+
+LaborModule은 registry WORK의 고용/장소/자리/원료·임금/피로 검증과 atomic plan을 소유한다.
+inventory.transform_candidate, trade.payment_candidate, survival.survival_candidate를 재사용한다.
+Core는 generic active_actions만 trusted context에 추가하고 생활 도메인을 import하지 않는다.
+bootstrap_life가 opt-in 조립하며 scenarios.life는 fixture/perception, adapters.life는 Observation 정책,
+experiments.life는 실제 concurrent engine의 유한 driver/export/accounting을 소유한다.
+초기 지도는 actor-owned KnowledgeLedger이며 현재 route truth와 분리한다.
+[기록·replay·저장 경계](PHASE2_LIFE_LOOP.md)를 따른다.
+
+## 본체 Phase 1
+
+core.concurrent.ConcurrentKernel은 기존 action/system registries, scheduler,
+transactional RNG와 _commit_plan을 재사용하는 opt-in 실행 모드다. 접수/완료 runtime은
+domain world와 분리하고 trusted perception context에 module-owned absence만 투영한다.
+application.concurrent는 기존 Observation/claim authority를 재사용한 별도 actor port와
+유한 activation runner다. [세부 계약](PHASE1_CONCURRENT_RUNTIME.md)을 따른다.
+
 Event Memory Phase 1은 adapter-owned immutable `EventTraceArchive`와 별도
 `EventMemoryPolicy`를 추가한다. trusted experiment orchestration만 engine 제출 여부를
 확인하고 공개 receipt를 ingestion하며, Controller/Provider에는 world/research capability를

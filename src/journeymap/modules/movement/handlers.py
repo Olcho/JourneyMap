@@ -67,6 +67,9 @@ def _route(request: ActionRequest, state: JsonObject) -> Route:
 class MoveHandler:
     handler_id = "movement.move.v1"
 
+    def absence(self, request: ActionRequest, timing: ActionTiming) -> JsonObject:
+        return {"route_id": request.payload["route_id"], **timing.data}
+
     def validate(self, request: ActionRequest, context: ValidationContext) -> None:
         validate_actor(request, context)
         _route(request, context.state)

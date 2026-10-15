@@ -1,10 +1,14 @@
 """Minimal trusted spatial filtering: only the actor's own current position."""
 
-from journeymap.core.canonical import JsonObject
+from journeymap.core.canonical import JsonObject, clone_json_object
 from journeymap.core.observations import PerceptionContext
 
 
 def perceive_position(state: JsonObject, actor_id: str) -> JsonObject:
+    runtime = state.get("_concurrent")
+    absent = runtime.get("absent") if isinstance(runtime, dict) else None
+    if isinstance(absent, dict) and actor_id in absent:
+        return {}
     movement = state.get("movement")
     if not isinstance(movement, dict):
         return {}
@@ -23,6 +27,22 @@ def perceive_position(state: JsonObject, actor_id: str) -> JsonObject:
         raise ValueError("invalid self location")
     # Reconstruct allowlisted scalar fields; never copy a module record wholesale.
     return {"location_id": location_id}
+
+
+def perceive_movement(state: JsonObject, actor_id: str) -> JsonObject:
+    runtime = state.get("_concurrent")
+    absent = runtime.get("absent") if isinstance(runtime, dict) else None
+    transit = absent.get(actor_id) if isinstance(absent, dict) else None
+    if isinstance(transit, dict):
+        return {
+            "transit": clone_json_object(
+                {
+                    key: transit[key]
+                    for key in ("route_id", "origin", "destination", "started_at", "completes_at")
+                }
+            )
+        }
+    return perceive_position(state, actor_id)
 
 
 def contribute_position(context: PerceptionContext) -> JsonObject:

@@ -138,7 +138,7 @@ class SimulationApplication:
                 run_id=self._kernel.manifest.run_id,
                 actor_id=actor_id,
                 simulation_time=self._kernel.simulation_time,
-                world=self._kernel.state_snapshot,
+                world=self._kernel.perception_snapshot,
                 knowledge=self.knowledge_snapshot(),
                 extension=self._perception_extension,
             )

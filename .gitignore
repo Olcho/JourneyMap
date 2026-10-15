@@ -18,3 +18,12 @@ dist/
 *.sqlite
 *.sqlite3
 trials/
+artifacts/phase1/
+artifacts/phase2/
+artifacts/phase3/
+artifacts/phase4/
+artifacts/phase4_1/
+artifacts/phase4_2/
+artifacts/phase4_3/
+artifacts/phase4_3_1/
+artifacts/phase4_3_2/

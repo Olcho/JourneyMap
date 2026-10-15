@@ -13,16 +13,22 @@ from journeymap.adapters.provider import (
     ProviderRequest,
     RawModelResponse,
 )
-from journeymap.core.canonical import JsonObject, canonical_json
+from journeymap.core.canonical import JsonObject, canonical_json, clone_json_object
 
 
-def request_body(request: ProviderRequest) -> JsonObject:
+def request_body(
+    request: ProviderRequest, *, format_override: JsonObject | None = None
+) -> JsonObject:
     """Reviewable exact HTTP body; no environment access or transport side effect."""
     return {
         "model": request.model,
         "input": request.prompt,
         "store": False,
-        "text": {"format": response_format()},
+        "text": {
+            "format": response_format()
+            if format_override is None
+            else clone_json_object(format_override)
+        },
         **parameters_v1(request.parameters),
     }
 

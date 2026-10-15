@@ -1,5 +1,48 @@
 # ERD and Persistence Model
 
+Phase4.3.2는 기존 journal/report schema를 유지하고 RESPONSE_DELIVERY+OWNER_PACKET에서
+call.raw와 최종 상태를 대조한다. [누락·미회수 구분](PHASE4_3_2_RESPONSE_AUDIT.md)을 따른다.
+
+Phase4.3.1 export는 journal count/tail/run status, call 수와 worker/owner 상태를 선언한다.
+DECISION_STARTED와 RESERVATION_BLOCKED는 관찰/호출과 예약·전송 전 중단을 연결한다.
+새 checkpoint나 journal 복구는 없다. [snapshot 계약](PHASE4_3_1_AUDIT.md)을 따른다.
+
+Phase 4.3 runs.sqlite3의 runs는 run_id/approval_id unique와 binding/status를, entries는
+순번/stage/이전 hash/응답·usage·접수·완료를 담는다. FULL transaction이며 소비된 run은 재개하지 않는다.
+credential과 paid checkpoint는 저장하지 않는다. [영속·불확정 경계](PHASE4_3_PAID_PATH.md)를 따른다.
+
+Phase 4.2 wire_records는 제안 request/body, 합성 raw/usage, 분류와 budget 예약·정산을
+controller 기록과 별도로 담는 연구자용 증거다. 계획 digest는 승인 token이 아니다.
+Provider/credential은 checkpoint에 추가하지 않으며 custom Provider 저장은 계속 거부한다.
+[기록과 한계](PHASE4_2_LIVE_PREFLIGHT.md)를 따른다.
+
+Phase 4 checkpoint v2는 base runtime 외에 LifeLLMConfig/LifeLLMState/LifeCall과 남은 activation을
+추가한다. ProviderRequest, 실제 Raw response의 안전한 Record, 후보/ActionRequest와 공개 receipt/
+completion을 별도 필드로 연결한다. 전송 중 thread/연결/credential은 영속화하지 않는다.
+[복원·무재호출 계약](PHASE4_OFFLINE_LLM.md)을 따른다.
+
+Phase 3 `journeymap-life-checkpoint-1`은 고정 LifeSession의 직접 복원용 data-only JSON이다.
+world/pending/scheduler/RNG, application authority/cache/Observation IDs,
+policy memory와 기록 cursor를 함께 보존한다. 기존 연구 DB/export schema를 변경하지 않는다.
+이하 Phase 1/2의 미구현 표기는 해당 단계 당시의 상태다.
+[현재 복원 계약](PHASE3_LIVE_CHECKPOINT.md)을 따른다.
+
+## Phase 2 life records
+
+labor.jobs는 고용 관계, duration/wage/recipe/location/capacity를 가진다. 원료/임금 예약은 없고
+InFlight의 고정 timing과 완료 경쟁을 사용한다. WorkCompleted 한 Event가 변환·급여·피로의 원인을
+연결한다. LifeDecision은 Observation과 공개 결과에 근거한 정책 기록, LiveInput은 effect-free
+denial을 포함한 application replay 입력이다. 영속 복원은 미구현이며
+[추가 checkpoint 필드](PHASE2_LIFE_LOOP.md)를 따른다.
+
+## Phase 1 execution records (in-memory)
+
+InFlight는 Actor당 최대 1개이며 원 ActionRequest, ActionTiming, 시작/완료 tick과 absence를
+참조한다. Admission과 최종 ActionResult는 request ID로 연결되고 ExecutionRecord는
+source_ref/correlation으로 actor 또는 scheduled input을 추적한다. live ConcurrentAttempt와
+Observation은 별도 archive다. 영속 checkpoint는 미구현이며
+[필수 schema/검증 조건](PHASE1_CONCURRENT_RUNTIME.md)을 따른다.
+
 Event Memory Phase 1은 canonical/DB state가 아닌 research record `EventTrace`를 추가한다.
 actor/run에 속한 closed Observation→ActionRequest→ControllerActionResult snapshot이며
 `event_traces.jsonl`로 독립 export한다. 전체 research attempts와 agent의 retrieved subset은

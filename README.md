@@ -1,5 +1,49 @@
 # JourneyMap
 
+2026-10-15 Phase4.3.2는 성공 전달·owner 회수에서 call.raw를 역방향으로 요구하고,
+READY 이후 상태를 journal의 분류·접수·완료와 대조한다. 실제 실행은 재검토·별도 승인 대상이다.
+[현재 응답 감사 계약](docs/PHASE4_3_2_RESPONSE_AUDIT.md),
+[보고서](docs/PHASE4_3_2_REPORT_2026-10-15.md)를 따른다.
+
+2026-10-15 Phase4.3.1은 저장 replay의 호출/journal 삭제 및 회계 summary 변조를 거부하도록
+snapshot 완전성·양방향 기록·회계를 공통 검증한다. 실제 실행은 재검토·별도 승인 대상이다.
+[감사 계약](docs/PHASE4_3_1_AUDIT.md), [보고서](docs/PHASE4_3_1_REPORT_2026-10-15.md)를 따른다.
+
+2026-10-15 Phase 4.3은 생활 전용 HTTPS, 승인/run/source 결합, 영속 journal과 late 회계 회수,
+data-only replay를 구현하고 가짜 connection으로 검증한다. 실제 키/API 실행은 별도 승인 대상이다.
+[계약·미실행 명령](docs/PHASE4_3_PAID_PATH.md), [완료 보고서](docs/PHASE4_3_REPORT_2026-10-15.md)를 따른다.
+
+2026-10-15 Phase 4.2는 생활 Responses wire·응답·usage·한도를 recording transport로 검증하고
+실제 호출 전 [고정 실행 제안](docs/PHASE4_2_LIVE_PREFLIGHT.md)을 제공한다.
+[검증 보고서](docs/PHASE4_2_REPORT_2026-10-15.md)를 따른다. 실제 연결/키 조회/실행 승인은 포함하지 않는다.
+
+2026-10-15 Phase 4.1은 독립 검토의 깊은 JSON 오류 상태와 poll 순서에 의존하던 timeout을 보완한다.
+[오류·완료 시각 계약](docs/PHASE4_1_ERROR_BOUNDARIES.md),
+[검증 및 완료 보고서](docs/PHASE4_1_REPORT_2026-10-15.md)를 따른다. 기본 실행과 생활 기능은 유지한다.
+
+2026-10-15 본체 Phase 4는 기본 전원 RULE을 유지하면서 Ada만 모의 Provider adapter에
+연결하는 opt-in 생활 실행을 제공한다. 방향별 지도 표시, 세계 시간 동결 대기,
+오류/한도 정지와 혼합 checkpoint/replay를 검증한다. 실제 LLM/API 실행은 포함하지 않는다.
+[계약·실행법·실제 실행 전 계획](docs/PHASE4_OFFLINE_LLM.md),
+[완료 보고서](docs/PHASE4_REPORT_2026-10-15.md)를 따른다.
+
+2026-10-15 본체 Phase 3은 기존 미커밋 Phase 1+2에 로컬 실시간 관찰 UI와
+LifeSession 직접 체크포인트 저장/복원을 추가한다. 시작/정지/단계/배속과
+연구자·인물 보기, 새 프로세스 재개 및 168시간 종료를 지원한다.
+[실행법과 저장 계약](docs/PHASE3_LIVE_CHECKPOINT.md)을 따른다.
+[완료 보고서와 검증](docs/PHASE3_REPORT_2026-10-15.md)을 함께 확인한다.
+
+2026-10-14 본체 Phase 2는 같은 미커밋 개발 작업 트리에 5명/7일의 headless 생활 순환을 추가한다.
+[노동·생산·임금·욕구·정보 계약과 실행법](docs/PHASE2_LIFE_LOOP.md),
+[실제 실행·검사·검토 ZIP 보고서](docs/PHASE2_REPORT_2026-10-14.md)를 따른다.
+기존 연구 시나리오는 보존하며 UI/영속 저장/LLM 실행은 이번 범위에 없다.
+
+2026-10-14 본체 통합 개발 Phase 1은 별도 opt-in concurrent-v1에서 다수 actor의
+겹치는 행동 구간, 명시적 시간 진행과 최소 규칙 기반 재활성화를 제공한다.
+[시간·정보·저장 계약과 실행법](docs/PHASE1_CONCURRENT_RUNTIME.md),
+[완료 보고서](docs/PHASE1_REPORT_2026-10-14.md)를 참고한다. 기존 연구 gate와 E03/E04
+원본은 보존하며, 이번 사용자 결정으로 E05 완료를 개발의 선행조건으로 삼지 않는다.
+
 JourneyMap은 지속형 가상환경에서 단일 LLM Agent가 제한된 관찰, 지식, 과거 경험을 바탕으로 어떻게 판단하고 행동하며, 환경 변화 뒤 계획을 어떻게 수정하는지 통제된 조건에서 관찰하기 위한 deterministic simulation research platform이다.
 
 현재 실험 세계는 작은 중세 정착지 **Alderwick**를 사용한다. 세계의 실제 상태와 Agent가 아는 정보는 분리되며, LLM은 세계 관리자나 판정자가 아니라 한 Actor의 교체 가능한 Controller다. LLM은 자신에게 허용된 `Decision Context`를 보고 구조화된 `ActionRequest`를 제안하고, 실제 canonical 상태 변화는 Engine이 검증하고 처리한다.

@@ -40,3 +40,28 @@ def transfer_candidate(
     assert isinstance(row, dict)
     row[item_id] = target_owned.get(item_id, 0) + quantity
     return candidate
+
+
+def transform_candidate(
+    state: JsonObject, owner: str, inputs: dict[str, int], outputs: dict[str, int]
+) -> JsonObject:
+    """Validated material conversion; domain callers declare the recipe."""
+    if not inputs or not outputs:
+        raise ActionValidationError("INVALID_RECIPE")
+    owned = owned_quantities(state, owner)
+    for item, quantity in (*inputs.items(), *outputs.items()):
+        item_definition(state, item)
+        positive_quantity(quantity)
+    for item, quantity in inputs.items():
+        if owned.get(item, 0) < quantity:
+            raise ActionValidationError("INSUFFICIENT_QUANTITY")
+    inventory = state["inventory"]
+    assert isinstance(inventory, dict)
+    candidate = clone_json_object(inventory)
+    owners = candidate["owners"]
+    assert isinstance(owners, dict)
+    row = owners[owner]
+    assert isinstance(row, dict)
+    for item in sorted(set(inputs) | set(outputs)):
+        row[item] = owned.get(item, 0) - inputs.get(item, 0) + outputs.get(item, 0)
+    return candidate

@@ -1,5 +1,49 @@
 # API Contracts
 
+Phase4.3.2는 life-paid-report-2를 유지하며 성공 전달·owner 회수의 원문 보관과
+READY 이후 상태를 journal에서 역방향 대조한다. [현재 계약](PHASE4_3_2_RESPONSE_AUDIT.md)을 따른다.
+
+Phase4.3.1은 life-paid-report-2와 audit_snapshot count/tail/status를 요구한다.
+replay_paid_report와 memory replay는 같은 완전성·양방향 기록·회계 검증을 사용한다.
+미완전 snapshot은 audit 성공을 반환하지 않는다. [출력 상태 계약](PHASE4_3_1_AUDIT.md)을 따른다.
+
+Phase 4.3의 admit_provider는 정확한 ExecutionApproval과 미소비 run/approval ID를 요구한다.
+PaidLifeSession만 고정 live 세계를 조립한다. life_paid 기본은 제안이며 --execute와 승인 파일은
+별도 인간 승인 후에만 사용한다. --replay는 data-only다. [전체 계약](PHASE4_3_PAID_PATH.md)을 따른다.
+
+Phase 4.2의 LifeExecutionPlan/RecordingResponsesTransport/LifeResponsesPreflightProvider는
+오프라인 wire/accounting 사전 검증 API다. kind=live와 임의 transport를 거부하며 GamePort와
+기존 checkpoint 계약은 유지한다. [고정 계획과 분류](PHASE4_2_LIVE_PREFLIGHT.md)를 참고한다.
+
+Phase 4.1의 내부 LifeDecisionService.begin(observation)/poll()은 자체 단조 clock을 사용한다.
+MixedLifeSession(decision_clock=...)으로 테스트 clock을 주입하며 GamePort/후보/Provider wire는 유지한다.
+정각 완료 허용과 late timeout, JSON_DEPTH_EXCEEDED의 [오류 경계](PHASE4_1_ERROR_BOUNDARIES.md)를 따른다.
+
+Phase 4의 `life_ui --controller offline`은 Ada 모의 Provider 실행이며 기본은 전원 규칙이다.
+생활 후보 `{action_type,payload}`의 WORK/1 지원은 별도 life-candidate-1 schema/adapter에만 추가한다.
+기존 연구 prompt/schema와 기본 request_body 결과는 유지한다. LiveLife 상태는 대기/READY/
+오류/한도 정지를 구분하며 checkpoint v2는 혼합 actor 배정과 응답/counter를 보존한다.
+[실행·실패·저장 API 계약](PHASE4_OFFLINE_LLM.md)을 참고한다.
+
+Phase 3은 로컬 researcher용 `python -m journeymap.examples.life_ui`와
+trusted `save_checkpoint(session, path)` / `load_checkpoint(path) -> LifeSession`을 제공한다.
+Game/Controller 계약은 유지한다. `/state?actor=ada`는 읽기 전용 perception 미리보기이며
+실제 Observation을 발급하지 않는다. `/control`은 로컬 Host/control token 검증 후
+단일 LifeSession driver를 조작한다. [계약](PHASE3_LIVE_CHECKPOINT.md)을 참고한다.
+
+## 본체 Phase 2 life opt-in
+
+life/life-loop-1은 WORK/1 {job_id}와 현장 REST 제약, 기존 BUY/CONSUME/욕구 handler를 조립한다.
+ConcurrentApplication.latest_public_result는 trusted perception용 자기 공개 결과 query이며
+Controller에는 Observation만 제공한다. 별도 application.concurrent_replay는 effect-free attempts까지
+재생한다. [Phase 2 계약](PHASE2_LIFE_LOOP.md)을 따르며 기존 동기 v1 preflight는 바꾸지 않는다.
+
+## 본체 Phase 1 opt-in
+
+새 ConcurrentKernel.accept_action/advance_to/advance_next, ConcurrentGamePort receipt schema 2,
+AutonomousRunner와 command/frame replay는 [concurrent-v1 계약](PHASE1_CONCURRENT_RUNTIME.md)을
+따른다. 아래 기존 동기 GamePort/ReplayInput은 원래 시간 의미를 유지한다.
+
 ## Memory Horizon offline opt-in
 
 `LLMController(..., event_memory=..., prompt_profile=PROFILE)` accepts a frozen

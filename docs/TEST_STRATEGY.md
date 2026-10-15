@@ -1,5 +1,87 @@
 # Test Strategy
 
+## Phase4.3.2 응답 보관·상태 gate
+
+test_paid_audit_response.py는 timeout/late 원문 삭제, READY 원문 삭제와 PENDING/미기록 ERROR
+변형 네 개를 memory/새 CLI에서 거부한다. refusal/incomplete의 PENDING 변조도 거부한다.
+owner 미회수 성공 전달은 raw 없이 통과해야 한다. 기존 15가지 snapshot과 삭제/회계/reseal
+검증을 유지한다. replay 중 Provider/key/socket/DNS는 차단한다.
+[계약과 한계](PHASE4_3_2_RESPONSE_AUDIT.md)를 따른다.
+
+## Phase4.3.1 감사 완전성
+
+test_paid_audit.py는 다섯 삭제/회계 반례, reseal 후 누락·여분·중복·completion 삭제,
+15가지 정상/READY/미전송/오류/unknown/late snapshot과 새 프로세스 CLI를 검증한다.
+모든 replay에서 Provider/key/socket/DNS를 막으며 비용 unknown을 known으로 승격하지 않는다.
+[계약과 한계](PHASE4_3_1_AUDIT.md)를 따른다.
+
+## Phase 4.3 paid path offline gate
+
+test_paid_life.py는 real key/socket/DNS를 막고 합성 승인·가짜 HTTPS로 승인 부재/결합/재사용,
+FULL journal의 전송 전후 장애, 비용 불확정/한도/secret echo, timeout과 late 회계 회수,
+정상12/24/171/3와 Provider 무재호출 memory/data-only replay를 검증한다.
+실제 키/API·청구서·서버 schema 수락·물리 전원 장애의 증거가 아니다.
+[현재 계약](PHASE4_3_PAID_PATH.md)을 따른다.
+
+## Phase 4.2 연결 사전 검증
+
+tests/test_life_responses.py는 socket/DNS/key 조회를 차단하고 pinned 생활 wire, 응답 분류,
+usage 정수/부분집합/합, reasoning 중복 과금 방지, 전송 전 예약과 누적 한도·불확정 정지를
+검증한다. 모의 bridge의 24시간 엔진 결과/replay를 기존 정상 혼합 실행과 비교한다.
+이 기록은 모델 성과·실제 과금·서버 schema 수락의 증거가 아니다.
+[계약과 승인 경계](PHASE4_2_LIVE_PREFLIGHT.md)를 따른다.
+
+## Phase 4.1 오류 경계
+
+tests/test_life_error_boundaries.py는 3,001바이트 deep JSON의 raw/상태 일관성/조회·정지·복원·replay,
+주입 clock/gate로 마감 전·정각·후 완료/늦은 poll, empty 정각 poll, timeout 후 late 원문/저장,
+다른 wallclock origin의 checkpoint 동일성을 검사한다. 기존 Phase 4 timeout 검사는 같은 기대값을
+clock 주입으로 유지한다. 실제 sleep으로 시간 경계를 맞추지 않는다.
+기존 전체 회귀/정상 mixed와 RULE 여섯 조건/새 process 복원/지도 JS 보존도 확인한다.
+
+## 본체 Phase 4 gate
+
+tests/test_life_llm.py는 실제 Provider→candidate→bound application→engine 생활 흐름,
+대체 후보의 실제 효과, malformed/권한/정보 경계, 지연·정지·late/timeout,
+한도/반복 엔진 실패와 무fallback, outgoing body/schema, mixed pending 새 process 복원,
+READY 무재호출 저장과 응답 replay/변조를 검사한다. socket/DNS/실제 key 읽기를 차단한다.
+기존 1,208개를 유지하고 전원 규칙 여섯 조건/저장 회귀를 함께 검사한다.
+브라우저의 방향별 지도 세 경우와 대기·정지·저장 확인은 별도 UI 증거다.
+
+## 본체 Phase 3 gate
+
+tests/test_life_checkpoint.py는 진행 중 MOVE/WORK/REST의 새 프로세스 직접 복원,
+전체 상태·입력·정책·회계 기록 동일성, 실행/예약/replay 없는 hydration,
+재시도 무효과/ID 충돌, RNG/queue/policy/Observation/cache cursor,
+배속/조회 무영향, 인물 정보 경계, horizon, 손상 거부와 atomic write 실패를 확인한다.
+로컬 HTTP UI는 실제 브라우저에서 별도 확인하며 offline correctness test와 구분한다.
+Phase 1/2와 기존 연구 전체 pytest/Ruff/strict mypy gate를 유지한다.
+
+## 본체 Phase 2 life-loop-1 gate
+
+tests/test_life.py는 실제 concurrent handler/commit 경로의 5명/168시간 자율 실행과
+개인별 반복 작업/급여/구매/소비/휴식, 통화/원료/식량 회계, 마지막 자원/자리 경쟁,
+작업 중·완료 tick의 원료/임금/계약/위치/욕구 변화 원자성, 중복 요청, transit 노동/휴식/욕구,
+20tick 이후 갱신/관찰 횟수 독립성/동시각 REST·WORK, 원격 private/폐쇄 반례를 확인한다.
+stockout/no-money의 실제 정책 대응과 no-materials/no-wages의 미해결 위험도 보존한다.
+같은 seed/config의 정책 재실행·분할 진행과 engine replay, effect-free attempts까지 포함한
+live-input replay를 구분해 검사한다. 기존 테스트의 기대값은 변경하지 않는다.
+최종 전체 offline pytest/Ruff check/format/strict mypy/diff gate와
+HEAD+patch+신규 소스로 검토 ZIP 재구성을 확인한다. 영속 복원/LLM 효과/장기 지속 가능성의 증거는 아니다.
+
+## 본체 Phase 1 concurrent-v1 gate
+
+tests/test_concurrent.py는 실제 기존 module handler/commit 경로에서 접수 후 tick 0,
+tick 1의 두 pending 이동, tick 2 동시 도착, 중간/동시각 폐쇄와 독립 peer 성공,
+busy·retry·binding·ID conflict, 구매 보존/완료 재검증/반복 동률 순환, 이동 중
+거래·ASK·REQUEST·INFORM 시작/완료 차단, bridge witness/local actor/remote 정보 경계를 검증한다.
+유한 idle/실패/영시간 활성화, 실제 autonomous patrol, split runner/advance equality,
+중간 in-flight frame replay, RNG rollback/replay, post-commit delivery와 재진입도 검사한다.
+네트워크는 새 검사에서 차단한다. 기존 테스트 기대값은 변경하지 않는다.
+저장·복원은 미구현이며 [checkpoint gate](PHASE1_CONCURRENT_RUNTIME.md)를 통과했다고 쓰지 않는다.
+전체 오프라인 pytest와 Ruff check/format, strict mypy, diff check가 최종 gate다.
+결과는 correctness 증거이며 연구 construct validity/LLM 행동 효과의 증거가 아니다.
+
 ## Memory Horizon offline preparation gate
 
 `tests/test_memory_horizon.py` verifies the separate empty-schedule composition,

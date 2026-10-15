@@ -257,6 +257,7 @@ def create_kernel(
     action_registry: ActionRegistry | None = None,
     system_event_registry: SystemEventRegistry | None = None,
     event_bus: EventBus | None = None,
+    kernel_type: type[SimulationKernel] = SimulationKernel,
 ) -> SimulationKernel:
     """Compose an unbooted kernel from explicit in-process dependencies."""
 
@@ -275,7 +276,7 @@ def create_kernel(
     registry = ModuleRegistry()
     for module in modules:
         registry.register(module)
-    return SimulationKernel(
+    return kernel_type(
         modules=registry,
         persistence=SQLitePersistence(database),
         manifest=manifest,
