@@ -18,7 +18,7 @@ from journeymap.adapters.provider import ProviderRequest, RawModelResponse
 from journeymap.core.canonical import JsonObject, canonical_json
 
 MODEL = "gpt-5.4-mini-2026-03-17"
-VERSION = "life-responses-preflight-1"
+VERSION = "life-responses-preflight-2"
 ENDPOINT = "https://api.openai.com/v1/responses"
 
 
@@ -33,7 +33,7 @@ class LifeExecutionPlan:
     seed: int = 42
     horizon: int = 24
     request_limit: int = 32
-    max_output_tokens: int = 4096
+    max_output_tokens: int = 8192
     max_input_bytes: int = 65_536
     max_output_bytes: int = 16_384
     context_input_reserve: int = 400_000
@@ -64,7 +64,8 @@ def proposed_request(request: ProviderRequest, plan: LifeExecutionPlan) -> Provi
         request.model != "offline-fixture"
         or request.prompt_version != PROMPT_VERSION
         or request.configuration_version != CONFIG_VERSION
-        or request.parameters != {"max_output_tokens": 4096, "reasoning": {"effort": "high"}}
+        or request.parameters
+        != {"max_output_tokens": plan.max_output_tokens, "reasoning": {"effort": plan.reasoning}}
     ):
         raise ValueError("unexpected offline life envelope")
     return replace(request, model=plan.model, configuration_version=VERSION)

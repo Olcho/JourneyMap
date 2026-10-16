@@ -13,7 +13,7 @@ from journeymap.adapters.life_responses import LifeExecutionPlan
 from journeymap.adapters.llm import strict_json
 from journeymap.core.canonical import JsonObject, canonical_json
 
-PROTOCOL = "life-paid-responses-1"
+PROTOCOL = "life-paid-responses-2"
 PACKAGE = Path(__file__).resolve().parents[1]
 REGISTRY = PACKAGE.parents[1] / "artifacts/phase4_3/runs.sqlite3"
 

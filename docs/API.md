@@ -1,5 +1,10 @@
 # API Contracts
 
+Phase 4.4는 life 전용 8,192 요청 검증과 paid/preflight v2를 사용한다.
+기존 연구 parameters_v1/request_body의 4,096 상한은 유지한다.
+과거 paid 기록은 동결 소스에서 replay하며 자동 migration하지 않는다.
+[현재 출력 예산 계약](PHASE4_4_OUTPUT_BUDGET.md)을 따른다.
+
 Phase4.3.2는 life-paid-report-2를 유지하며 성공 전달·owner 회수의 원문 보관과
 READY 이후 상태를 journal에서 역방향 대조한다. [현재 계약](PHASE4_3_2_RESPONSE_AUDIT.md)을 따른다.
 

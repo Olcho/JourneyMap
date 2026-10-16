@@ -233,7 +233,7 @@ def test_attempt_is_durable_before_connection_and_response_write_failure_is_term
         p.generate(current_request())
     with pytest.raises(PaidFailure):
         p.generate(current_request())
-    assert len(fake.sent) == 1 and p.budget.reserved_cost == 318_432_000
+    assert len(fake.sent) == 1 and p.budget.reserved_cost == 336_864_000
     assert p.cost_state == "UNCERTAIN" and fake.connections[0].closed
     safe_records(p)
     p.journal.close()
@@ -244,8 +244,8 @@ def test_attempt_is_durable_before_connection_and_response_write_failure_is_term
     [
         ("attempts", 32, "REQUEST_LIMIT"),
         ("input_tokens", 100001, "INPUT_TOKEN_LIMIT"),
-        ("output_tokens", 126977, "OUTPUT_TOKEN_LIMIT"),
-        ("cost_nano_usd", 681568001, "COST_LIMIT"),
+        ("output_tokens", 122881, "OUTPUT_TOKEN_LIMIT"),
+        ("cost_nano_usd", 663136001, "COST_LIMIT"),
     ],
 )
 def test_paid_budget_blocks_before_credentials(
@@ -274,7 +274,7 @@ def test_unknown_pricing_keeps_reported_usage_separate_and_reservation(
     p = compose(tmp_path, FakeHTTPS([FakeResponse(json.dumps(doc))]))
     with pytest.raises(PaidFailure, match=reason):
         p.generate(current_request())
-    assert p.budget.cost_nano_usd == 0 and p.budget.reserved_cost == 318432000
+    assert p.budget.cost_nano_usd == 0 and p.budget.reserved_cost == 336864000
     assert p.cost_state == "UNCERTAIN"
     assert bool(p.reported_usage) == (change.get("usage", True) is not None)
     assert p.accounting()["unknown_model_or_tier_cost_bounded"] is False
@@ -310,7 +310,7 @@ def test_secret_echo_is_not_in_raw_journal_export_or_engine(tmp_path: Path, wher
         serialized = json.dumps(s.controller_report())
         assert SECRET not in serialized and "private detail" not in serialized
         assert s.decider.state.calls[0].raw is None
-        assert p.budget.reserved_cost == 318432000
+        assert p.budget.reserved_cost == 336864000
         safe_records(p)
     finally:
         s.close()
@@ -361,7 +361,7 @@ def test_timeout_first_then_late_recovery_is_journaled(tmp_path: Path) -> None:
         assert response.entered.wait(2)
         clock.value = 220.001
         s.decider.poll()
-        assert s.decider.state.status == "PAUSED_ERROR" and p.budget.reserved_cost == 318432000
+        assert s.decider.state.status == "PAUSED_ERROR" and p.budget.reserved_cost == 336864000
         assert not s.drain(0)
         clock.value = 221
         gate.set()
@@ -441,7 +441,7 @@ def test_http_error_never_follows_or_exports_response_body(tmp_path: Path, statu
     try:
         with pytest.raises(PaidFailure, match="HTTP_ERROR"):
             p.generate(current_request())
-        assert len(fake.sent) == 1 and p.budget.reserved_cost == 318432000
+        assert len(fake.sent) == 1 and p.budget.reserved_cost == 336864000
         assert p.cost_state == "UNCERTAIN"
         safe_records(p)
     finally:
@@ -488,7 +488,7 @@ def test_paid_invalid_or_excess_usage_is_uncertain(
     try:
         with pytest.raises(PaidFailure, match=reason):
             p.generate(current_request())
-        assert p.cost_state == "UNCERTAIN" and p.budget.reserved_cost == 318432000
+        assert p.cost_state == "UNCERTAIN" and p.budget.reserved_cost == 336864000
         assert p.budget.cost_nano_usd == 0
         with pytest.raises(PaidFailure):
             p.generate(current_request())
@@ -590,7 +590,7 @@ def test_ordinary_mixed_session_cannot_bypass_approved_composition(tmp_path: Pat
         with pytest.raises(PermissionError, match="PaidLifeSession"):
             MixedLifeSession(
                 LifeConfig(seed=123, horizon=24),
-                LifeLLMConfig(max_output_tokens=4096, timeout_seconds=120),
+                LifeLLMConfig(max_output_tokens=8192, timeout_seconds=120),
                 provider=p,
             )
         assert not fake.created
@@ -604,7 +604,7 @@ def test_invalid_http_envelopes_keep_reservation_and_withhold_raw(tmp_path: Path
     try:
         with pytest.raises(PaidFailure, match="INVALID_RESPONSE"):
             p.generate(current_request())
-        assert p.budget.reserved_cost == 318432000
+        assert p.budget.reserved_cost == 336864000
         assert any(r["stage"] == "RESPONSE_ENVELOPE_RECEIVED" for r in p.journal.records())
         assert not any(r["stage"] == "RESPONSE_RECEIVED" for r in p.journal.records())
     finally:

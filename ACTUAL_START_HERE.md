@@ -1,8 +1,14 @@
 # JourneyMap Actual: 노트북에서 이어서 개발하기
 
-2026-10-16 KST. 이 브랜치는 Phase 4.3.2 독립 검토 소스의 백업이다.
+2026-10-16 KST. 이 브랜치는 동결된 Phase 4.3.2 백업에서 이어진 Phase 4.4 개발본이다.
 생활 시뮬레이션 본체의 현재 상태는 [Notion Actual](https://app.notion.com/p/3fae2656dc268172852deda41e77764b)과
-[인수인계](docs/ACTUAL_HANDOFF_2026-10-16.md)를 따른다. README와 과거 보고서는 당시 기록을 보존한다.
+[현재 출력 예산 계약](docs/PHASE4_4_OUTPUT_BUDGET.md)을 따른다.
+[첫 실행 인수인계](docs/ACTUAL_HANDOFF_2026-10-16.md)는 변경 전의 역사 기록이다.
+
+현재 개발 브랜치는 `codex/actual-output-budget-8192`다. high/8,192를 오프라인 구현했으며
+추가 실제 호출은 하지 않았다. 아래 백업 범위는 부모의 동결된 4,096 기준점을 설명한다.
+[Phase 4.4 검증 보고서](docs/PHASE4_4_REPORT_2026-10-16.md): 전체 1,378개 테스트와
+Ruff/포맷/strict mypy 통과, 과거 실제 기록의 동결 소스 replay 통과.
 
 ## 백업 범위
 
@@ -22,13 +28,12 @@ Git과 Python 3.12가 설치된 PowerShell에서 새 폴더로 복제한다.
 가상환경 활성화 없이 아래 Python 경로를 직접 사용한다.
 
 ```powershell
-git clone --branch backup/journeymap-actual-20261016 https://github.com/Olcho/JourneyMap.git JourneyMap-Actual
+git clone --branch codex/actual-output-budget-8192 https://github.com/Olcho/JourneyMap.git JourneyMap-Actual
 Set-Location JourneyMap-Actual
 git status --short
 git log -1 --oneline
 py -3.12 -m venv .venv
 & .\.venv\Scripts\python.exe -m pip install -e '.[dev]'
-& .\.venv\Scripts\python.exe scripts/verify_actual_backup.py
 & .\.venv\Scripts\python.exe -m journeymap.examples.life --verify-replay
 & .\.venv\Scripts\python.exe -m journeymap.examples.life_ui
 ```
@@ -47,7 +52,7 @@ macOS/Linux에서는 `python3.12 -m venv .venv` 후 `.venv/bin/python`을 사용
 & .\.venv\Scripts\python.exe -m ruff format --check .
 & .\.venv\Scripts\python.exe -m mypy
 git diff --check
-git switch -c codex/actual-output-budget-8192
+git switch -c codex/actual-next-notebook
 ```
 
 백업 manifest 검사는 동결된 백업이 동일한지 확인하는 용도다. 이후 의도적으로 파일을 수정하면
@@ -55,11 +60,11 @@ git switch -c codex/actual-output-budget-8192
 
 ## Codex에 전달할 시작 문구
 
-> 이 저장소의 AGENTS.md, ACTUAL_START_HERE.md, docs/ACTUAL_HANDOFF_2026-10-16.md를 읽고
+> 이 저장소의 AGENTS.md, ACTUAL_START_HERE.md, docs/PHASE4_4_OUTPUT_BUDGET.md를 읽고
 > JourneyMap Actual 개발을 이어가세요. 현재 브랜치와 작업 트리 상태부터 확인하세요.
 > 첫 실제 실행은 high/4096에서 5번째 응답이 INCOMPLETE가 되어 tick 9에 멈췄습니다.
-> 다음 후보는 같은 high에서 요청당 출력 8192이며 아직 구현되지 않았습니다.
-> 우선 변경 계획과 오프라인 검증 범위를 제시하세요. 과거 4096 기록의 replay를 보존하세요.
+> 같은 high에서 요청당 출력 8192의 오프라인 구현을 완료했습니다.
+> 완료 보고서와 검증 근거부터 확인하세요. 과거 4096 기록은 동결 소스에서 replay하세요.
 > 실제 키 조회, 승인 파일 생성, 유료 실행은 별도 명시적 승인 없이는 하지 마세요.
 
 개발용 권고는 **Sol / High**다. 실제 실험 모델 `gpt-5.4-mini-2026-03-17 / high`와 구분한다.
@@ -72,7 +77,7 @@ git switch -c codex/actual-output-budget-8192
 
 ```powershell
 git fetch origin
-git worktree add ..\JourneyMap-Actual-next -b codex/actual-output-budget-8192-desktop origin/codex/actual-output-budget-8192
+git worktree add ..\JourneyMap-Actual-next -b codex/actual-next-desktop origin/codex/actual-next-notebook
 ```
 
 위 마지막 명령은 노트북 개발 브랜치를 push한 뒤에만 사용한다. 각 worktree의 가상환경은

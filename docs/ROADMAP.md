@@ -1,5 +1,11 @@
 # Roadmap
 
+## 2026-10-16 Phase 4.4 생활 출력 예산
+
+첫 실제 생활 실행의 tick 9 INCOMPLETE 이후 high를 유지하고 요청당 출력을 8,192로 올린다.
+기존 연구 상한과 과거 동결 소스를 보존하며 새 protocol/binding과 오프라인 회귀를 검증한다.
+[계약](PHASE4_4_OUTPUT_BUDGET.md)을 따른다. 추가 실제 모델 실행은 아직 하지 않았다.
+
 ## 2026-10-15 Phase4.3.2 응답 보관 역방향 감사
 
 Phase4.3.1 독립 검토 F1의 owner 회수 원문 누락 및 READY 상태 우회를 수정한다.

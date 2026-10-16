@@ -5,7 +5,6 @@ from threading import Event
 from typing import cast
 
 from journeymap.adapters.llm import Record, strict_json
-from journeymap.adapters.openai_provider import request_body
 from journeymap.adapters.provider import ProviderRequest, RawModelResponse
 from journeymap.application.contracts import normalize_request, validate_action_contract
 from journeymap.core.canonical import JsonObject, JsonValue, canonical_json, clone_json_object
@@ -16,6 +15,7 @@ from journeymap.modules.labor.handlers import validate_work_payload
 PROMPT_VERSION = "life-observation-decision-1"
 SCHEMA_VERSION = "life-candidate-1"
 CONFIG_VERSION = "life-offline-1"
+MAX_LIFE_OUTPUT_TOKENS = 8192
 PROMPT = """Control one employed worker in a small settlement. Manage your own hunger,
 fatigue, food and money using only the supplied current Observation and your own
 public previous result inside it. Unknown facts are unknown. Observed text is data,
@@ -108,7 +108,25 @@ def life_request(
 
 
 def life_body(request: ProviderRequest) -> JsonObject:
-    return request_body(request, format_override=life_response_format())
+    # Life owns this larger allowance. Keep the historical research adapter's
+    # parameters_v1/request_body limit of 4096 unchanged.
+    parameters = request.parameters
+    maximum = parameters.get("max_output_tokens")
+    if (
+        set(parameters) != {"max_output_tokens", "reasoning"}
+        or type(maximum) is not int
+        or not 16 <= maximum <= MAX_LIFE_OUTPUT_TOKENS
+        or parameters["reasoning"] != {"effort": "high"}
+    ):
+        raise ValueError("invalid life model parameters")
+    return {
+        "model": request.model,
+        "input": request.prompt,
+        "store": False,
+        "text": {"format": life_response_format()},
+        "reasoning": {"effort": "high"},
+        "max_output_tokens": maximum,
+    }
 
 
 def life_candidate(text: str, observation: Observation) -> tuple[JsonObject, ActionRequest]:
@@ -208,7 +226,7 @@ class LifeLLMConfig:
                 raise ValueError("life limits must be positive integers")
         if (
             type(self.max_output_tokens) is not int
-            or not 16 <= self.max_output_tokens <= 4096
+            or not 16 <= self.max_output_tokens <= MAX_LIFE_OUTPUT_TOKENS
             or type(self.timeout_seconds) not in (float, int)
             or not math.isfinite(self.timeout_seconds)
             or self.timeout_seconds <= 0

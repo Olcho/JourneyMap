@@ -50,7 +50,7 @@ def offline(monkeypatch: pytest.MonkeyPatch) -> None:
 def decision_request() -> ProviderRequest:
     session = LifeSession(LifeConfig(horizon=24))
     try:
-        return life_request(session.application.game_for("ada").observe(), 4096)
+        return life_request(session.application.game_for("ada").observe(), 8192)
     finally:
         session.close()
 
@@ -82,7 +82,7 @@ def test_wire_is_life_schema_only_and_usage_has_no_reasoning_double_charge(
         and body["input"] == decision_request.prompt
         and body["store"] is False
     )
-    assert body["reasoning"] == {"effort": "high"} and body["max_output_tokens"] == 4096
+    assert body["reasoning"] == {"effort": "high"} and body["max_output_tokens"] == 8192
     assert body["text"]["format"]["name"] == "journeymap_life_candidate_v1"
     assert body["text"]["format"]["strict"] is True
     assert "WORK" in body["text"]["format"]["schema"]["properties"]["action_type"]["enum"]
@@ -141,7 +141,7 @@ def test_bad_response_envelopes_keep_full_reservation(
     p = provider(raw)
     with pytest.raises(PreflightStop, match="INVALID_RESPONSE"):
         p.generate(decision_request)
-    assert p.budget.reserved_cost == 318_432_000
+    assert p.budget.reserved_cost == 336_864_000
     assert p.records[0].data["raw_response"] == raw
 
 
@@ -158,7 +158,7 @@ def test_uncertain_transport_is_counted_reserved_and_terminal(
     p = preflight_provider(RecordingResponsesTransport((failure,)))
     with pytest.raises(PreflightStop, match=reason):
         p.generate(decision_request)
-    assert p.budget.reserved_cost == 318_432_000 and p.budget.attempts == 1
+    assert p.budget.reserved_cost == 336_864_000 and p.budget.attempts == 1
     assert "private detail" not in json.dumps(p.records[0].data)
 
 
@@ -167,8 +167,8 @@ def test_uncertain_transport_is_counted_reserved_and_terminal(
     [
         ("attempts", 32, "REQUEST_LIMIT"),
         ("input_tokens", 100_001, "INPUT_TOKEN_LIMIT"),
-        ("output_tokens", 126_977, "OUTPUT_TOKEN_LIMIT"),
-        ("cost_nano_usd", 681_568_001, "COST_LIMIT"),
+        ("output_tokens", 122_881, "OUTPUT_TOKEN_LIMIT"),
+        ("cost_nano_usd", 663_136_001, "COST_LIMIT"),
     ],
 )
 def test_pre_send_caps_block_transport(
@@ -182,12 +182,12 @@ def test_pre_send_caps_block_transport(
 
 
 def test_budget_exact_boundary_and_usage_validation() -> None:
-    b = Budget(LifeExecutionPlan(), cost_nano_usd=681_568_000)
+    b = Budget(LifeExecutionPlan(), cost_nano_usd=663_136_000)
     b.reserve({})
     assert b.cost_nano_usd + b.reserved_cost == 1_000_000_000
     with pytest.raises(PreflightStop, match="USAGE_EXCEEDS_RESERVATION"):
         b.settle(Usage(400001, 0, 0, 0, 400001))
-    assert b.reserved_cost == 318_432_000
+    assert b.reserved_cost == 336_864_000
     value = json.loads(synthetic_response(WAIT))["usage"]
     for mutation in ({"input_tokens": True}, {"total_tokens": 1}, {"output_tokens": -1}):
         with pytest.raises(ValueError, match="INVALID_USAGE"):
@@ -253,7 +253,7 @@ def test_candidate_errors_use_existing_life_failure_boundary_and_custom_save_is_
     ):
         p = provider(synthetic_response(text))
         session = MixedLifeSession(
-            LifeConfig(horizon=24), LifeLLMConfig(max_output_tokens=4096), provider=p
+            LifeConfig(horizon=24), LifeLLMConfig(max_output_tokens=8192), provider=p
         )
         try:
             with pytest.raises(ValueError, match="PAUSED_ERROR"):

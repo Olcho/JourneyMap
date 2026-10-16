@@ -1,5 +1,13 @@
 # Test Strategy
 
+## Phase 4.4 출력 예산 gate
+
+test_life_output_budget.py는 생활 전용 8,192 wire, 기존 연구 4,096 상한 유지,
+old binding 사전 거부, 누적/예약 경계, 정상/INCOMPLETE/예약 초과의 합성 usage와 replay를 검증한다.
+기존 paid snapshot/삭제/회계/READY/timeout 회귀를 유지한다. 실제 4,096 report는
+동결 백업 소스에서 무재호출 replay하고 새 소스에서는 mismatch 거부를 확인한다.
+[계약과 과거 재생 경로](PHASE4_4_OUTPUT_BUDGET.md)를 따른다.
+
 ## Phase4.3.2 응답 보관·상태 gate
 
 test_paid_audit_response.py는 timeout/late 원문 삭제, READY 원문 삭제와 PENDING/미기록 ERROR

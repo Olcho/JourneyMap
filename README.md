@@ -1,5 +1,11 @@
 # JourneyMap
 
+2026-10-16 본체 Phase 4.4는 high를 유지하고 요청당 출력 상한을 8,192로 늘린다.
+생활 전용 wire와 paid/preflight v2를 사용하고 기존 연구 4,096 상한 및 동결 소스의 과거 replay를 보존한다.
+[변경 계약](docs/PHASE4_4_OUTPUT_BUDGET.md), [검증 보고서](docs/PHASE4_4_REPORT_2026-10-16.md),
+[노트북 시작](ACTUAL_START_HERE.md)을 따른다.
+추가 실제 실행은 별도 승인 대상이다.
+
 2026-10-15 Phase4.3.2는 성공 전달·owner 회수에서 call.raw를 역방향으로 요구하고,
 READY 이후 상태를 journal의 분류·접수·완료와 대조한다. 실제 실행은 재검토·별도 승인 대상이다.
 [현재 응답 감사 계약](docs/PHASE4_3_2_RESPONSE_AUDIT.md),

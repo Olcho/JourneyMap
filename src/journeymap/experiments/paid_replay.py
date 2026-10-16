@@ -107,7 +107,11 @@ def _replay_paid_report(report: JsonObject) -> JsonObject:
             ):
                 raise ValueError("paid replay late action")
         elif call.raw is not None and call.status != "READY":
-            probe = LifeDecisionService(LifeLLMConfig(max_output_tokens=4096, timeout_seconds=120))
+            probe = LifeDecisionService(
+                LifeLLMConfig(
+                    max_output_tokens=plan.max_output_tokens, timeout_seconds=plan.timeout_seconds
+                )
+            )
             probe.state.calls = [call]
             probe.state.ready, probe.state.observation, probe.state.status = (
                 call.raw,

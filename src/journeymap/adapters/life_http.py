@@ -195,7 +195,11 @@ class LifeHTTPProvider:
             or request.configuration_version != PROTOCOL
             or request.prompt_version != PROMPT_VERSION
             or not request.prompt.startswith(PROMPT + "\n")
-            or request.parameters != {"max_output_tokens": 4096, "reasoning": {"effort": "high"}}
+            or request.parameters
+            != {
+                "max_output_tokens": self.plan.max_output_tokens,
+                "reasoning": {"effort": self.plan.reasoning},
+            }
         ):
             raise PaidFailure("ADMISSION_MISMATCH")
         body = paid_body(request)
