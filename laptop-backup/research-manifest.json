@@ -1,0 +1,3638 @@
+{
+  "source_label": "research",
+  "source_path": "C:\\Users\\USER\\Documents\\JourneyMap",
+  "date_kst": "2026-10-17",
+  "archive": {
+    "file": "research-files.zip",
+    "files": 603,
+    "original_bytes": 12321968,
+    "zip_bytes": 1741992,
+    "sha256": "97e7559a83d9d72651d3fb070fe8b86b6f5dd8be958c945a046472dd1c6d9e22"
+  },
+  "files": [
+    {
+      "path": ".github/workflows/ci.yml",
+      "bytes": 586,
+      "sha256": "bdfd27c06829aa59169727af8b692975a8d1a95c4509e74388f26ccfc41351aa",
+      "tracked": true
+    },
+    {
+      "path": ".gitignore",
+      "bytes": 209,
+      "sha256": "5696ca8b028847fe37db2ddcfe388bca830e1e2a8caba4811db8f82ca5023ff9",
+      "tracked": true
+    },
+    {
+      "path": "AGENTS.md",
+      "bytes": 2045,
+      "sha256": "821c90cf8a661c9023077644662064c765da22909b7d3b2d650ff16fbf667786",
+      "tracked": true
+    },
+    {
+      "path": "README.md",
+      "bytes": 9264,
+      "sha256": "992c33ffd88c4707e12dbe9d906b31cc3d5e831394f1e17b25de0abf79a50b72",
+      "tracked": true
+    },
+    {
+      "path": "docs/API.md",
+      "bytes": 59919,
+      "sha256": "72f5fd332039711ba5be99eb98717a2b5e893a305e54ae84505c01a34316f1bb",
+      "tracked": true
+    },
+    {
+      "path": "docs/ARCHITECTURE.md",
+      "bytes": 42059,
+      "sha256": "3faf7d69868963cf349d30fcfba32b762e3963a5f6f8fc191c7321a249f910d6",
+      "tracked": true
+    },
+    {
+      "path": "docs/ERD.md",
+      "bytes": 28246,
+      "sha256": "7cd07cbbc529133607d7f253bbdcd20cb99b24c6c00e07c7341f6268139697b9",
+      "tracked": true
+    },
+    {
+      "path": "docs/EVENT_MEMORY_PHASE1.md",
+      "bytes": 10038,
+      "sha256": "6115e1de5b5413a76046f8b1d40b8652dfc833db0e64c44f50c66bb053a5a018",
+      "tracked": true
+    },
+    {
+      "path": "docs/EVENT_MEMORY_RECENCY_WINDOW.md",
+      "bytes": 6187,
+      "sha256": "cfcd0c8d352ae3a8838cb0f07f575ed2f3ee5374ece8b20a471cf24664b5658c",
+      "tracked": true
+    },
+    {
+      "path": "docs/JOURNEYMAP_0.1_SPEC.md",
+      "bytes": 18004,
+      "sha256": "0c9d8353742d14712fc5b64e687de9a02adc18a9a06ff8eade6b3eb2c5e3e8ef",
+      "tracked": true
+    },
+    {
+      "path": "docs/M8_EXPERIMENT.md",
+      "bytes": 25276,
+      "sha256": "680ce8289732f24cb17e7539c30d44e1603caa64d7bdcd773782013d44500584",
+      "tracked": true
+    },
+    {
+      "path": "docs/M8_FIRST_OFFICIAL_TRIAL.md",
+      "bytes": 8312,
+      "sha256": "a8df310d5dbbd34cf731c8dd9e8265456407eac4bfccba8e07d1c2afc7f1fd49",
+      "tracked": true
+    },
+    {
+      "path": "docs/MEMORY_HORIZON_LIVE_PREFLIGHT.md",
+      "bytes": 11001,
+      "sha256": "97d012d2e129d3eaa1a455abeddbb248a330898fff14333adc66ac4844478de5",
+      "tracked": true
+    },
+    {
+      "path": "docs/MEMORY_HORIZON_OFFLINE.md",
+      "bytes": 15286,
+      "sha256": "acb2c3b4cfa80d57672e9a4d34fd2b198ba33c07e61073cbd41178719b05ba5f",
+      "tracked": true
+    },
+    {
+      "path": "docs/MEMORY_HORIZON_READINESS_AUDIT.md",
+      "bytes": 35406,
+      "sha256": "1e6c0db81eb24dab8030bb22179a3399f8af3373e22132c31d9bd32b05a94942",
+      "tracked": true
+    },
+    {
+      "path": "docs/MEMORY_HORIZON_V2.md",
+      "bytes": 11912,
+      "sha256": "0b4eb5a5a0c053ecc6768fc2c5523370ffe3daaec8aa809bca8a19abf2843677",
+      "tracked": true
+    },
+    {
+      "path": "docs/RESEARCH_REFERENCES.md",
+      "bytes": 3851,
+      "sha256": "fdd0696e507e1f5e6c0439c4a0531461a2db96a5f2be5ddb6c0cf6ba61f3ed7f",
+      "tracked": true
+    },
+    {
+      "path": "docs/ROADMAP.md",
+      "bytes": 14387,
+      "sha256": "9476c9570e7a41bde963578bbbd37d0f7c901ad6e3db2834d58b2e6d9cb747ca",
+      "tracked": true
+    },
+    {
+      "path": "docs/TEST_STRATEGY.md",
+      "bytes": 38311,
+      "sha256": "8d224d59efe38726c13d640632d2457982f6b2da9a2272f263b0cfc86229f2b3",
+      "tracked": true
+    },
+    {
+      "path": "pyproject.toml",
+      "bytes": 763,
+      "sha256": "c8f5aff48f6730717bb3f20dfb10d3f512b6f223c1acb05105ad2d9f9e92ea3b",
+      "tracked": true
+    },
+    {
+      "path": "review-temp/PHASE4_4_INDEPENDENT_REVIEW-20261017.md",
+      "bytes": 27140,
+      "sha256": "e72ea862b32aaa497ed304c082dd735c56219d4cf869593ebae8edd70c3078c5",
+      "tracked": false
+    },
+    {
+      "path": "review-temp/PHASE4_4_INDEPENDENT_REVIEW-F1-investigation-20261017.md",
+      "bytes": 40841,
+      "sha256": "5f1ef81d2f4b8bb4031a01b8318d1adefbaaceabd3fb6c0e572ac5e2f904ee18",
+      "tracked": false
+    },
+    {
+      "path": "review-temp/PHASE4_4_INDEPENDENT_REVIEW.md",
+      "bytes": 17857,
+      "sha256": "465a09b6772322f15305605c5044523606f20aede1de6a14fb27bc80f4cc76a4",
+      "tracked": false
+    },
+    {
+      "path": "review-temp/PHASE4_4_LIVE_APPROVAL_PROPOSAL_2026-10-17.md",
+      "bytes": 18210,
+      "sha256": "5ad03d26e5fb657a47c7a43d4a236545ec4cdfc447dfd2f5b76f041a6d2ffa78",
+      "tracked": false
+    },
+    {
+      "path": "review-temp/archive_f1_investigation.py",
+      "bytes": 9275,
+      "sha256": "385999eb4ca4bbaa1144c6b3d11ef6cad3fd740267f56cc0207cbf298338570f",
+      "tracked": false
+    },
+    {
+      "path": "review-temp/checkpoint-probe/test_speed_and_view_polling_pr0/slow.json",
+      "bytes": 1806969,
+      "sha256": "17768d832e3201888588890faa6471e2e1415ef1aeef7fe057af2c9b686799bc",
+      "tracked": false
+    },
+    {
+      "path": "review-temp/compare_f1_normal_tick16.py",
+      "bytes": 2948,
+      "sha256": "b6ad68440c4647f9b466ef2dc7091bb46fd01f6234928ae65a79e7438160f7a8",
+      "tracked": false
+    },
+    {
+      "path": "review-temp/current-view-data/test_speed_and_view_polling_pr0/slow.json",
+      "bytes": 1806969,
+      "sha256": "17768d832e3201888588890faa6471e2e1415ef1aeef7fe057af2c9b686799bc",
+      "tracked": false
+    },
+    {
+      "path": "review-temp/describe_f1_normal_transition.py",
+      "bytes": 2108,
+      "sha256": "dd80fe629ab4a7be7a0d8dab14cb747848fb30f4880f6400ca3ddd88e86a5b88",
+      "tracked": false
+    },
+    {
+      "path": "review-temp/frozen-base/.github/workflows/ci.yml",
+      "bytes": 586,
+      "sha256": "bdfd27c06829aa59169727af8b692975a8d1a95c4509e74388f26ccfc41351aa",
+      "tracked": false
+    },
+    {
+      "path": "review-temp/frozen-base/.gitignore",
+      "bytes": 394,
+      "sha256": "62be4fb251cb55c574c0ade019b73a775fc66cc69c09e379ed26135a8ca2d6ff",
+      "tracked": false
+    },
+    {
+      "path": "review-temp/frozen-base/ACTUAL_START_HERE.md",
+      "bytes": 4641,
+      "sha256": "4d28fa449cf5057941eb329b0f62ca6ebd81e29a71e4c2089fb4075b39461184",
+      "tracked": false
+    },
+    {
+      "path": "review-temp/frozen-base/AGENTS.md",
+      "bytes": 2564,
+      "sha256": "0aa7b891afd24634b4c4c774ce52628adc068f4956016e31c914eb3869938b57",
+      "tracked": false
+    },
+    {
+      "path": "review-temp/frozen-base/README.md",
+      "bytes": 13341,
+      "sha256": "ebf150014407de53d1844799786926e802d0c2195f994fc4a60d3f198a85fb8c",
+      "tracked": false
+    },
+    {
+      "path": "review-temp/frozen-base/docs/ACTUAL_HANDOFF_2026-10-16.md",
+      "bytes": 5786,
+      "sha256": "73b4ec33f1f5c2072c4ced7af65afd6c289192e78cfca73055a00d6a390cd722",
+      "tracked": false
+    },
+    {
+      "path": "review-temp/frozen-base/docs/ACTUAL_SOURCE_MANIFEST_2026-10-16.json",
+      "bytes": 56178,
+      "sha256": "57b6958400c0ce9f5426196f4c3c60f5ab5a7f9d6c6caa894c8bed89b1d68686",
+      "tracked": false
+    },
+    {
+      "path": "review-temp/frozen-base/docs/API.md",
+      "bytes": 63293,
+      "sha256": "621acbf54d548fe180c3e79311b262d129f29a5f9168bb2f6ea9cfde50807a3c",
+      "tracked": false
+    },
+    {
+      "path": "review-temp/frozen-base/docs/ARCHITECTURE.md",
+      "bytes": 45995,
+      "sha256": "c8c6b7c9caf6007d06e5f3a3ea81075c5e0db6548de8fd7acbc241b7855868ef",
+      "tracked": false
+    },
+    {
+      "path": "review-temp/frozen-base/docs/ERD.md",
+      "bytes": 31363,
+      "sha256": "192c367acb0c91d3b19c9f5326e1110daeecaba0bf01b0d15a244693a6f62bfd",
+      "tracked": false
+    },
+    {
+      "path": "review-temp/frozen-base/docs/EVENT_MEMORY_PHASE1.md",
+      "bytes": 10038,
+      "sha256": "6115e1de5b5413a76046f8b1d40b8652dfc833db0e64c44f50c66bb053a5a018",
+      "tracked": false
+    },
+    {
+      "path": "review-temp/frozen-base/docs/EVENT_MEMORY_RECENCY_WINDOW.md",
+      "bytes": 6187,
+      "sha256": "cfcd0c8d352ae3a8838cb0f07f575ed2f3ee5374ece8b20a471cf24664b5658c",
+      "tracked": false
+    },
+    {
+      "path": "review-temp/frozen-base/docs/JOURNEYMAP_0.1_SPEC.md",
+      "bytes": 18004,
+      "sha256": "0c9d8353742d14712fc5b64e687de9a02adc18a9a06ff8eade6b3eb2c5e3e8ef",
+      "tracked": false
+    },
+    {
+      "path": "review-temp/frozen-base/docs/M8_EXPERIMENT.md",
+      "bytes": 25276,
+      "sha256": "680ce8289732f24cb17e7539c30d44e1603caa64d7bdcd773782013d44500584",
+      "tracked": false
+    },
+    {
+      "path": "review-temp/frozen-base/docs/M8_FIRST_OFFICIAL_TRIAL.md",
+      "bytes": 8312,
+      "sha256": "a8df310d5dbbd34cf731c8dd9e8265456407eac4bfccba8e07d1c2afc7f1fd49",
+      "tracked": false
+    },
+    {
+      "path": "review-temp/frozen-base/docs/MEMORY_HORIZON_LIVE_PREFLIGHT.md",
+      "bytes": 11001,
+      "sha256": "97d012d2e129d3eaa1a455abeddbb248a330898fff14333adc66ac4844478de5",
+      "tracked": false
+    },
+    {
+      "path": "review-temp/frozen-base/docs/MEMORY_HORIZON_OFFLINE.md",
+      "bytes": 15286,
+      "sha256": "acb2c3b4cfa80d57672e9a4d34fd2b198ba33c07e61073cbd41178719b05ba5f",
+      "tracked": false
+    },
+    {
+      "path": "review-temp/frozen-base/docs/MEMORY_HORIZON_READINESS_AUDIT.md",
+      "bytes": 35406,
+      "sha256": "1e6c0db81eb24dab8030bb22179a3399f8af3373e22132c31d9bd32b05a94942",
+      "tracked": false
+    },
+    {
+      "path": "review-temp/frozen-base/docs/MEMORY_HORIZON_V2.md",
+      "bytes": 11912,
+      "sha256": "0b4eb5a5a0c053ecc6768fc2c5523370ffe3daaec8aa809bca8a19abf2843677",
+      "tracked": false
+    },
+    {
+      "path": "review-temp/frozen-base/docs/PHASE1_CONCURRENT_RUNTIME.md",
+      "bytes": 11963,
+      "sha256": "a0b406c69f361baebd27cc6c0aab1631e4c7f3945266f4d0ea8611316353760a",
+      "tracked": false
+    },
+    {
+      "path": "review-temp/frozen-base/docs/PHASE1_REPORT_2026-10-14.md",
+      "bytes": 11269,
+      "sha256": "70c1337daf8d55c6b7d96838ddd7e03730055efeb35d9d6d8b35be582ba62481",
+      "tracked": false
+    },
+    {
+      "path": "review-temp/frozen-base/docs/PHASE2_LIFE_LOOP.md",
+      "bytes": 12032,
+      "sha256": "46200d7c36b1e94d16481fcdf36b122f176243eb236f257024b4b0a4c85a4272",
+      "tracked": false
+    },
+    {
+      "path": "review-temp/frozen-base/docs/PHASE2_REPORT_2026-10-14.md",
+      "bytes": 13795,
+      "sha256": "f97563109637d15a4fcffe23c9b976c847fe5127950e28a491a9aac748e0da24",
+      "tracked": false
+    },
+    {
+      "path": "review-temp/frozen-base/docs/PHASE3_LIVE_CHECKPOINT.md",
+      "bytes": 6404,
+      "sha256": "b46b9def7812499347d883dcc1fae0d025e06c41ad6b39af506fe8f88b05dbcc",
+      "tracked": false
+    },
+    {
+      "path": "review-temp/frozen-base/docs/PHASE3_REPORT_2026-10-15.md",
+      "bytes": 7907,
+      "sha256": "60f439a53ebcf827690c91925a5b83d467cefbb04366757e7b3c8db9cfbd44e1",
+      "tracked": false
+    },
+    {
+      "path": "review-temp/frozen-base/docs/PHASE4_1_ERROR_BOUNDARIES.md",
+      "bytes": 5588,
+      "sha256": "c4550416794e289e3d5a2370bbf8b0bffaec6fd5c7b15f6fe6715e21a312d4d6",
+      "tracked": false
+    },
+    {
+      "path": "review-temp/frozen-base/docs/PHASE4_1_REPORT_2026-10-15.md",
+      "bytes": 9723,
+      "sha256": "c71d67f98eb90e95442dcb05dd6b717ca2e2e36f560f22c741e750792885b621",
+      "tracked": false
+    },
+    {
+      "path": "review-temp/frozen-base/docs/PHASE4_2_LIVE_PREFLIGHT.md",
+      "bytes": 9132,
+      "sha256": "2d1b8b179a87810401fe2618050934eb47474654b0cbb5b0d99889b737d52675",
+      "tracked": false
+    },
+    {
+      "path": "review-temp/frozen-base/docs/PHASE4_2_REPORT_2026-10-15.md",
+      "bytes": 8462,
+      "sha256": "e2fe212526d2b6f61d0845aaa656a43f95369be21ee1269ca41a7492baf7b140",
+      "tracked": false
+    },
+    {
+      "path": "review-temp/frozen-base/docs/PHASE4_3_1_AUDIT.md",
+      "bytes": 7715,
+      "sha256": "8cc2a97a964cc4cfbdc9cc1ea88f2945d5377d730e81594403a3ab3de30ba523",
+      "tracked": false
+    },
+    {
+      "path": "review-temp/frozen-base/docs/PHASE4_3_1_REPORT_2026-10-15.md",
+      "bytes": 8996,
+      "sha256": "125a9f763c32d75e490781de0d03806b7af1b6f972c711097a4f9086a783d435",
+      "tracked": false
+    },
+    {
+      "path": "review-temp/frozen-base/docs/PHASE4_3_2_REPORT_2026-10-15.md",
+      "bytes": 9194,
+      "sha256": "c59eda20af05bfa695e40be69b27d0679398137c4f78528837ba184b34d4bb73",
+      "tracked": false
+    },
+    {
+      "path": "review-temp/frozen-base/docs/PHASE4_3_2_RESPONSE_AUDIT.md",
+      "bytes": 4452,
+      "sha256": "5c8598998e008d8286bec700b24cabdde28a78e938918ba302d297081d091988",
+      "tracked": false
+    },
+    {
+      "path": "review-temp/frozen-base/docs/PHASE4_3_PAID_PATH.md",
+      "bytes": 11426,
+      "sha256": "b87b720590246bafb427fedd3ee27d839093b8e4379d4dc1b2bd1c017eecd4fc",
+      "tracked": false
+    },
+    {
+      "path": "review-temp/frozen-base/docs/PHASE4_3_REPORT_2026-10-15.md",
+      "bytes": 10264,
+      "sha256": "66f6b5d0801a7310d4d1db2c4ccaa2d9eac21380fbebc3e03bace4ce32cacd21",
+      "tracked": false
+    },
+    {
+      "path": "review-temp/frozen-base/docs/PHASE4_OFFLINE_LLM.md",
+      "bytes": 10264,
+      "sha256": "78634958a9f3f27a0063915ec12803bf2a6b76cfd911e95674e7d33e0a18e5a2",
+      "tracked": false
+    },
+    {
+      "path": "review-temp/frozen-base/docs/PHASE4_REPORT_2026-10-15.md",
+      "bytes": 11779,
+      "sha256": "7fdd90ade1b689fc5e3b61f5940b3a363214a5a9d244ba1f159961ab08df7ea7",
+      "tracked": false
+    },
+    {
+      "path": "review-temp/frozen-base/docs/RESEARCH_REFERENCES.md",
+      "bytes": 3851,
+      "sha256": "fdd0696e507e1f5e6c0439c4a0531461a2db96a5f2be5ddb6c0cf6ba61f3ed7f",
+      "tracked": false
+    },
+    {
+      "path": "review-temp/frozen-base/docs/ROADMAP.md",
+      "bytes": 22321,
+      "sha256": "5da976ef287b66eae09f2ce83405bae556becd1f7d3fd9a2a7c39266c2d2f72d",
+      "tracked": false
+    },
+    {
+      "path": "review-temp/frozen-base/docs/TEST_STRATEGY.md",
+      "bytes": 44193,
+      "sha256": "1219d438ade5c6b5b48b7a33724f25a9ce8f9380b4cac4a31e3399c31b9ae73b",
+      "tracked": false
+    },
+    {
+      "path": "review-temp/frozen-base/pyproject.toml",
+      "bytes": 839,
+      "sha256": "ae2a73d733998ddf49193bf75e489a1dc9d86de43f26bba0d706a9a4c438b7e9",
+      "tracked": false
+    },
+    {
+      "path": "review-temp/frozen-base/scripts/package_phase2_review.py",
+      "bytes": 8704,
+      "sha256": "d7db3dbdf411250819f68588ba9e547314c4cc67c12150103f4378d3cf220e6c",
+      "tracked": false
+    },
+    {
+      "path": "review-temp/frozen-base/scripts/package_phase3_review.py",
+      "bytes": 8657,
+      "sha256": "1f1e575f00597e85e2167df911fa784b8f0deb27b6a7fecf08466dab67485a0e",
+      "tracked": false
+    },
+    {
+      "path": "review-temp/frozen-base/scripts/package_phase4_1_review.py",
+      "bytes": 11001,
+      "sha256": "2d56e820f6ea3ec51b9a8418c31cf7cd98557c7185a7b0819f63c1c83264f302",
+      "tracked": false
+    },
+    {
+      "path": "review-temp/frozen-base/scripts/package_phase4_2_review.py",
+      "bytes": 9956,
+      "sha256": "1232194e9f8871a753ad70015e831d1414ef1607b89fa31f9fb522e4c4dd840c",
+      "tracked": false
+    },
+    {
+      "path": "review-temp/frozen-base/scripts/package_phase4_3_1_review.py",
+      "bytes": 11655,
+      "sha256": "2c71e51893dfce1f9df19f11538986c72e8f02a4f81f4de755be48d3b80b153e",
+      "tracked": false
+    },
+    {
+      "path": "review-temp/frozen-base/scripts/package_phase4_3_2_review.py",
+      "bytes": 12331,
+      "sha256": "2c12f368851f88d983fa8aa3d228d2ef50b489c1c8c18cc506fa9502aa5d875e",
+      "tracked": false
+    },
+    {
+      "path": "review-temp/frozen-base/scripts/package_phase4_3_review.py",
+      "bytes": 10809,
+      "sha256": "4eeeb960c40e09c9a2e904c0ed3a8943531da103d829a476dfd902840f42d265",
+      "tracked": false
+    },
+    {
+      "path": "review-temp/frozen-base/scripts/package_phase4_review.py",
+      "bytes": 8930,
+      "sha256": "671cfcc979b3a3ce0aed61120809344896840203d1b3e50f4567d8e7e29a37bf",
+      "tracked": false
+    },
+    {
+      "path": "review-temp/frozen-base/scripts/preview_phase4_maps.py",
+      "bytes": 1584,
+      "sha256": "e2db774ec1f85bbf42f3cb36301deb571c78bea9dcd3ca841c0eb68a63f995d3",
+      "tracked": false
+    },
+    {
+      "path": "review-temp/frozen-base/scripts/verify_actual_backup.py",
+      "bytes": 1488,
+      "sha256": "d433f4757df9348e4e3de6ef4d0aac9b71343111677095677cf980d14a1eda4f",
+      "tracked": false
+    },
+    {
+      "path": "review-temp/frozen-base/scripts/verify_phase3.py",
+      "bytes": 4627,
+      "sha256": "d4950131403be1f4d57782c31d5b539a4759277263b07a78b27e921202f60e57",
+      "tracked": false
+    },
+    {
+      "path": "review-temp/frozen-base/scripts/verify_phase4.py",
+      "bytes": 4627,
+      "sha256": "7b566ee2dfaa239cad74b0cd231b6b8d5784fa47ca91b578bd94a9ca8c179b3a",
+      "tracked": false
+    },
+    {
+      "path": "review-temp/frozen-base/scripts/verify_phase4_1.py",
+      "bytes": 4631,
+      "sha256": "4ee4297cbe69beef7bbe357e37b472b61b2e7a1868128fa9265bd78c46541611",
+      "tracked": false
+    },
+    {
+      "path": "review-temp/frozen-base/scripts/verify_phase4_1_boundaries.py",
+      "bytes": 10947,
+      "sha256": "78970c3b8e594a9b2ad715343ac0c61e771a392bf44c753c88bd734555968076",
+      "tracked": false
+    },
+    {
+      "path": "review-temp/frozen-base/scripts/verify_phase4_3.py",
+      "bytes": 5542,
+      "sha256": "46060742822b223500340db22b74089cedfa17ee3036e42b42330acb91a2585d",
+      "tracked": false
+    },
+    {
+      "path": "review-temp/frozen-base/scripts/verify_phase4_3_1.py",
+      "bytes": 4133,
+      "sha256": "3753e9255745d19b34b0012098df354a3d2282604bca7e9311d77929f244aebc",
+      "tracked": false
+    },
+    {
+      "path": "review-temp/frozen-base/scripts/verify_phase4_3_2.py",
+      "bytes": 5612,
+      "sha256": "3cb653fb7905364f350e91589ddc7b3387873fada2d1181066f81d3007f58366",
+      "tracked": false
+    },
+    {
+      "path": "review-temp/frozen-base/src/journeymap/__init__.py",
+      "bytes": 76,
+      "sha256": "9c57517eaaca2b912b148d9ae7fdbf17ce72d9751402a8986aafd4b2e2497079",
+      "tracked": false
+    },
+    {
+      "path": "review-temp/frozen-base/src/journeymap/adapters/__init__.py",
+      "bytes": 148,
+      "sha256": "c10194c82a8f1d238499e507d2c5c74d92e615c30be2e68efef68a9a86a607e7",
+      "tracked": false
+    },
+    {
+      "path": "review-temp/frozen-base/src/journeymap/adapters/decision_schema.py",
+      "bytes": 2321,
+      "sha256": "a2d006e6ae4bd99d7566b3f3affd8ec1797d28c22de92d691ec1105f78f41b6c",
+      "tracked": false
+    },
+    {
+      "path": "review-temp/frozen-base/src/journeymap/adapters/event_memory.py",
+      "bytes": 10453,
+      "sha256": "f819964d414d8fb77cae9fae73fd958f98bffe1ea219dd3eb8f38b95daaace74",
+      "tracked": false
+    },
+    {
+      "path": "review-temp/frozen-base/src/journeymap/adapters/human.py",
+      "bytes": 709,
+      "sha256": "aaf6d5aca87cbafc1ff9683c297749556f9b207f731b3ad244c928f663889f07",
+      "tracked": false
+    },
+    {
+      "path": "review-temp/frozen-base/src/journeymap/adapters/life.py",
+      "bytes": 9483,
+      "sha256": "284132798888031f87ef299e4a329ceb5700ec51d6ab8f8e52c0c4929d757316",
+      "tracked": false
+    },
+    {
+      "path": "review-temp/frozen-base/src/journeymap/adapters/life_admission.py",
+      "bytes": 9707,
+      "sha256": "530a12a1daadec8be8cafaa712ff05d9bf1cad5ac63066b274a42ceebf2f577c",
+      "tracked": false
+    },
+    {
+      "path": "review-temp/frozen-base/src/journeymap/adapters/life_http.py",
+      "bytes": 15167,
+      "sha256": "06a5d4677e382aa386b2f0668e7707e89a74e3b2bfd3164cf9b102f72179fd1a",
+      "tracked": false
+    },
+    {
+      "path": "review-temp/frozen-base/src/journeymap/adapters/life_llm.py",
+      "bytes": 10620,
+      "sha256": "1366e8c2d4a6b1d212352622ee58b3cf5bc62106f4af428e2f2371a1166366c3",
+      "tracked": false
+    },
+    {
+      "path": "review-temp/frozen-base/src/journeymap/adapters/life_responses.py",
+      "bytes": 14083,
+      "sha256": "67478a07a740d701d817d669267013650976f4a5d3542ea8be8ac005d29bbe24",
+      "tracked": false
+    },
+    {
+      "path": "review-temp/frozen-base/src/journeymap/adapters/llm.py",
+      "bytes": 19840,
+      "sha256": "1a80e31dc8f6c6ebc79489a0a3419999270d79aeef4cc0cf10d1baa74902c9cf",
+      "tracked": false
+    },
+    {
+      "path": "review-temp/frozen-base/src/journeymap/adapters/memory.py",
+      "bytes": 1636,
+      "sha256": "30e4145fc56740d4bad3affd19d383081a2e41b8d0c6aaebaa7c6b29a5936b4d",
+      "tracked": false
+    },
+    {
+      "path": "review-temp/frozen-base/src/journeymap/adapters/memory_horizon_live.py",
+      "bytes": 11003,
+      "sha256": "dd8b52c90c97d7894c5f551ba036d991c00a8a1c02f1d4a2afc8024992b388a1",
+      "tracked": false
+    },
+    {
+      "path": "review-temp/frozen-base/src/journeymap/adapters/memory_horizon_prompt.py",
+      "bytes": 4571,
+      "sha256": "422840f8f58d6fa51072b928d894c339f63f7b2e23155d3de1aee3404534ab67",
+      "tracked": false
+    },
+    {
+      "path": "review-temp/frozen-base/src/journeymap/adapters/openai_provider.py",
+      "bytes": 4178,
+      "sha256": "96d90db7c1e68f039eff74f87bbee3c00b1ee57400898a95eba674b7a9ab0b29",
+      "tracked": false
+    },
+    {
+      "path": "review-temp/frozen-base/src/journeymap/adapters/prompt_profile.py",
+      "bytes": 746,
+      "sha256": "94658bed9204994682f3be598a05e24e25e0f3cf4300384dc44e84b41290d73a",
+      "tracked": false
+    },
+    {
+      "path": "review-temp/frozen-base/src/journeymap/adapters/provider.py",
+      "bytes": 5632,
+      "sha256": "00868f85f81aecbc50b327e4865874e21a53a0ccf42cf53c89df0679d1f74ef2",
+      "tracked": false
+    },
+    {
+      "path": "review-temp/frozen-base/src/journeymap/adapters/scripted.py",
+      "bytes": 2788,
+      "sha256": "744fdee1de2d5d96c6344370e76572c9d1d326f8978afb518d2be548e7c3f2b4",
+      "tracked": false
+    },
+    {
+      "path": "review-temp/frozen-base/src/journeymap/adapters/social_npc.py",
+      "bytes": 4654,
+      "sha256": "fc41b597a2d840e6b0247362acf9e63f1275866731f8ac4eacf8130f6fbac55b",
+      "tracked": false
+    },
+    {
+      "path": "review-temp/frozen-base/src/journeymap/adapters/sqlite.py",
+      "bytes": 935,
+      "sha256": "f402669a65def659efecc5d397efeafa026308b17c8aa6eeb7e876f84c0e5e5e",
+      "tracked": false
+    },
+    {
+      "path": "review-temp/frozen-base/src/journeymap/application/__init__.py",
+      "bytes": 74,
+      "sha256": "83aa1d01bfbfdd489fcb2b30ba0144744d0a9d6177e2a43a832640da3d834820",
+      "tracked": false
+    },
+    {
+      "path": "review-temp/frozen-base/src/journeymap/application/concurrent.py",
+      "bytes": 12331,
+      "sha256": "42d9a12b36451278c1e3f0a58008abd5ac3c49f0835e083dc36368ea9af6cbd4",
+      "tracked": false
+    },
+    {
+      "path": "review-temp/frozen-base/src/journeymap/application/concurrent_replay.py",
+      "bytes": 2903,
+      "sha256": "ee90b13b9f86753ee866c7e0cf55c3c773ea66d6e5159be443c3939f43dac68c",
+      "tracked": false
+    },
+    {
+      "path": "review-temp/frozen-base/src/journeymap/application/contracts.py",
+      "bytes": 3215,
+      "sha256": "fcc9f00646b224633e26e889f414c36bea6bba5b395617c373ef31fdfcb297c9",
+      "tracked": false
+    },
+    {
+      "path": "review-temp/frozen-base/src/journeymap/application/observations.py",
+      "bytes": 4382,
+      "sha256": "37f4cb6491e20bb9219e24f35bcfb4299f90da1ded54c08b243b6ae67378aa5b",
+      "tracked": false
+    },
+    {
+      "path": "review-temp/frozen-base/src/journeymap/application/perception.py",
+      "bytes": 1695,
+      "sha256": "42e50bf85db9cd748f008fb9f746ad60ff7b82293d143ae01daada8276f7e772",
+      "tracked": false
+    },
+    {
+      "path": "review-temp/frozen-base/src/journeymap/application/reasons.py",
+      "bytes": 2881,
+      "sha256": "7d15241ab73d0596672f9bef8475c6ce54823f4cb4f2da95c97a1e822db79484",
+      "tracked": false
+    },
+    {
+      "path": "review-temp/frozen-base/src/journeymap/application/research.py",
+      "bytes": 2434,
+      "sha256": "a67bcb43c34e80c5a469de2f88095e1e02afa2d3ab0d4c8f56242ce3a6420d09",
+      "tracked": false
+    },
+    {
+      "path": "review-temp/frozen-base/src/journeymap/application/session.py",
+      "bytes": 16775,
+      "sha256": "789bb2b33405d670418015606ae911cd2b60c47ebd3d65a67c9be4102e677cce",
+      "tracked": false
+    },
+    {
+      "path": "review-temp/frozen-base/src/journeymap/application/social.py",
+      "bytes": 2864,
+      "sha256": "0a91ddcbb2db531112815862366d3c4ee69a21af19186deecde4e3bff6c8240a",
+      "tracked": false
+    },
+    {
+      "path": "review-temp/frozen-base/src/journeymap/application/turns.py",
+      "bytes": 2563,
+      "sha256": "bf50910d9e9e91f7651f811f4fec6473469ec6880346b72288f5731e8de9cd8d",
+      "tracked": false
+    },
+    {
+      "path": "review-temp/frozen-base/src/journeymap/bootstrap.py",
+      "bytes": 13697,
+      "sha256": "9a73c67639f85a2371d1e7b0a69288726147b11ed6bb7f4087a6bfc00fedd897",
+      "tracked": false
+    },
+    {
+      "path": "review-temp/frozen-base/src/journeymap/bootstrap_life.py",
+      "bytes": 4917,
+      "sha256": "67954cbb3f36cec50ad457ae8ab8aeafa75318891ae17a6cda9db6fcd84ee288",
+      "tracked": false
+    },
+    {
+      "path": "review-temp/frozen-base/src/journeymap/bootstrap_phase1.py",
+      "bytes": 2916,
+      "sha256": "9d79368eb616336ca7c1095813ef2ecb4a77984e399d35f257a76413e1ac3bf0",
+      "tracked": false
+    },
+    {
+      "path": "review-temp/frozen-base/src/journeymap/core/__init__.py",
+      "bytes": 2548,
+      "sha256": "f3e80ab7ac9d03aea8e02d66fe8ba7deea91bda9083c383d6432fa1687435675",
+      "tracked": false
+    },
+    {
+      "path": "review-temp/frozen-base/src/journeymap/core/actions.py",
+      "bytes": 1766,
+      "sha256": "1111abfa7d8ab9b6aac17760a19c4071795a640d0d2b7602ab124baa8959ef4d",
+      "tracked": false
+    },
+    {
+      "path": "review-temp/frozen-base/src/journeymap/core/canonical.py",
+      "bytes": 2552,
+      "sha256": "ba810108f3150c6b113c16559b846e95679f00a013f3d0f08805d0cbfff913af",
+      "tracked": false
+    },
+    {
+      "path": "review-temp/frozen-base/src/journeymap/core/concurrent.py",
+      "bytes": 17130,
+      "sha256": "787e7f17e20612a094ae6aa906f7106fdd6aee84736242645fc5f248cc9d486e",
+      "tracked": false
+    },
+    {
+      "path": "review-temp/frozen-base/src/journeymap/core/concurrent_replay.py",
+      "bytes": 1734,
+      "sha256": "38916af95f79bc3502aedbd01b8b5398fd3c9d533c2e1c2d62cde2234ed3d7ef",
+      "tracked": false
+    },
+    {
+      "path": "review-temp/frozen-base/src/journeymap/core/controller.py",
+      "bytes": 1512,
+      "sha256": "2dc2e2d980be26f057de5b0fe6b59de46facdaec80a83535fcfd576d3ea4aa68",
+      "tracked": false
+    },
+    {
+      "path": "review-temp/frozen-base/src/journeymap/core/entities.py",
+      "bytes": 1601,
+      "sha256": "4d0f848d11b88b1bd37309c7157522888bcc5bfd195f938dbc18415e03d37d79",
+      "tracked": false
+    },
+    {
+      "path": "review-temp/frozen-base/src/journeymap/core/events.py",
+      "bytes": 4889,
+      "sha256": "601828d5b1175092ae337385c26012315785849dad1d469875da3ed8b2aca663",
+      "tracked": false
+    },
+    {
+      "path": "review-temp/frozen-base/src/journeymap/core/handlers.py",
+      "bytes": 9090,
+      "sha256": "00791567f40ec6eb57284b47ac5149fd695a5a8b28fabb55e003d334347abd03",
+      "tracked": false
+    },
+    {
+      "path": "review-temp/frozen-base/src/journeymap/core/kernel.py",
+      "bytes": 15070,
+      "sha256": "348984ddeeb684fd0e65afddb5d8823a65fd448e4c1dde0bceb31f18837af26a",
+      "tracked": false
+    },
+    {
+      "path": "review-temp/frozen-base/src/journeymap/core/modules.py",
+      "bytes": 3248,
+      "sha256": "a5e54c3da3a659e2cb910953f4e5f3310178a70c60cf611165bf1f4394d06ce1",
+      "tracked": false
+    },
+    {
+      "path": "review-temp/frozen-base/src/journeymap/core/observations.py",
+      "bytes": 4755,
+      "sha256": "71e065e8844b839c2e2559e52e927a94406b77f1fc6b81c5d43f82acac5835c5",
+      "tracked": false
+    },
+    {
+      "path": "review-temp/frozen-base/src/journeymap/core/persistence.py",
+      "bytes": 531,
+      "sha256": "215a0e62b19d6598a0d6f693b451a11ec46470df0ef58b17386b361306bf4d4a",
+      "tracked": false
+    },
+    {
+      "path": "review-temp/frozen-base/src/journeymap/core/replay.py",
+      "bytes": 2525,
+      "sha256": "f6cf0c0733ed3801f843eb9d5c0f7c7ddd2397ad6b53852a492a605da73f47f5",
+      "tracked": false
+    },
+    {
+      "path": "review-temp/frozen-base/src/journeymap/core/run.py",
+      "bytes": 8256,
+      "sha256": "05bdc4ee619ae0e9c59d532cbeb091babe37a5feb4559727cf3c82246947d968",
+      "tracked": false
+    },
+    {
+      "path": "review-temp/frozen-base/src/journeymap/core/scheduler.py",
+      "bytes": 4847,
+      "sha256": "c58acde50b98dff8c4d51843b08a7eb9f4cdb1535b74fe040b9ed08830ab08ca",
+      "tracked": false
+    },
+    {
+      "path": "review-temp/frozen-base/src/journeymap/examples/__init__.py",
+      "bytes": 43,
+      "sha256": "3e6cdeb37334d026e03a47e83ce3cdb319a80a6a29bfcbf0cd363be021339197",
+      "tracked": false
+    },
+    {
+      "path": "review-temp/frozen-base/src/journeymap/examples/alderwick.py",
+      "bytes": 1607,
+      "sha256": "d4dcc35fba29fb2d652013cbb9cce2dd34e1170fb5254382c7920cc86c790567",
+      "tracked": false
+    },
+    {
+      "path": "review-temp/frozen-base/src/journeymap/examples/alderwick_llm.py",
+      "bytes": 5973,
+      "sha256": "f88b470eed8867349ad0e15786300b7b6dd61c8e1719cde777aae1b8bdd28aa9",
+      "tracked": false
+    },
+    {
+      "path": "review-temp/frozen-base/src/journeymap/examples/alderwick_resources.py",
+      "bytes": 2761,
+      "sha256": "890c047b0023c5323082ceaa4b4979f2b515f1a35c9e4700f6e36c28dac14539",
+      "tracked": false
+    },
+    {
+      "path": "review-temp/frozen-base/src/journeymap/examples/alderwick_social.py",
+      "bytes": 2754,
+      "sha256": "ee2ac42b2f0ca2fb85ff46a6d1825f6be90ae83ef28fb5434b67ee185938879c",
+      "tracked": false
+    },
+    {
+      "path": "review-temp/frozen-base/src/journeymap/examples/concurrent.py",
+      "bytes": 3360,
+      "sha256": "2f9dc8c2771dc7854d6ab758ff320b6453a028df1108379c0103653c5a01b023",
+      "tracked": false
+    },
+    {
+      "path": "review-temp/frozen-base/src/journeymap/examples/event_memory.py",
+      "bytes": 1764,
+      "sha256": "e182673d75bf40143fa28808cb670a61335c16e6e6e6e4478d42d7fad7548a98",
+      "tracked": false
+    },
+    {
+      "path": "review-temp/frozen-base/src/journeymap/examples/life.py",
+      "bytes": 1276,
+      "sha256": "67466ebd52d92d42afa36351a6ef4fad9b0fe620aa54ff16fcf990f1edeb7c5b",
+      "tracked": false
+    },
+    {
+      "path": "review-temp/frozen-base/src/journeymap/examples/life_checkpoint.py",
+      "bytes": 1411,
+      "sha256": "df32c1859f65be942c9707262ab883fcc15afe5b5e89cc116d1778dd90ec07ab",
+      "tracked": false
+    },
+    {
+      "path": "review-temp/frozen-base/src/journeymap/examples/life_mixed.py",
+      "bytes": 2751,
+      "sha256": "7068e9aa6ce84cfa7f1062db4f69e3e7615546faba7d456e7748f34ad582953b",
+      "tracked": false
+    },
+    {
+      "path": "review-temp/frozen-base/src/journeymap/examples/life_paid.py",
+      "bytes": 2749,
+      "sha256": "ebb3d115da2ec7721c19cd2e37f3838d056388c190132d0d99d57cfbea3709ff",
+      "tracked": false
+    },
+    {
+      "path": "review-temp/frozen-base/src/journeymap/examples/life_preflight.py",
+      "bytes": 2651,
+      "sha256": "9d73fab044c419d2a21748f7b50eeb61414f405f6a4cd0e2d5e494c33e7a9c1b",
+      "tracked": false
+    },
+    {
+      "path": "review-temp/frozen-base/src/journeymap/examples/life_ui.html",
+      "bytes": 15782,
+      "sha256": "0f6ea020191985a55ff98cbb1e4d57420af403798c6db44a1f856ea207b47711",
+      "tracked": false
+    },
+    {
+      "path": "review-temp/frozen-base/src/journeymap/examples/life_ui.py",
+      "bytes": 5479,
+      "sha256": "40d2288a3d44fb0e6998fa988a920184080e74f98a32efca2503031d427d9358",
+      "tracked": false
+    },
+    {
+      "path": "review-temp/frozen-base/src/journeymap/examples/memory_horizon.py",
+      "bytes": 5022,
+      "sha256": "d496fa9ad0726175924b9db69c16264a7f0201a8b2437fa97312e141925951f9",
+      "tracked": false
+    },
+    {
+      "path": "review-temp/frozen-base/src/journeymap/experiments/__init__.py",
+      "bytes": 71,
+      "sha256": "54c77dc496f8ba64d57478dd78f9541f4809013cf71bc2d975415990aaeb77e7",
+      "tracked": false
+    },
+    {
+      "path": "review-temp/frozen-base/src/journeymap/experiments/alderwick.py",
+      "bytes": 30941,
+      "sha256": "9b3609c393e1ff485c2dfe53b3b4bb8374c99bc4a6425545619c4d2a4d49ec91",
+      "tracked": false
+    },
+    {
+      "path": "review-temp/frozen-base/src/journeymap/experiments/checkpoint.py",
+      "bytes": 22145,
+      "sha256": "a0b769698d07ba79b856b6a844520dcd27b5ae5c5ba07538f41addbf7d720279",
+      "tracked": false
+    },
+    {
+      "path": "review-temp/frozen-base/src/journeymap/experiments/event_memory.py",
+      "bytes": 9107,
+      "sha256": "a25ef8b2b6065ab4a8aa356de7f564ee66e242459f1bf0338919b287dac99650",
+      "tracked": false
+    },
+    {
+      "path": "review-temp/frozen-base/src/journeymap/experiments/inclusion.py",
+      "bytes": 17424,
+      "sha256": "096c35e890be0b14b9f0f50e4712391dc7c0b6656f304fdecc0ecabe62dfb405",
+      "tracked": false
+    },
+    {
+      "path": "review-temp/frozen-base/src/journeymap/experiments/life.py",
+      "bytes": 19313,
+      "sha256": "4c2f1ed130bc3b2ff0aeac9bc95a293ee32a1053044974bf1315105f4cc5ec0b",
+      "tracked": false
+    },
+    {
+      "path": "review-temp/frozen-base/src/journeymap/experiments/life_decisions.py",
+      "bytes": 12582,
+      "sha256": "9099b9f70e9068bdb0320df667175269fbe96035633fd0d8a9a79a71322a0eac",
+      "tracked": false
+    },
+    {
+      "path": "review-temp/frozen-base/src/journeymap/experiments/live.py",
+      "bytes": 8773,
+      "sha256": "b10d2bf1461f44de72af865961ba0488672d86ef003f636716352a6f8e34c153",
+      "tracked": false
+    },
+    {
+      "path": "review-temp/frozen-base/src/journeymap/experiments/memory_horizon.py",
+      "bytes": 15675,
+      "sha256": "16a476f8112e0a6e2cf6ae39e67cd85513de1f445cfca0bac4039e9c597aa681",
+      "tracked": false
+    },
+    {
+      "path": "review-temp/frozen-base/src/journeymap/experiments/memory_horizon_audit.py",
+      "bytes": 19848,
+      "sha256": "8e64984e712bf496898fa6e1232485b7737086da89fc8841a339da5e56c53c1c",
+      "tracked": false
+    },
+    {
+      "path": "review-temp/frozen-base/src/journeymap/experiments/memory_horizon_pilot.py",
+      "bytes": 12980,
+      "sha256": "5646023286992ed408b0415c7918189b093165a8c7489c53293b281c1e95868a",
+      "tracked": false
+    },
+    {
+      "path": "review-temp/frozen-base/src/journeymap/experiments/memory_horizon_pilot_audit.py",
+      "bytes": 29516,
+      "sha256": "0241787184f8b2d8ddd634ffaa839c928a1b6efe5d6369aa2991ac941b1ebf8f",
+      "tracked": false
+    },
+    {
+      "path": "review-temp/frozen-base/src/journeymap/experiments/memory_horizon_study.py",
+      "bytes": 15848,
+      "sha256": "b29f9ecf0daa0f1bdd89bb097db5ce6f555f2ca7728f22ec975ac265a865aef6",
+      "tracked": false
+    },
+    {
+      "path": "review-temp/frozen-base/src/journeymap/experiments/mixed_life.py",
+      "bytes": 9493,
+      "sha256": "6e47afce37cb730ccc8513ec66ff39add556d34fc9df1c619a27d3878db6b1e0",
+      "tracked": false
+    },
+    {
+      "path": "review-temp/frozen-base/src/journeymap/experiments/paid_audit.py",
+      "bytes": 22095,
+      "sha256": "993412aac91f9a1043c6d8f88f29435718071dcda8943cf53bd0b9a4c651bf50",
+      "tracked": false
+    },
+    {
+      "path": "review-temp/frozen-base/src/journeymap/experiments/paid_life.py",
+      "bytes": 7903,
+      "sha256": "c2a16894c3327bdee8418af98e0b2b6f84a4f2dde37749bb12fa1ddd3aade935",
+      "tracked": false
+    },
+    {
+      "path": "review-temp/frozen-base/src/journeymap/experiments/paid_replay.py",
+      "bytes": 7088,
+      "sha256": "faf5513108414e19e5df9a3e8e2e0caf6765e36d7a3edf866f6f8d824f2c0a88",
+      "tracked": false
+    },
+    {
+      "path": "review-temp/frozen-base/src/journeymap/experiments/pilot_journal.py",
+      "bytes": 4020,
+      "sha256": "07f88078502febfcafc7733330b66342da9fe38613daf1bd6225e613f067186e",
+      "tracked": false
+    },
+    {
+      "path": "review-temp/frozen-base/src/journeymap/experiments/provenance.py",
+      "bytes": 2843,
+      "sha256": "38f92b36f363bf52191fdc69d2c2e1b86d8534744601c6a302843789e048cafe",
+      "tracked": false
+    },
+    {
+      "path": "review-temp/frozen-base/src/journeymap/modules/__init__.py",
+      "bytes": 73,
+      "sha256": "2f17442920de7d6c2d3710c52cae3aa33b8835dd931bb05432711c3e43042240",
+      "tracked": false
+    },
+    {
+      "path": "review-temp/frozen-base/src/journeymap/modules/inventory/__init__.py",
+      "bytes": 269,
+      "sha256": "58606b4f08adf69da3f72489f35592dd2e70e04417d7abad1b54f05f7043b1a2",
+      "tracked": false
+    },
+    {
+      "path": "review-temp/frozen-base/src/journeymap/modules/inventory/models.py",
+      "bytes": 3422,
+      "sha256": "873f5e99920740ce40c5453cac5747a28f4803e6a18709ef89ef53f6e9caa488",
+      "tracked": false
+    },
+    {
+      "path": "review-temp/frozen-base/src/journeymap/modules/inventory/perception.py",
+      "bytes": 328,
+      "sha256": "c930a68183fe0f54cc382332d9d3e6407eac257698594007bd71695b209888be",
+      "tracked": false
+    },
+    {
+      "path": "review-temp/frozen-base/src/journeymap/modules/inventory/transitions.py",
+      "bytes": 2611,
+      "sha256": "8ddd9f6d570c32d83312d921d8eb7e39533ec2433a724f7b94cfdfbd7938e336",
+      "tracked": false
+    },
+    {
+      "path": "review-temp/frozen-base/src/journeymap/modules/knowledge/__init__.py",
+      "bytes": 570,
+      "sha256": "dd9ccfa9bd057c6d3e06d7167ba641963d7c9ba496e260665147b477b9a23c00",
+      "tracked": false
+    },
+    {
+      "path": "review-temp/frozen-base/src/journeymap/modules/knowledge/projection.py",
+      "bytes": 4140,
+      "sha256": "05075740ac41a552c1bad828b5c3b0968c30d7b978a4a82b19134445d2ca14f5",
+      "tracked": false
+    },
+    {
+      "path": "review-temp/frozen-base/src/journeymap/modules/knowledge/records.py",
+      "bytes": 6212,
+      "sha256": "5f9aa5e4bee0f6b8b95b3873aa1a39778e6572ce5625f666881ec445399252d2",
+      "tracked": false
+    },
+    {
+      "path": "review-temp/frozen-base/src/journeymap/modules/labor/__init__.py",
+      "bytes": 546,
+      "sha256": "5e564dc4a0efdb0ad842bdbf459b1151331f3e36413de4c4cdd8b62eca52379d",
+      "tracked": false
+    },
+    {
+      "path": "review-temp/frozen-base/src/journeymap/modules/labor/handlers.py",
+      "bytes": 5288,
+      "sha256": "69f3d9ac25f7d2cda1832c1a3a96715d5c9ad74ced79d8ea4899530417804c40",
+      "tracked": false
+    },
+    {
+      "path": "review-temp/frozen-base/src/journeymap/modules/labor/models.py",
+      "bytes": 4048,
+      "sha256": "9b2fa9e79d1aaa62ba00d8e54af769e8af610ad96a47a1c2777025710f091e8f",
+      "tracked": false
+    },
+    {
+      "path": "review-temp/frozen-base/src/journeymap/modules/labor/perception.py",
+      "bytes": 1799,
+      "sha256": "bbdcaeed58512973e9ff06d8bb5fc96436e3e57e0546722ce301af6a4375a137",
+      "tracked": false
+    },
+    {
+      "path": "review-temp/frozen-base/src/journeymap/modules/labor/rest.py",
+      "bytes": 955,
+      "sha256": "9326fac7159ccae151694ee504c0262888b307484541f2b03986d348575df012",
+      "tracked": false
+    },
+    {
+      "path": "review-temp/frozen-base/src/journeymap/modules/movement/__init__.py",
+      "bytes": 693,
+      "sha256": "59fcff1ef3066ba5566d35e2317205127fbe88809fd7452a930c17bc88994cf0",
+      "tracked": false
+    },
+    {
+      "path": "review-temp/frozen-base/src/journeymap/modules/movement/handlers.py",
+      "bytes": 4899,
+      "sha256": "9395612515514b78e02b00b27c7661cff9fa5f3f6f577a7a246218971d03ea5f",
+      "tracked": false
+    },
+    {
+      "path": "review-temp/frozen-base/src/journeymap/modules/movement/models.py",
+      "bytes": 3432,
+      "sha256": "3e4ed42e37713f3593ba935320e653ca10fa8c39a924c4af228a2f6311bb2c61",
+      "tracked": false
+    },
+    {
+      "path": "review-temp/frozen-base/src/journeymap/modules/movement/perception.py",
+      "bytes": 2164,
+      "sha256": "9cea96eb916f953331427f1819f378791a31d4787b846950e7b2f4fd0459fd67",
+      "tracked": false
+    },
+    {
+      "path": "review-temp/frozen-base/src/journeymap/modules/movement/transitions.py",
+      "bytes": 2018,
+      "sha256": "316892971920d1ba5fb05b6ac1d3e50ea2ac488c8cc0c005f06f956f0427b64f",
+      "tracked": false
+    },
+    {
+      "path": "review-temp/frozen-base/src/journeymap/modules/social/__init__.py",
+      "bytes": 628,
+      "sha256": "3274921c2ea5450e727491d5c6d2f2dce2899ed30b2468c54d5b78d6b07d44c6",
+      "tracked": false
+    },
+    {
+      "path": "review-temp/frozen-base/src/journeymap/modules/social/contracts.py",
+      "bytes": 2693,
+      "sha256": "b66e6ca4adfdd1390b988de74df59974ea270d50c74a2f79378cdc6258553bad",
+      "tracked": false
+    },
+    {
+      "path": "review-temp/frozen-base/src/journeymap/modules/social/handlers.py",
+      "bytes": 3097,
+      "sha256": "929ba6ee91faf4d84dbb3177b93d9b0abdea765380f22767ad2c12a67b44df08",
+      "tracked": false
+    },
+    {
+      "path": "review-temp/frozen-base/src/journeymap/modules/social/knowledge.py",
+      "bytes": 1658,
+      "sha256": "b512b3045f3a6f1134beb90af1ff3730dad006bfcfd31befea0882309bc32062",
+      "tracked": false
+    },
+    {
+      "path": "review-temp/frozen-base/src/journeymap/modules/social/perception.py",
+      "bytes": 2137,
+      "sha256": "adc893f053f248dc67184114294e5b4e59bb9e52351d355ad66796d1c27f9fd2",
+      "tracked": false
+    },
+    {
+      "path": "review-temp/frozen-base/src/journeymap/modules/survival/__init__.py",
+      "bytes": 775,
+      "sha256": "21bb2eb12ee44ea62fe2398c0d547e72add01d7365d4f40444c104adffdf07c6",
+      "tracked": false
+    },
+    {
+      "path": "review-temp/frozen-base/src/journeymap/modules/survival/handlers.py",
+      "bytes": 6851,
+      "sha256": "8f1dc658b61cd2e86633fc67c05985e4d86ab8bcf05ea9af68496abae27493ff",
+      "tracked": false
+    },
+    {
+      "path": "review-temp/frozen-base/src/journeymap/modules/survival/models.py",
+      "bytes": 3526,
+      "sha256": "2136dd3431a0ca2f66caea944bb4ced70ba36e872f06244827d6eb12731b49c0",
+      "tracked": false
+    },
+    {
+      "path": "review-temp/frozen-base/src/journeymap/modules/survival/perception.py",
+      "bytes": 316,
+      "sha256": "848d1653313f545ca470b4b30103197e2be7a86c151dfbbb082398cd9b6e0e20",
+      "tracked": false
+    },
+    {
+      "path": "review-temp/frozen-base/src/journeymap/modules/survival/schedule.py",
+      "bytes": 523,
+      "sha256": "f2b13046e248b12d752105bd1c38618b25d316ebd1e6977cae8ed18c0d6ca059",
+      "tracked": false
+    },
+    {
+      "path": "review-temp/frozen-base/src/journeymap/modules/trade/__init__.py",
+      "bytes": 501,
+      "sha256": "3cfb662386ced5f6b8e997a5f81d5764f42080ef09df022ef803804a47aa4d46",
+      "tracked": false
+    },
+    {
+      "path": "review-temp/frozen-base/src/journeymap/modules/trade/handlers.py",
+      "bytes": 5238,
+      "sha256": "aa834a4daa419c55c87a416ccd764896bcd668e026e3755f64ec5013362bf3c6",
+      "tracked": false
+    },
+    {
+      "path": "review-temp/frozen-base/src/journeymap/modules/trade/models.py",
+      "bytes": 4568,
+      "sha256": "3b6836640eb672d4fadb02aafb978b045cb0009d2100aa39480ba309f3ede2a5",
+      "tracked": false
+    },
+    {
+      "path": "review-temp/frozen-base/src/journeymap/modules/trade/perception.py",
+      "bytes": 1510,
+      "sha256": "22dd3926d53afc179e9da9a9011754bc57ee33bfef7fd052c6530f960a62fd83",
+      "tracked": false
+    },
+    {
+      "path": "review-temp/frozen-base/src/journeymap/scenarios/__init__.py",
+      "bytes": 79,
+      "sha256": "959931ac234f7cfe203ba3734217ff1f662f355ca9968e45fbd4173065c71a7f",
+      "tracked": false
+    },
+    {
+      "path": "review-temp/frozen-base/src/journeymap/scenarios/alderwick/__init__.py",
+      "bytes": 572,
+      "sha256": "6c8d16a3e99682ed4812e7f34799bf38520b59ac2ff3fbe23d6aad0445eb4e58",
+      "tracked": false
+    },
+    {
+      "path": "review-temp/frozen-base/src/journeymap/scenarios/alderwick/bridge.py",
+      "bytes": 3701,
+      "sha256": "b1c44d4c1036fceb040827305b70831c23b27d84c37eb19a4193a3bb476558aa",
+      "tracked": false
+    },
+    {
+      "path": "review-temp/frozen-base/src/journeymap/scenarios/alderwick/contributors.py",
+      "bytes": 320,
+      "sha256": "4cf59c048bbd09ad8e919bc7a296ffe220e683cc0b87af474eb5b46992ba8f20",
+      "tracked": false
+    },
+    {
+      "path": "review-temp/frozen-base/src/journeymap/scenarios/alderwick/experiment.py",
+      "bytes": 2060,
+      "sha256": "24495f31ae1b464c9e1a76b77d401073f478fa54dbab1289039a0241bbe4cccc",
+      "tracked": false
+    },
+    {
+      "path": "review-temp/frozen-base/src/journeymap/scenarios/alderwick/fixture.py",
+      "bytes": 2804,
+      "sha256": "8d5cddc5d7bffd5597adf93a9f84d19ef2f62ccba304518b43757a9facca0cf1",
+      "tracked": false
+    },
+    {
+      "path": "review-temp/frozen-base/src/journeymap/scenarios/alderwick/knowledge.py",
+      "bytes": 2868,
+      "sha256": "868deabc0a2bc785a7150f6f2bf4f784c844f74f553c261e563abce9d27e86c0",
+      "tracked": false
+    },
+    {
+      "path": "review-temp/frozen-base/src/journeymap/scenarios/alderwick/memory_horizon.py",
+      "bytes": 1647,
+      "sha256": "3719f6d107b7b231a9e32175afb9b890c5415a8dc782797449c4978b4b1d2817",
+      "tracked": false
+    },
+    {
+      "path": "review-temp/frozen-base/src/journeymap/scenarios/alderwick/resource_contributors.py",
+      "bytes": 570,
+      "sha256": "e612d95b17344e32752bf16f455c36011417aa6f12a9711e2b866e5ee2dcd998",
+      "tracked": false
+    },
+    {
+      "path": "review-temp/frozen-base/src/journeymap/scenarios/alderwick/resources.py",
+      "bytes": 2181,
+      "sha256": "d046600297bfebae25f5be39b28735e1355e6d4a6dc617ba3df25e34b4385b43",
+      "tracked": false
+    },
+    {
+      "path": "review-temp/frozen-base/src/journeymap/scenarios/alderwick/social.py",
+      "bytes": 1579,
+      "sha256": "0cafee1f3ffeef8d2e40f3f13bda15d0ea0378245564b73a1f725cb8404e0cb8",
+      "tracked": false
+    },
+    {
+      "path": "review-temp/frozen-base/src/journeymap/scenarios/life.py",
+      "bytes": 5744,
+      "sha256": "10fe28f73718c771a81bd27c63b61cb8503894fa0ece8b0e118f80f9bb52e834",
+      "tracked": false
+    },
+    {
+      "path": "review-temp/frozen-base/src/journeymap/scenarios/phase1.py",
+      "bytes": 2576,
+      "sha256": "3c08d673d2aaa9054d64e7f72f8e76f2e5e1f3b263b1d16ac5a132a9f29886c0",
+      "tracked": false
+    },
+    {
+      "path": "review-temp/frozen-base/tests/test_alderwick.py",
+      "bytes": 14681,
+      "sha256": "8952eef221faea20aee71b76f99ff79f2515f4bd350d470f74fa8aae9a486598",
+      "tracked": false
+    },
+    {
+      "path": "review-temp/frozen-base/tests/test_alderwick_failures.py",
+      "bytes": 10096,
+      "sha256": "7937765eddf7c3bd51d87d8fa3f66cc9ccab886b6adeec40411d9f5ac8a12d44",
+      "tracked": false
+    },
+    {
+      "path": "review-temp/frozen-base/tests/test_architecture.py",
+      "bytes": 6078,
+      "sha256": "c64cffa32fc550679919c42b8c12b8a7045d4f22c65f88cc113054891401622c",
+      "tracked": false
+    },
+    {
+      "path": "review-temp/frozen-base/tests/test_boot.py",
+      "bytes": 756,
+      "sha256": "0b4a40061d3b2859a32924d221143a2c2f83974e804594ca86e149edd8d72f6b",
+      "tracked": false
+    },
+    {
+      "path": "review-temp/frozen-base/tests/test_concurrent.py",
+      "bytes": 25847,
+      "sha256": "3905651339138d252ff299bb5fc88ef2e38d6af48497168c2058a0880da5d791",
+      "tracked": false
+    },
+    {
+      "path": "review-temp/frozen-base/tests/test_event_memory.py",
+      "bytes": 34318,
+      "sha256": "b2191c7561a248af5621ba9793d20dd956be96d6e0812a1bcb4a0bd3a7a8c0e1",
+      "tracked": false
+    },
+    {
+      "path": "review-temp/frozen-base/tests/test_game_and_research.py",
+      "bytes": 32124,
+      "sha256": "f4aa6dae13f379a8a4d03765a70931b4321d0ac932b8d852aa1ca82145278293",
+      "tracked": false
+    },
+    {
+      "path": "review-temp/frozen-base/tests/test_knowledge.py",
+      "bytes": 4590,
+      "sha256": "7aec9f8accdd3e189fce6076316fe7cdb25fac362c8b035d504c4f6279f254b9",
+      "tracked": false
+    },
+    {
+      "path": "review-temp/frozen-base/tests/test_knowledge_projection.py",
+      "bytes": 7676,
+      "sha256": "ac1e204b83f0dee873b3b261bf612a334491b442ed696660436f40a01a3be0c4",
+      "tracked": false
+    },
+    {
+      "path": "review-temp/frozen-base/tests/test_life.py",
+      "bytes": 23710,
+      "sha256": "83425348c0a40ac41d58f07fe6b1968863c0e5af3a0de9096d19ed6377e32ac9",
+      "tracked": false
+    },
+    {
+      "path": "review-temp/frozen-base/tests/test_life_checkpoint.py",
+      "bytes": 12226,
+      "sha256": "fc2d3916e1c89e0c3859cc0f8d69b315941fc02a0f53e7a724ea383718fb01af",
+      "tracked": false
+    },
+    {
+      "path": "review-temp/frozen-base/tests/test_life_error_boundaries.py",
+      "bytes": 8929,
+      "sha256": "0e5db6d6bd283f1c64e9c9e70a3a71c11a68ff71452d395e65aebd8f29e0b822",
+      "tracked": false
+    },
+    {
+      "path": "review-temp/frozen-base/tests/test_life_llm.py",
+      "bytes": 18823,
+      "sha256": "8615dcbc9d59a38b3f5c50aea92819191ed93e61605fef0db5d2c0eb6dcb37e1",
+      "tracked": false
+    },
+    {
+      "path": "review-temp/frozen-base/tests/test_life_responses.py",
+      "bytes": 10709,
+      "sha256": "85bd66f5eaa350c587a33fd0e39c711b08f6034732e03e1bc256648eafa403cf",
+      "tracked": false
+    },
+    {
+      "path": "review-temp/frozen-base/tests/test_m7_boundaries.py",
+      "bytes": 5378,
+      "sha256": "d0c60cdd676c8001d307c9aaa5668a6efc3ce26eccf1c9e965085c8771d60326",
+      "tracked": false
+    },
+    {
+      "path": "review-temp/frozen-base/tests/test_m7_contracts.py",
+      "bytes": 16009,
+      "sha256": "728b8810d57a5c3a87bce64f9a219fb6d5c50694a7bdf33f01891e763724f211",
+      "tracked": false
+    },
+    {
+      "path": "review-temp/frozen-base/tests/test_m7_idempotency.py",
+      "bytes": 15702,
+      "sha256": "6e9eb3627edc8b0b1c5a119107501a7786193379357bee73b8bde4a900dbe006",
+      "tracked": false
+    },
+    {
+      "path": "review-temp/frozen-base/tests/test_m7_observations.py",
+      "bytes": 10752,
+      "sha256": "074156d65248533be16266b2ba8165bce10d5e6ecacca2b8a0f392e3873094da",
+      "tracked": false
+    },
+    {
+      "path": "review-temp/frozen-base/tests/test_m8_experiment.py",
+      "bytes": 7720,
+      "sha256": "0f7891a02ebc60924b7706d8fc95599912387fca9d7a441245ce724ec80a6125",
+      "tracked": false
+    },
+    {
+      "path": "review-temp/frozen-base/tests/test_m8_llm.py",
+      "bytes": 15688,
+      "sha256": "28c94bd0afad0ef7ed8df5266c14608ca83f92dfa27acaf76742fa72ee429489",
+      "tracked": false
+    },
+    {
+      "path": "review-temp/frozen-base/tests/test_m8_revision.py",
+      "bytes": 9068,
+      "sha256": "55cb9de9ad4673e7012547a97683be32b858da9dccf71d38d77826e211b3cc14",
+      "tracked": false
+    },
+    {
+      "path": "review-temp/frozen-base/tests/test_memory_horizon.py",
+      "bytes": 36935,
+      "sha256": "1260d9f4ac85aad956e90bbf18e3ce0051329292e0fc59bae4f7cf3b3e1ba399",
+      "tracked": false
+    },
+    {
+      "path": "review-temp/frozen-base/tests/test_memory_horizon_pilot.py",
+      "bytes": 42694,
+      "sha256": "a518c33a0ef0f2916d4bd591191d1a9358c5de699eba447776351587849f037b",
+      "tracked": false
+    },
+    {
+      "path": "review-temp/frozen-base/tests/test_module_registry.py",
+      "bytes": 1859,
+      "sha256": "0858f1d452e259e81ee9f24dc71374a1beae74c2370cb29d10472d1373747b6d",
+      "tracked": false
+    },
+    {
+      "path": "review-temp/frozen-base/tests/test_movement.py",
+      "bytes": 26526,
+      "sha256": "ed1e0f91c37438c611bf61b1cbe43cd2a2c4c2ddd9583dd2e0149282c83c10be",
+      "tracked": false
+    },
+    {
+      "path": "review-temp/frozen-base/tests/test_observations.py",
+      "bytes": 7500,
+      "sha256": "3f0684163ed23ef71e7b81e54e18f4030c0962be93c479ccd1640f322b98c853",
+      "tracked": false
+    },
+    {
+      "path": "review-temp/frozen-base/tests/test_paid_audit.py",
+      "bytes": 8825,
+      "sha256": "996b981d62d080f8b6d8b6b3d15d146dc10d7f436d3d2ad2ed4c1e72659c6b5c",
+      "tracked": false
+    },
+    {
+      "path": "review-temp/frozen-base/tests/test_paid_audit_response.py",
+      "bytes": 3420,
+      "sha256": "656660668918061201e257a0f16539462e6977c881f261237b55de68804ede1d",
+      "tracked": false
+    },
+    {
+      "path": "review-temp/frozen-base/tests/test_paid_life.py",
+      "bytes": 24174,
+      "sha256": "21e7b2a802d8acc38bec06362bc4bbfa3bf5c69250c502d4d6ede97eb30b10e5",
+      "tracked": false
+    },
+    {
+      "path": "review-temp/frozen-base/tests/test_pre_experiment_hardening.py",
+      "bytes": 26698,
+      "sha256": "b82681d40cb8b76e559cad69d3248e0676ead6a59907d94d8c1371c0942b1687",
+      "tracked": false
+    },
+    {
+      "path": "review-temp/frozen-base/tests/test_resource_architecture.py",
+      "bytes": 3045,
+      "sha256": "f46ce3e571eef311cb23d42a594713b5ec3b7de34ed8d746d1520d062f878ad8",
+      "tracked": false
+    },
+    {
+      "path": "review-temp/frozen-base/tests/test_resource_failures.py",
+      "bytes": 10407,
+      "sha256": "7fb993369968c6015a9c1ef0b07b3eb825ef930766e78537474ccd56f51d96a8",
+      "tracked": false
+    },
+    {
+      "path": "review-temp/frozen-base/tests/test_resource_integration.py",
+      "bytes": 17031,
+      "sha256": "67cc0ea32a4dc54a01216db5338ac462b0115c520856eb9406fcbe7ca383107d",
+      "tracked": false
+    },
+    {
+      "path": "review-temp/frozen-base/tests/test_resources.py",
+      "bytes": 18126,
+      "sha256": "0255c854d2c5a20ba0d3148d044e1c66c3743db1e2c81525ce5d19b100c4528e",
+      "tracked": false
+    },
+    {
+      "path": "review-temp/frozen-base/tests/test_run_determinism.py",
+      "bytes": 3044,
+      "sha256": "76e1c49746d7a001daf5e045094532f587ff8b50242242e8b700a06455519c35",
+      "tracked": false
+    },
+    {
+      "path": "review-temp/frozen-base/tests/test_scheduler_and_events.py",
+      "bytes": 5316,
+      "sha256": "2067cd043902627a4646e9a87b64563eebec705045bfc69d1330e932a6de2a8b",
+      "tracked": false
+    },
+    {
+      "path": "review-temp/frozen-base/tests/test_social.py",
+      "bytes": 10181,
+      "sha256": "6f571b07721f935bc5c771991799354f9d1c0072bb4ec3b8230dedc8d7b903f4",
+      "tracked": false
+    },
+    {
+      "path": "review-temp/frozen-base/tests/test_social_boundaries.py",
+      "bytes": 13526,
+      "sha256": "23c3adb080618a3daf62a94597a1dc9f81a4814e0437a8780f1ad04397547c0c",
+      "tracked": false
+    },
+    {
+      "path": "review-temp/frozen-base/tests/test_social_information.py",
+      "bytes": 20678,
+      "sha256": "cd2503cf37fb21761334d3b62b58725aa621c2f4837cb7d9cf71b2a318a88580",
+      "tracked": false
+    },
+    {
+      "path": "review-temp/frozen-base/tests/test_timed_actions.py",
+      "bytes": 16618,
+      "sha256": "627b05edb51b613a00171ebe5fc9963b7d16725f467f9d6f5d82bf6592011b92",
+      "tracked": false
+    },
+    {
+      "path": "review-temp/frozen-base/tests/test_transitions_and_replay.py",
+      "bytes": 22039,
+      "sha256": "f2b521c05b4480d0ba1c5871b42a8b67a8a7e2693388432b7574f2daab700f29",
+      "tracked": false
+    },
+    {
+      "path": "review-temp/independent-preflight.json",
+      "bytes": 413122,
+      "sha256": "0dde41005e613b4b3cca344541d3e59d5bd179f482c70f8c312a3464a77cbeea",
+      "tracked": false
+    },
+    {
+      "path": "review-temp/inspect_view_invariant.py",
+      "bytes": 2789,
+      "sha256": "53375dd28571adb5b31aafcbcf5ed77307fd7c09cf76449221823dd4b26b163c",
+      "tracked": false
+    },
+    {
+      "path": "review-temp/phase44-f1-investigation-20261017.md",
+      "bytes": 13701,
+      "sha256": "e362ad26e8b842bbe3be2c229b944e512da1b9dd50967acf49a0f5bbd0a1deb9",
+      "tracked": false
+    },
+    {
+      "path": "review-temp/phase44-reassessment-20261017.md",
+      "bytes": 9283,
+      "sha256": "9c382ddd78dbf7ef25af2e952cb10b21aee4661cb35ff763916871dfc9176df7",
+      "tracked": false
+    },
+    {
+      "path": "review-temp/probe-data-final/test_late_large_usage_accounti0/runs.sqlite3",
+      "bytes": 45056,
+      "sha256": "f5b056353959034d25a021465d4a06035a69c0601a345a6e8d6251779daa699b",
+      "tracked": false
+    },
+    {
+      "path": "review-temp/probe-data-final/test_late_large_usage_accounti1/runs.sqlite3",
+      "bytes": 45056,
+      "sha256": "24e19a5a9c8134ceab5c97f3b9c9e22315fcbf6c3418234c21db25cfc4f07385",
+      "tracked": false
+    },
+    {
+      "path": "review-temp/probe-data-final/test_late_large_usage_accounti2/runs.sqlite3",
+      "bytes": 45056,
+      "sha256": "5ae8fd625d334fdaa0f7a1b60e9c4c6aacec99a90af1e880ef969750aad3ca31",
+      "tracked": false
+    },
+    {
+      "path": "review-temp/probe-data-final/test_resealed_adversarial_reco0/runs.sqlite3",
+      "bytes": 49152,
+      "sha256": "0a066e64d048d5b3e0764b164139d9ce21d870935b76329a5acd084b930ac78c",
+      "tracked": false
+    },
+    {
+      "path": "review-temp/probe-data-final/test_resealed_adversarial_reco1/runs.sqlite3",
+      "bytes": 49152,
+      "sha256": "7a8341b2e25b309601bd3177639a941592731e1192e16320189e2931f1e02a1a",
+      "tracked": false
+    },
+    {
+      "path": "review-temp/probe-data-final/test_resealed_adversarial_reco2/runs.sqlite3",
+      "bytes": 49152,
+      "sha256": "95e6286cde94b326badddb6f55073c30a8266a9017998c63c3b4e8dddb47f127",
+      "tracked": false
+    },
+    {
+      "path": "review-temp/probe-data-final/test_resealed_adversarial_reco3/runs.sqlite3",
+      "bytes": 49152,
+      "sha256": "ff32e217941ce37605805e050912ae19e4f56b7c3fad6f0818f2f29b18d966b6",
+      "tracked": false
+    },
+    {
+      "path": "review-temp/probe-data-final/test_resealed_adversarial_reco4/runs.sqlite3",
+      "bytes": 49152,
+      "sha256": "30e88f5f1eafd3cda11af3587bd7754523f67d67f7dfb8bb822898b9dfc12094",
+      "tracked": false
+    },
+    {
+      "path": "review-temp/probe-data/test_late_large_usage_accounti0/runs.sqlite3",
+      "bytes": 45056,
+      "sha256": "5e9ccadd70cae4a9db37e0aa044fafb892202f81a488652184922957776631d8",
+      "tracked": false
+    },
+    {
+      "path": "review-temp/probe-data/test_late_large_usage_accounti1/runs.sqlite3",
+      "bytes": 45056,
+      "sha256": "f19ac4b535cb3756b6301830f40d8842c247d9435432fb826525535714566c10",
+      "tracked": false
+    },
+    {
+      "path": "review-temp/probe-data/test_late_large_usage_accounti2/runs.sqlite3",
+      "bytes": 45056,
+      "sha256": "ca4c0938e47f879d3b2890eb7bad0f6a504697df45badb32f307a535b3ecc1e4",
+      "tracked": false
+    },
+    {
+      "path": "review-temp/probe-data/test_resealed_adversarial_reco0/runs.sqlite3",
+      "bytes": 49152,
+      "sha256": "fb72e73ff2fd6b5138907750a78e6e2a9ffd6f7817192214497b53c6ac9e69ab",
+      "tracked": false
+    },
+    {
+      "path": "review-temp/probe-data/test_resealed_adversarial_reco1/runs.sqlite3",
+      "bytes": 49152,
+      "sha256": "88efed8d5eb47b906faced96cd7c43f643155af25364ae0320abe314198e4d09",
+      "tracked": false
+    },
+    {
+      "path": "review-temp/probe-data/test_resealed_adversarial_reco2/runs.sqlite3",
+      "bytes": 49152,
+      "sha256": "4e57691f731e99fb8d02bb00273c3e71bd4343bef16ed91fa254e4afe34e5483",
+      "tracked": false
+    },
+    {
+      "path": "review-temp/probe-data/test_resealed_adversarial_reco3/runs.sqlite3",
+      "bytes": 49152,
+      "sha256": "4db879276bb80bd21c22949fb0bb5d5a8f599a47de6d945b0df1e45f8d031bc6",
+      "tracked": false
+    },
+    {
+      "path": "review-temp/probe-data/test_resealed_adversarial_reco4/runs.sqlite3",
+      "bytes": 49152,
+      "sha256": "2c1a842baaf765a5397d9513770558e7072e532ac9056fc231d801c83d33c74a",
+      "tracked": false
+    },
+    {
+      "path": "review-temp/run_f1_uninstrumented_once.py",
+      "bytes": 4203,
+      "sha256": "602243ae305e7d58ed7db0171441205c8618f4feff43b4a43afa79a1c1e7b3f4",
+      "tracked": false
+    },
+    {
+      "path": "review-temp/test_phase44_independent.py",
+      "bytes": 9826,
+      "sha256": "e51692d35cfed419e2d3d89b5470dc19e47cae55f24ef7574601c820f43a422e",
+      "tracked": false
+    },
+    {
+      "path": "src/journeymap/__init__.py",
+      "bytes": 76,
+      "sha256": "9c57517eaaca2b912b148d9ae7fdbf17ce72d9751402a8986aafd4b2e2497079",
+      "tracked": true
+    },
+    {
+      "path": "src/journeymap/adapters/__init__.py",
+      "bytes": 148,
+      "sha256": "c10194c82a8f1d238499e507d2c5c74d92e615c30be2e68efef68a9a86a607e7",
+      "tracked": true
+    },
+    {
+      "path": "src/journeymap/adapters/decision_schema.py",
+      "bytes": 2321,
+      "sha256": "a2d006e6ae4bd99d7566b3f3affd8ec1797d28c22de92d691ec1105f78f41b6c",
+      "tracked": true
+    },
+    {
+      "path": "src/journeymap/adapters/event_memory.py",
+      "bytes": 10453,
+      "sha256": "f819964d414d8fb77cae9fae73fd958f98bffe1ea219dd3eb8f38b95daaace74",
+      "tracked": true
+    },
+    {
+      "path": "src/journeymap/adapters/human.py",
+      "bytes": 709,
+      "sha256": "aaf6d5aca87cbafc1ff9683c297749556f9b207f731b3ad244c928f663889f07",
+      "tracked": true
+    },
+    {
+      "path": "src/journeymap/adapters/llm.py",
+      "bytes": 19840,
+      "sha256": "1a80e31dc8f6c6ebc79489a0a3419999270d79aeef4cc0cf10d1baa74902c9cf",
+      "tracked": true
+    },
+    {
+      "path": "src/journeymap/adapters/memory.py",
+      "bytes": 1636,
+      "sha256": "30e4145fc56740d4bad3affd19d383081a2e41b8d0c6aaebaa7c6b29a5936b4d",
+      "tracked": true
+    },
+    {
+      "path": "src/journeymap/adapters/memory_horizon_live.py",
+      "bytes": 11003,
+      "sha256": "dd8b52c90c97d7894c5f551ba036d991c00a8a1c02f1d4a2afc8024992b388a1",
+      "tracked": true
+    },
+    {
+      "path": "src/journeymap/adapters/memory_horizon_prompt.py",
+      "bytes": 4571,
+      "sha256": "422840f8f58d6fa51072b928d894c339f63f7b2e23155d3de1aee3404534ab67",
+      "tracked": true
+    },
+    {
+      "path": "src/journeymap/adapters/openai_provider.py",
+      "bytes": 3988,
+      "sha256": "4f51e9259ad1cdf40b6826342882f0de5ff8a32d7ef29ff68e0e14e162177b35",
+      "tracked": true
+    },
+    {
+      "path": "src/journeymap/adapters/prompt_profile.py",
+      "bytes": 746,
+      "sha256": "94658bed9204994682f3be598a05e24e25e0f3cf4300384dc44e84b41290d73a",
+      "tracked": true
+    },
+    {
+      "path": "src/journeymap/adapters/provider.py",
+      "bytes": 5632,
+      "sha256": "00868f85f81aecbc50b327e4865874e21a53a0ccf42cf53c89df0679d1f74ef2",
+      "tracked": true
+    },
+    {
+      "path": "src/journeymap/adapters/scripted.py",
+      "bytes": 2788,
+      "sha256": "744fdee1de2d5d96c6344370e76572c9d1d326f8978afb518d2be548e7c3f2b4",
+      "tracked": true
+    },
+    {
+      "path": "src/journeymap/adapters/social_npc.py",
+      "bytes": 4654,
+      "sha256": "fc41b597a2d840e6b0247362acf9e63f1275866731f8ac4eacf8130f6fbac55b",
+      "tracked": true
+    },
+    {
+      "path": "src/journeymap/adapters/sqlite.py",
+      "bytes": 935,
+      "sha256": "f402669a65def659efecc5d397efeafa026308b17c8aa6eeb7e876f84c0e5e5e",
+      "tracked": true
+    },
+    {
+      "path": "src/journeymap/application/__init__.py",
+      "bytes": 74,
+      "sha256": "83aa1d01bfbfdd489fcb2b30ba0144744d0a9d6177e2a43a832640da3d834820",
+      "tracked": true
+    },
+    {
+      "path": "src/journeymap/application/contracts.py",
+      "bytes": 3215,
+      "sha256": "fcc9f00646b224633e26e889f414c36bea6bba5b395617c373ef31fdfcb297c9",
+      "tracked": true
+    },
+    {
+      "path": "src/journeymap/application/observations.py",
+      "bytes": 4382,
+      "sha256": "37f4cb6491e20bb9219e24f35bcfb4299f90da1ded54c08b243b6ae67378aa5b",
+      "tracked": true
+    },
+    {
+      "path": "src/journeymap/application/perception.py",
+      "bytes": 1695,
+      "sha256": "9024dd2694041e6d1fa8afe998c1ff184de08da3a682eb12cd20c6d1a07b2840",
+      "tracked": true
+    },
+    {
+      "path": "src/journeymap/application/reasons.py",
+      "bytes": 2881,
+      "sha256": "7d15241ab73d0596672f9bef8475c6ce54823f4cb4f2da95c97a1e822db79484",
+      "tracked": true
+    },
+    {
+      "path": "src/journeymap/application/research.py",
+      "bytes": 2434,
+      "sha256": "a67bcb43c34e80c5a469de2f88095e1e02afa2d3ab0d4c8f56242ce3a6420d09",
+      "tracked": true
+    },
+    {
+      "path": "src/journeymap/application/session.py",
+      "bytes": 16770,
+      "sha256": "b7c04c7b50cc377566817d7998813133cdd30c997be55354d073809584c88eb9",
+      "tracked": true
+    },
+    {
+      "path": "src/journeymap/application/social.py",
+      "bytes": 2864,
+      "sha256": "0a91ddcbb2db531112815862366d3c4ee69a21af19186deecde4e3bff6c8240a",
+      "tracked": true
+    },
+    {
+      "path": "src/journeymap/application/turns.py",
+      "bytes": 2563,
+      "sha256": "bf50910d9e9e91f7651f811f4fec6473469ec6880346b72288f5731e8de9cd8d",
+      "tracked": true
+    },
+    {
+      "path": "src/journeymap/bootstrap.py",
+      "bytes": 13641,
+      "sha256": "ca2b61852a61f5df3829fe9084d84757321638a5e0c2eb30c3c392d17c5c3bf5",
+      "tracked": true
+    },
+    {
+      "path": "src/journeymap/core/__init__.py",
+      "bytes": 2548,
+      "sha256": "f3e80ab7ac9d03aea8e02d66fe8ba7deea91bda9083c383d6432fa1687435675",
+      "tracked": true
+    },
+    {
+      "path": "src/journeymap/core/actions.py",
+      "bytes": 1766,
+      "sha256": "1111abfa7d8ab9b6aac17760a19c4071795a640d0d2b7602ab124baa8959ef4d",
+      "tracked": true
+    },
+    {
+      "path": "src/journeymap/core/canonical.py",
+      "bytes": 2552,
+      "sha256": "ba810108f3150c6b113c16559b846e95679f00a013f3d0f08805d0cbfff913af",
+      "tracked": true
+    },
+    {
+      "path": "src/journeymap/core/controller.py",
+      "bytes": 1512,
+      "sha256": "2dc2e2d980be26f057de5b0fe6b59de46facdaec80a83535fcfd576d3ea4aa68",
+      "tracked": true
+    },
+    {
+      "path": "src/journeymap/core/entities.py",
+      "bytes": 1601,
+      "sha256": "4d0f848d11b88b1bd37309c7157522888bcc5bfd195f938dbc18415e03d37d79",
+      "tracked": true
+    },
+    {
+      "path": "src/journeymap/core/events.py",
+      "bytes": 4889,
+      "sha256": "601828d5b1175092ae337385c26012315785849dad1d469875da3ed8b2aca663",
+      "tracked": true
+    },
+    {
+      "path": "src/journeymap/core/handlers.py",
+      "bytes": 9090,
+      "sha256": "00791567f40ec6eb57284b47ac5149fd695a5a8b28fabb55e003d334347abd03",
+      "tracked": true
+    },
+    {
+      "path": "src/journeymap/core/kernel.py",
+      "bytes": 14874,
+      "sha256": "dc07c9c6d19533755c60f8c27e43372214e6e6b39f6cc72f796cec55cf300d80",
+      "tracked": true
+    },
+    {
+      "path": "src/journeymap/core/modules.py",
+      "bytes": 3248,
+      "sha256": "a5e54c3da3a659e2cb910953f4e5f3310178a70c60cf611165bf1f4394d06ce1",
+      "tracked": true
+    },
+    {
+      "path": "src/journeymap/core/observations.py",
+      "bytes": 4755,
+      "sha256": "71e065e8844b839c2e2559e52e927a94406b77f1fc6b81c5d43f82acac5835c5",
+      "tracked": true
+    },
+    {
+      "path": "src/journeymap/core/persistence.py",
+      "bytes": 531,
+      "sha256": "215a0e62b19d6598a0d6f693b451a11ec46470df0ef58b17386b361306bf4d4a",
+      "tracked": true
+    },
+    {
+      "path": "src/journeymap/core/replay.py",
+      "bytes": 2525,
+      "sha256": "f6cf0c0733ed3801f843eb9d5c0f7c7ddd2397ad6b53852a492a605da73f47f5",
+      "tracked": true
+    },
+    {
+      "path": "src/journeymap/core/run.py",
+      "bytes": 8256,
+      "sha256": "05bdc4ee619ae0e9c59d532cbeb091babe37a5feb4559727cf3c82246947d968",
+      "tracked": true
+    },
+    {
+      "path": "src/journeymap/core/scheduler.py",
+      "bytes": 4847,
+      "sha256": "c58acde50b98dff8c4d51843b08a7eb9f4cdb1535b74fe040b9ed08830ab08ca",
+      "tracked": true
+    },
+    {
+      "path": "src/journeymap/examples/__init__.py",
+      "bytes": 43,
+      "sha256": "3e6cdeb37334d026e03a47e83ce3cdb319a80a6a29bfcbf0cd363be021339197",
+      "tracked": true
+    },
+    {
+      "path": "src/journeymap/examples/alderwick.py",
+      "bytes": 1607,
+      "sha256": "d4dcc35fba29fb2d652013cbb9cce2dd34e1170fb5254382c7920cc86c790567",
+      "tracked": true
+    },
+    {
+      "path": "src/journeymap/examples/alderwick_llm.py",
+      "bytes": 5973,
+      "sha256": "f88b470eed8867349ad0e15786300b7b6dd61c8e1719cde777aae1b8bdd28aa9",
+      "tracked": true
+    },
+    {
+      "path": "src/journeymap/examples/alderwick_resources.py",
+      "bytes": 2761,
+      "sha256": "890c047b0023c5323082ceaa4b4979f2b515f1a35c9e4700f6e36c28dac14539",
+      "tracked": true
+    },
+    {
+      "path": "src/journeymap/examples/alderwick_social.py",
+      "bytes": 2754,
+      "sha256": "ee2ac42b2f0ca2fb85ff46a6d1825f6be90ae83ef28fb5434b67ee185938879c",
+      "tracked": true
+    },
+    {
+      "path": "src/journeymap/examples/event_memory.py",
+      "bytes": 1764,
+      "sha256": "e182673d75bf40143fa28808cb670a61335c16e6e6e6e4478d42d7fad7548a98",
+      "tracked": true
+    },
+    {
+      "path": "src/journeymap/examples/memory_horizon.py",
+      "bytes": 5022,
+      "sha256": "d496fa9ad0726175924b9db69c16264a7f0201a8b2437fa97312e141925951f9",
+      "tracked": true
+    },
+    {
+      "path": "src/journeymap/experiments/__init__.py",
+      "bytes": 71,
+      "sha256": "54c77dc496f8ba64d57478dd78f9541f4809013cf71bc2d975415990aaeb77e7",
+      "tracked": true
+    },
+    {
+      "path": "src/journeymap/experiments/alderwick.py",
+      "bytes": 30941,
+      "sha256": "9b3609c393e1ff485c2dfe53b3b4bb8374c99bc4a6425545619c4d2a4d49ec91",
+      "tracked": true
+    },
+    {
+      "path": "src/journeymap/experiments/event_memory.py",
+      "bytes": 9107,
+      "sha256": "a25ef8b2b6065ab4a8aa356de7f564ee66e242459f1bf0338919b287dac99650",
+      "tracked": true
+    },
+    {
+      "path": "src/journeymap/experiments/inclusion.py",
+      "bytes": 17424,
+      "sha256": "096c35e890be0b14b9f0f50e4712391dc7c0b6656f304fdecc0ecabe62dfb405",
+      "tracked": true
+    },
+    {
+      "path": "src/journeymap/experiments/memory_horizon.py",
+      "bytes": 15675,
+      "sha256": "16a476f8112e0a6e2cf6ae39e67cd85513de1f445cfca0bac4039e9c597aa681",
+      "tracked": true
+    },
+    {
+      "path": "src/journeymap/experiments/memory_horizon_audit.py",
+      "bytes": 19848,
+      "sha256": "8e64984e712bf496898fa6e1232485b7737086da89fc8841a339da5e56c53c1c",
+      "tracked": true
+    },
+    {
+      "path": "src/journeymap/experiments/memory_horizon_pilot.py",
+      "bytes": 12980,
+      "sha256": "5646023286992ed408b0415c7918189b093165a8c7489c53293b281c1e95868a",
+      "tracked": true
+    },
+    {
+      "path": "src/journeymap/experiments/memory_horizon_pilot_audit.py",
+      "bytes": 29516,
+      "sha256": "0241787184f8b2d8ddd634ffaa839c928a1b6efe5d6369aa2991ac941b1ebf8f",
+      "tracked": true
+    },
+    {
+      "path": "src/journeymap/experiments/memory_horizon_study.py",
+      "bytes": 15848,
+      "sha256": "b29f9ecf0daa0f1bdd89bb097db5ce6f555f2ca7728f22ec975ac265a865aef6",
+      "tracked": true
+    },
+    {
+      "path": "src/journeymap/experiments/pilot_journal.py",
+      "bytes": 4020,
+      "sha256": "07f88078502febfcafc7733330b66342da9fe38613daf1bd6225e613f067186e",
+      "tracked": true
+    },
+    {
+      "path": "src/journeymap/experiments/provenance.py",
+      "bytes": 2843,
+      "sha256": "38f92b36f363bf52191fdc69d2c2e1b86d8534744601c6a302843789e048cafe",
+      "tracked": true
+    },
+    {
+      "path": "src/journeymap/modules/__init__.py",
+      "bytes": 73,
+      "sha256": "2f17442920de7d6c2d3710c52cae3aa33b8835dd931bb05432711c3e43042240",
+      "tracked": true
+    },
+    {
+      "path": "src/journeymap/modules/inventory/__init__.py",
+      "bytes": 269,
+      "sha256": "58606b4f08adf69da3f72489f35592dd2e70e04417d7abad1b54f05f7043b1a2",
+      "tracked": true
+    },
+    {
+      "path": "src/journeymap/modules/inventory/models.py",
+      "bytes": 3422,
+      "sha256": "873f5e99920740ce40c5453cac5747a28f4803e6a18709ef89ef53f6e9caa488",
+      "tracked": true
+    },
+    {
+      "path": "src/journeymap/modules/inventory/perception.py",
+      "bytes": 328,
+      "sha256": "c930a68183fe0f54cc382332d9d3e6407eac257698594007bd71695b209888be",
+      "tracked": true
+    },
+    {
+      "path": "src/journeymap/modules/inventory/transitions.py",
+      "bytes": 1565,
+      "sha256": "9c7a985b4520fb2b018bd368585f35339b418efb22d913a62864418cb1998f10",
+      "tracked": true
+    },
+    {
+      "path": "src/journeymap/modules/knowledge/__init__.py",
+      "bytes": 570,
+      "sha256": "dd9ccfa9bd057c6d3e06d7167ba641963d7c9ba496e260665147b477b9a23c00",
+      "tracked": true
+    },
+    {
+      "path": "src/journeymap/modules/knowledge/projection.py",
+      "bytes": 4140,
+      "sha256": "05075740ac41a552c1bad828b5c3b0968c30d7b978a4a82b19134445d2ca14f5",
+      "tracked": true
+    },
+    {
+      "path": "src/journeymap/modules/knowledge/records.py",
+      "bytes": 6212,
+      "sha256": "5f9aa5e4bee0f6b8b95b3873aa1a39778e6572ce5625f666881ec445399252d2",
+      "tracked": true
+    },
+    {
+      "path": "src/journeymap/modules/movement/__init__.py",
+      "bytes": 693,
+      "sha256": "59fcff1ef3066ba5566d35e2317205127fbe88809fd7452a930c17bc88994cf0",
+      "tracked": true
+    },
+    {
+      "path": "src/journeymap/modules/movement/handlers.py",
+      "bytes": 4740,
+      "sha256": "67d8809de23cff5dacb2d49edeb03bee3e7ee04f2ac331c4cbf0b208a38c9406",
+      "tracked": true
+    },
+    {
+      "path": "src/journeymap/modules/movement/models.py",
+      "bytes": 3432,
+      "sha256": "3e4ed42e37713f3593ba935320e653ca10fa8c39a924c4af228a2f6311bb2c61",
+      "tracked": true
+    },
+    {
+      "path": "src/journeymap/modules/movement/perception.py",
+      "bytes": 1343,
+      "sha256": "b32d93d32793a07cf1f94c95e3551a16c3952ba6dc1c31208fd82d8d17d41591",
+      "tracked": true
+    },
+    {
+      "path": "src/journeymap/modules/movement/transitions.py",
+      "bytes": 2018,
+      "sha256": "316892971920d1ba5fb05b6ac1d3e50ea2ac488c8cc0c005f06f956f0427b64f",
+      "tracked": true
+    },
+    {
+      "path": "src/journeymap/modules/social/__init__.py",
+      "bytes": 628,
+      "sha256": "3274921c2ea5450e727491d5c6d2f2dce2899ed30b2468c54d5b78d6b07d44c6",
+      "tracked": true
+    },
+    {
+      "path": "src/journeymap/modules/social/contracts.py",
+      "bytes": 2693,
+      "sha256": "b66e6ca4adfdd1390b988de74df59974ea270d50c74a2f79378cdc6258553bad",
+      "tracked": true
+    },
+    {
+      "path": "src/journeymap/modules/social/handlers.py",
+      "bytes": 3097,
+      "sha256": "929ba6ee91faf4d84dbb3177b93d9b0abdea765380f22767ad2c12a67b44df08",
+      "tracked": true
+    },
+    {
+      "path": "src/journeymap/modules/social/knowledge.py",
+      "bytes": 1658,
+      "sha256": "b512b3045f3a6f1134beb90af1ff3730dad006bfcfd31befea0882309bc32062",
+      "tracked": true
+    },
+    {
+      "path": "src/journeymap/modules/social/perception.py",
+      "bytes": 2137,
+      "sha256": "adc893f053f248dc67184114294e5b4e59bb9e52351d355ad66796d1c27f9fd2",
+      "tracked": true
+    },
+    {
+      "path": "src/journeymap/modules/survival/__init__.py",
+      "bytes": 775,
+      "sha256": "21bb2eb12ee44ea62fe2398c0d547e72add01d7365d4f40444c104adffdf07c6",
+      "tracked": true
+    },
+    {
+      "path": "src/journeymap/modules/survival/handlers.py",
+      "bytes": 6851,
+      "sha256": "8f1dc658b61cd2e86633fc67c05985e4d86ab8bcf05ea9af68496abae27493ff",
+      "tracked": true
+    },
+    {
+      "path": "src/journeymap/modules/survival/models.py",
+      "bytes": 3526,
+      "sha256": "2136dd3431a0ca2f66caea944bb4ced70ba36e872f06244827d6eb12731b49c0",
+      "tracked": true
+    },
+    {
+      "path": "src/journeymap/modules/survival/perception.py",
+      "bytes": 316,
+      "sha256": "848d1653313f545ca470b4b30103197e2be7a86c151dfbbb082398cd9b6e0e20",
+      "tracked": true
+    },
+    {
+      "path": "src/journeymap/modules/trade/__init__.py",
+      "bytes": 501,
+      "sha256": "3cfb662386ced5f6b8e997a5f81d5764f42080ef09df022ef803804a47aa4d46",
+      "tracked": true
+    },
+    {
+      "path": "src/journeymap/modules/trade/handlers.py",
+      "bytes": 5238,
+      "sha256": "aa834a4daa419c55c87a416ccd764896bcd668e026e3755f64ec5013362bf3c6",
+      "tracked": true
+    },
+    {
+      "path": "src/journeymap/modules/trade/models.py",
+      "bytes": 4568,
+      "sha256": "3b6836640eb672d4fadb02aafb978b045cb0009d2100aa39480ba309f3ede2a5",
+      "tracked": true
+    },
+    {
+      "path": "src/journeymap/modules/trade/perception.py",
+      "bytes": 1510,
+      "sha256": "22dd3926d53afc179e9da9a9011754bc57ee33bfef7fd052c6530f960a62fd83",
+      "tracked": true
+    },
+    {
+      "path": "src/journeymap/scenarios/__init__.py",
+      "bytes": 79,
+      "sha256": "959931ac234f7cfe203ba3734217ff1f662f355ca9968e45fbd4173065c71a7f",
+      "tracked": true
+    },
+    {
+      "path": "src/journeymap/scenarios/alderwick/__init__.py",
+      "bytes": 572,
+      "sha256": "6c8d16a3e99682ed4812e7f34799bf38520b59ac2ff3fbe23d6aad0445eb4e58",
+      "tracked": true
+    },
+    {
+      "path": "src/journeymap/scenarios/alderwick/bridge.py",
+      "bytes": 3701,
+      "sha256": "b1c44d4c1036fceb040827305b70831c23b27d84c37eb19a4193a3bb476558aa",
+      "tracked": true
+    },
+    {
+      "path": "src/journeymap/scenarios/alderwick/contributors.py",
+      "bytes": 320,
+      "sha256": "4cf59c048bbd09ad8e919bc7a296ffe220e683cc0b87af474eb5b46992ba8f20",
+      "tracked": true
+    },
+    {
+      "path": "src/journeymap/scenarios/alderwick/experiment.py",
+      "bytes": 2000,
+      "sha256": "d4d3298d0a36cd08513d22b5011fc10fc2aca97edac67bf54a47e2cc711771ea",
+      "tracked": true
+    },
+    {
+      "path": "src/journeymap/scenarios/alderwick/fixture.py",
+      "bytes": 2804,
+      "sha256": "8d5cddc5d7bffd5597adf93a9f84d19ef2f62ccba304518b43757a9facca0cf1",
+      "tracked": true
+    },
+    {
+      "path": "src/journeymap/scenarios/alderwick/knowledge.py",
+      "bytes": 2868,
+      "sha256": "868deabc0a2bc785a7150f6f2bf4f784c844f74f553c261e563abce9d27e86c0",
+      "tracked": true
+    },
+    {
+      "path": "src/journeymap/scenarios/alderwick/memory_horizon.py",
+      "bytes": 1647,
+      "sha256": "3719f6d107b7b231a9e32175afb9b890c5415a8dc782797449c4978b4b1d2817",
+      "tracked": true
+    },
+    {
+      "path": "src/journeymap/scenarios/alderwick/resource_contributors.py",
+      "bytes": 570,
+      "sha256": "e612d95b17344e32752bf16f455c36011417aa6f12a9711e2b866e5ee2dcd998",
+      "tracked": true
+    },
+    {
+      "path": "src/journeymap/scenarios/alderwick/resources.py",
+      "bytes": 2181,
+      "sha256": "d046600297bfebae25f5be39b28735e1355e6d4a6dc617ba3df25e34b4385b43",
+      "tracked": true
+    },
+    {
+      "path": "src/journeymap/scenarios/alderwick/social.py",
+      "bytes": 1579,
+      "sha256": "0cafee1f3ffeef8d2e40f3f13bda15d0ea0378245564b73a1f725cb8404e0cb8",
+      "tracked": true
+    },
+    {
+      "path": "tests/test_alderwick.py",
+      "bytes": 14681,
+      "sha256": "8952eef221faea20aee71b76f99ff79f2515f4bd350d470f74fa8aae9a486598",
+      "tracked": true
+    },
+    {
+      "path": "tests/test_alderwick_failures.py",
+      "bytes": 10096,
+      "sha256": "7937765eddf7c3bd51d87d8fa3f66cc9ccab886b6adeec40411d9f5ac8a12d44",
+      "tracked": true
+    },
+    {
+      "path": "tests/test_architecture.py",
+      "bytes": 6078,
+      "sha256": "c64cffa32fc550679919c42b8c12b8a7045d4f22c65f88cc113054891401622c",
+      "tracked": true
+    },
+    {
+      "path": "tests/test_boot.py",
+      "bytes": 756,
+      "sha256": "0b4a40061d3b2859a32924d221143a2c2f83974e804594ca86e149edd8d72f6b",
+      "tracked": true
+    },
+    {
+      "path": "tests/test_event_memory.py",
+      "bytes": 34318,
+      "sha256": "b2191c7561a248af5621ba9793d20dd956be96d6e0812a1bcb4a0bd3a7a8c0e1",
+      "tracked": true
+    },
+    {
+      "path": "tests/test_game_and_research.py",
+      "bytes": 32124,
+      "sha256": "f4aa6dae13f379a8a4d03765a70931b4321d0ac932b8d852aa1ca82145278293",
+      "tracked": true
+    },
+    {
+      "path": "tests/test_knowledge.py",
+      "bytes": 4590,
+      "sha256": "7aec9f8accdd3e189fce6076316fe7cdb25fac362c8b035d504c4f6279f254b9",
+      "tracked": true
+    },
+    {
+      "path": "tests/test_knowledge_projection.py",
+      "bytes": 7676,
+      "sha256": "ac1e204b83f0dee873b3b261bf612a334491b442ed696660436f40a01a3be0c4",
+      "tracked": true
+    },
+    {
+      "path": "tests/test_m7_boundaries.py",
+      "bytes": 5378,
+      "sha256": "d0c60cdd676c8001d307c9aaa5668a6efc3ce26eccf1c9e965085c8771d60326",
+      "tracked": true
+    },
+    {
+      "path": "tests/test_m7_contracts.py",
+      "bytes": 16009,
+      "sha256": "728b8810d57a5c3a87bce64f9a219fb6d5c50694a7bdf33f01891e763724f211",
+      "tracked": true
+    },
+    {
+      "path": "tests/test_m7_idempotency.py",
+      "bytes": 15702,
+      "sha256": "6e9eb3627edc8b0b1c5a119107501a7786193379357bee73b8bde4a900dbe006",
+      "tracked": true
+    },
+    {
+      "path": "tests/test_m7_observations.py",
+      "bytes": 10752,
+      "sha256": "074156d65248533be16266b2ba8165bce10d5e6ecacca2b8a0f392e3873094da",
+      "tracked": true
+    },
+    {
+      "path": "tests/test_m8_experiment.py",
+      "bytes": 7720,
+      "sha256": "0f7891a02ebc60924b7706d8fc95599912387fca9d7a441245ce724ec80a6125",
+      "tracked": true
+    },
+    {
+      "path": "tests/test_m8_llm.py",
+      "bytes": 15688,
+      "sha256": "28c94bd0afad0ef7ed8df5266c14608ca83f92dfa27acaf76742fa72ee429489",
+      "tracked": true
+    },
+    {
+      "path": "tests/test_m8_revision.py",
+      "bytes": 9068,
+      "sha256": "55cb9de9ad4673e7012547a97683be32b858da9dccf71d38d77826e211b3cc14",
+      "tracked": true
+    },
+    {
+      "path": "tests/test_memory_horizon.py",
+      "bytes": 36935,
+      "sha256": "1260d9f4ac85aad956e90bbf18e3ce0051329292e0fc59bae4f7cf3b3e1ba399",
+      "tracked": true
+    },
+    {
+      "path": "tests/test_memory_horizon_pilot.py",
+      "bytes": 42694,
+      "sha256": "a518c33a0ef0f2916d4bd591191d1a9358c5de699eba447776351587849f037b",
+      "tracked": true
+    },
+    {
+      "path": "tests/test_module_registry.py",
+      "bytes": 1859,
+      "sha256": "0858f1d452e259e81ee9f24dc71374a1beae74c2370cb29d10472d1373747b6d",
+      "tracked": true
+    },
+    {
+      "path": "tests/test_movement.py",
+      "bytes": 26526,
+      "sha256": "ed1e0f91c37438c611bf61b1cbe43cd2a2c4c2ddd9583dd2e0149282c83c10be",
+      "tracked": true
+    },
+    {
+      "path": "tests/test_observations.py",
+      "bytes": 7500,
+      "sha256": "3f0684163ed23ef71e7b81e54e18f4030c0962be93c479ccd1640f322b98c853",
+      "tracked": true
+    },
+    {
+      "path": "tests/test_pre_experiment_hardening.py",
+      "bytes": 26698,
+      "sha256": "b82681d40cb8b76e559cad69d3248e0676ead6a59907d94d8c1371c0942b1687",
+      "tracked": true
+    },
+    {
+      "path": "tests/test_resource_architecture.py",
+      "bytes": 3045,
+      "sha256": "f46ce3e571eef311cb23d42a594713b5ec3b7de34ed8d746d1520d062f878ad8",
+      "tracked": true
+    },
+    {
+      "path": "tests/test_resource_failures.py",
+      "bytes": 10407,
+      "sha256": "7fb993369968c6015a9c1ef0b07b3eb825ef930766e78537474ccd56f51d96a8",
+      "tracked": true
+    },
+    {
+      "path": "tests/test_resource_integration.py",
+      "bytes": 17031,
+      "sha256": "67cc0ea32a4dc54a01216db5338ac462b0115c520856eb9406fcbe7ca383107d",
+      "tracked": true
+    },
+    {
+      "path": "tests/test_resources.py",
+      "bytes": 18126,
+      "sha256": "0255c854d2c5a20ba0d3148d044e1c66c3743db1e2c81525ce5d19b100c4528e",
+      "tracked": true
+    },
+    {
+      "path": "tests/test_run_determinism.py",
+      "bytes": 3044,
+      "sha256": "76e1c49746d7a001daf5e045094532f587ff8b50242242e8b700a06455519c35",
+      "tracked": true
+    },
+    {
+      "path": "tests/test_scheduler_and_events.py",
+      "bytes": 5316,
+      "sha256": "2067cd043902627a4646e9a87b64563eebec705045bfc69d1330e932a6de2a8b",
+      "tracked": true
+    },
+    {
+      "path": "tests/test_social.py",
+      "bytes": 10181,
+      "sha256": "6f571b07721f935bc5c771991799354f9d1c0072bb4ec3b8230dedc8d7b903f4",
+      "tracked": true
+    },
+    {
+      "path": "tests/test_social_boundaries.py",
+      "bytes": 13526,
+      "sha256": "23c3adb080618a3daf62a94597a1dc9f81a4814e0437a8780f1ad04397547c0c",
+      "tracked": true
+    },
+    {
+      "path": "tests/test_social_information.py",
+      "bytes": 20678,
+      "sha256": "cd2503cf37fb21761334d3b62b58725aa621c2f4837cb7d9cf71b2a318a88580",
+      "tracked": true
+    },
+    {
+      "path": "tests/test_timed_actions.py",
+      "bytes": 16618,
+      "sha256": "627b05edb51b613a00171ebe5fc9963b7d16725f467f9d6f5d82bf6592011b92",
+      "tracked": true
+    },
+    {
+      "path": "tests/test_transitions_and_replay.py",
+      "bytes": 22039,
+      "sha256": "f2b521c05b4480d0ba1c5871b42a8b67a8a7e2693388432b7574f2daab700f29",
+      "tracked": true
+    },
+    {
+      "path": "trials/horizon-dev/action_requests.jsonl",
+      "bytes": 2145,
+      "sha256": "18abd24a0fe2584fd9319e5d0c348137c58c7a040da111d26493f90a6dbc75b2",
+      "tracked": false
+    },
+    {
+      "path": "trials/horizon-dev/action_results.jsonl",
+      "bytes": 4515,
+      "sha256": "b4dd0b12d77dfe74ff6a1b367385691b9fee5910ddcea0a391ae59277a0d796e",
+      "tracked": false
+    },
+    {
+      "path": "trials/horizon-dev/action_traces.jsonl",
+      "bytes": 9171,
+      "sha256": "fa6ee2ff1c798ba6bd356370df5b4b28166f29ed3e645298dcadbf580df3e7cf",
+      "tracked": false
+    },
+    {
+      "path": "trials/horizon-dev/activations.jsonl",
+      "bytes": 478,
+      "sha256": "f1d9b44b5ac89147aa25012dc344ec2d48bbcf7a7ab43badd2d0b1421207bffd",
+      "tracked": false
+    },
+    {
+      "path": "trials/horizon-dev/decisions.jsonl",
+      "bytes": 119423,
+      "sha256": "9fcf3ff0f7c5b46719774dad478497af47b19c50860c8c87da6d5a233323448a",
+      "tracked": false
+    },
+    {
+      "path": "trials/horizon-dev/engine_report.json",
+      "bytes": 11001,
+      "sha256": "0ff859de36995969be0af9ee0d70d8a450c9655bbfa7da6e7db752d9933731e8",
+      "tracked": false
+    },
+    {
+      "path": "trials/horizon-dev/event_traces.jsonl",
+      "bytes": 13007,
+      "sha256": "748db879f0d17ec8b97c403d2afe00cea36717ed6bf97eea421f72e2bad3d5f1",
+      "tracked": false
+    },
+    {
+      "path": "trials/horizon-dev/events.jsonl",
+      "bytes": 3162,
+      "sha256": "5afa5556059988b53d376983149883f271c37501f5d769e8b83420745a610e74",
+      "tracked": false
+    },
+    {
+      "path": "trials/horizon-dev/final_state.json",
+      "bytes": 3117,
+      "sha256": "872903f91989ced2622d59c6743fff4dabac6b25c3c9c6afae3e63ca8c6f6024",
+      "tracked": false
+    },
+    {
+      "path": "trials/horizon-dev/initial_knowledge.jsonl",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "tracked": false
+    },
+    {
+      "path": "trials/horizon-dev/initial_state.json",
+      "bytes": 3117,
+      "sha256": "872903f91989ced2622d59c6743fff4dabac6b25c3c9c6afae3e63ca8c6f6024",
+      "tracked": false
+    },
+    {
+      "path": "trials/horizon-dev/knowledge.jsonl",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "tracked": false
+    },
+    {
+      "path": "trials/horizon-dev/manifest.json",
+      "bytes": 4713,
+      "sha256": "4074efc08c49aadafbca14597efe63b2adcb23eafae58bf70ee247cedf562ddc",
+      "tracked": false
+    },
+    {
+      "path": "trials/horizon-dev/metrics.json",
+      "bytes": 233,
+      "sha256": "62d30c43032310f5467b7a90cd4a236749558d1d5f9d6e17e65901eca8b2a168",
+      "tracked": false
+    },
+    {
+      "path": "trials/horizon-dev/observation_attempts.jsonl",
+      "bytes": 436,
+      "sha256": "9bd72cb47498bb98b82f9ecce580fbadbfd8dc4b15a48910d9467f717fcf2588",
+      "tracked": false
+    },
+    {
+      "path": "trials/horizon-dev/observations.jsonl",
+      "bytes": 6848,
+      "sha256": "33ca82415b21d855505ca4018191369d673c88ec24ec42b00a94f776f19610db",
+      "tracked": false
+    },
+    {
+      "path": "trials/horizon-dev/replay_input.json",
+      "bytes": 2280,
+      "sha256": "58eef432b31895406be5270d95ef6c4521307c382bd8547331dd8b7e1f15080b",
+      "tracked": false
+    },
+    {
+      "path": "trials/horizon-dev/system_event_outcomes.jsonl",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "tracked": false
+    },
+    {
+      "path": "trials/horizon-incomplete/action_requests.jsonl",
+      "bytes": 1585,
+      "sha256": "d5455a21aac2eeb42f0dab76cd06de824957ebb37676679242164a59d33d122c",
+      "tracked": false
+    },
+    {
+      "path": "trials/horizon-incomplete/action_results.jsonl",
+      "bytes": 3347,
+      "sha256": "b49b2f5c9dae78a7db0eb11aa7e4e4e353384f1452e2c582bb32e015af9080bd",
+      "tracked": false
+    },
+    {
+      "path": "trials/horizon-incomplete/action_traces.jsonl",
+      "bytes": 6763,
+      "sha256": "4535cedf52e63d4014482e7793fe07fd6eea8002c914b2d964295faa41ccd861",
+      "tracked": false
+    },
+    {
+      "path": "trials/horizon-incomplete/activations.jsonl",
+      "bytes": 340,
+      "sha256": "e4ada03881c0f2ffd4eb565032b5299a0dc5b961b72ac1146e97ff64e19908fa",
+      "tracked": false
+    },
+    {
+      "path": "trials/horizon-incomplete/decisions.jsonl",
+      "bytes": 79551,
+      "sha256": "894d32eedbcb8cd41084106bacb5dbf93ed7d137a4bb74c12e320c4110312b2c",
+      "tracked": false
+    },
+    {
+      "path": "trials/horizon-incomplete/engine_report.json",
+      "bytes": 8875,
+      "sha256": "d9628b944fd10cfbfd58ecae5581b741b64cd86e970adbb4f0e61fd1d9058c23",
+      "tracked": false
+    },
+    {
+      "path": "trials/horizon-incomplete/event_traces.jsonl",
+      "bytes": 9537,
+      "sha256": "9b1441edea2fa6d0deef3445017855722e2414bf73abad883b7bf59ba4629e4c",
+      "tracked": false
+    },
+    {
+      "path": "trials/horizon-incomplete/events.jsonl",
+      "bytes": 2204,
+      "sha256": "fbf2164b426776aa6181710c1c5376fac219aefe2387d03c1c23bb0e43f92bfd",
+      "tracked": false
+    },
+    {
+      "path": "trials/horizon-incomplete/final_state.json",
+      "bytes": 3117,
+      "sha256": "872903f91989ced2622d59c6743fff4dabac6b25c3c9c6afae3e63ca8c6f6024",
+      "tracked": false
+    },
+    {
+      "path": "trials/horizon-incomplete/initial_knowledge.jsonl",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "tracked": false
+    },
+    {
+      "path": "trials/horizon-incomplete/initial_state.json",
+      "bytes": 3117,
+      "sha256": "872903f91989ced2622d59c6743fff4dabac6b25c3c9c6afae3e63ca8c6f6024",
+      "tracked": false
+    },
+    {
+      "path": "trials/horizon-incomplete/knowledge.jsonl",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "tracked": false
+    },
+    {
+      "path": "trials/horizon-incomplete/manifest.json",
+      "bytes": 4751,
+      "sha256": "3e0ece00f7ed9a4d57b25b010c6d54c97a574a2b47effec6098e2f215e1a91ca",
+      "tracked": false
+    },
+    {
+      "path": "trials/horizon-incomplete/metrics.json",
+      "bytes": 238,
+      "sha256": "bcf737b96eed2efe0478b3f56df051d1b49ac60dc2d8bec9170e15b5db80c000",
+      "tracked": false
+    },
+    {
+      "path": "trials/horizon-incomplete/observation_attempts.jsonl",
+      "bytes": 310,
+      "sha256": "39bdd18bc0fb20e98ff8e7ffc812fe19861bb1f22a54578c4f1442623d783cfa",
+      "tracked": false
+    },
+    {
+      "path": "trials/horizon-incomplete/observations.jsonl",
+      "bytes": 4990,
+      "sha256": "b1b1fdc2e57a7abcfc156177648c15ced9cb67cfcdf8db60ba2f34bd5831df01",
+      "tracked": false
+    },
+    {
+      "path": "trials/horizon-incomplete/replay_input.json",
+      "bytes": 1720,
+      "sha256": "938be31ff90556731e5e4f91bb24f6d456415c7ea78c94213082d96b45c265e3",
+      "tracked": false
+    },
+    {
+      "path": "trials/horizon-incomplete/system_event_outcomes.jsonl",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "tracked": false
+    },
+    {
+      "path": "trials/horizon-k1/action_requests.jsonl",
+      "bytes": 2229,
+      "sha256": "26c42289f7560a7462a96ee596fde32645f3fe8d0eeb08873105f9b0b1c626d2",
+      "tracked": false
+    },
+    {
+      "path": "trials/horizon-k1/action_results.jsonl",
+      "bytes": 4707,
+      "sha256": "49a721053e72edad58f7ed8c8ff7e35a0940e5bf49f851e2423df009935d6f3a",
+      "tracked": false
+    },
+    {
+      "path": "trials/horizon-k1/action_traces.jsonl",
+      "bytes": 9503,
+      "sha256": "ae13e4de4d91bf9439848140b80c9292a1bb37127a6176a969d2bea98ea34f25",
+      "tracked": false
+    },
+    {
+      "path": "trials/horizon-k1/activations.jsonl",
+      "bytes": 478,
+      "sha256": "f1d9b44b5ac89147aa25012dc344ec2d48bbcf7a7ab43badd2d0b1421207bffd",
+      "tracked": false
+    },
+    {
+      "path": "trials/horizon-k1/decisions.jsonl",
+      "bytes": 82763,
+      "sha256": "788a48de07b75d8234338d138d56ee0bc7f1b48eddc967a0da2940eeefb7061e",
+      "tracked": false
+    },
+    {
+      "path": "trials/horizon-k1/engine_report.json",
+      "bytes": 11337,
+      "sha256": "65e16be95847e8f163a53b93dff0828408dba7b8e6897aa01bcee2b705ae5654",
+      "tracked": false
+    },
+    {
+      "path": "trials/horizon-k1/event_traces.jsonl",
+      "bytes": 13287,
+      "sha256": "c77532dc9cb172c49e46fabc5066564ca8c68579e321d19f425b30c3ac642cef",
+      "tracked": false
+    },
+    {
+      "path": "trials/horizon-k1/events.jsonl",
+      "bytes": 3306,
+      "sha256": "3e14a2d695e27696c0d4ba156041e9cc4e35d030dd92c559b88db9c2e0bb5642",
+      "tracked": false
+    },
+    {
+      "path": "trials/horizon-k1/final_state.json",
+      "bytes": 3117,
+      "sha256": "872903f91989ced2622d59c6743fff4dabac6b25c3c9c6afae3e63ca8c6f6024",
+      "tracked": false
+    },
+    {
+      "path": "trials/horizon-k1/initial_knowledge.jsonl",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "tracked": false
+    },
+    {
+      "path": "trials/horizon-k1/initial_state.json",
+      "bytes": 3117,
+      "sha256": "872903f91989ced2622d59c6743fff4dabac6b25c3c9c6afae3e63ca8c6f6024",
+      "tracked": false
+    },
+    {
+      "path": "trials/horizon-k1/knowledge.jsonl",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "tracked": false
+    },
+    {
+      "path": "trials/horizon-k1/manifest.json",
+      "bytes": 4750,
+      "sha256": "3bf16b31570d560b431e72b46e3817ddc8c6a7408d02b0bcb9a900ffb32c3fa1",
+      "tracked": false
+    },
+    {
+      "path": "trials/horizon-k1/metrics.json",
+      "bytes": 233,
+      "sha256": "62d30c43032310f5467b7a90cd4a236749558d1d5f9d6e17e65901eca8b2a168",
+      "tracked": false
+    },
+    {
+      "path": "trials/horizon-k1/observation_attempts.jsonl",
+      "bytes": 436,
+      "sha256": "9bd72cb47498bb98b82f9ecce580fbadbfd8dc4b15a48910d9467f717fcf2588",
+      "tracked": false
+    },
+    {
+      "path": "trials/horizon-k1/observations.jsonl",
+      "bytes": 6904,
+      "sha256": "d160744dc590afe3feeb47b47451130567b6a6ce0e7795fa078860718260793c",
+      "tracked": false
+    },
+    {
+      "path": "trials/horizon-k1/replay_input.json",
+      "bytes": 2364,
+      "sha256": "bb8ceb20a78b2806c3c2aa74e732ec662352321fc950ca8fde5bd1c164ea5bdc",
+      "tracked": false
+    },
+    {
+      "path": "trials/horizon-k1/system_event_outcomes.jsonl",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "tracked": false
+    },
+    {
+      "path": "trials/horizon-k2/action_requests.jsonl",
+      "bytes": 2229,
+      "sha256": "26c42289f7560a7462a96ee596fde32645f3fe8d0eeb08873105f9b0b1c626d2",
+      "tracked": false
+    },
+    {
+      "path": "trials/horizon-k2/action_results.jsonl",
+      "bytes": 4707,
+      "sha256": "49a721053e72edad58f7ed8c8ff7e35a0940e5bf49f851e2423df009935d6f3a",
+      "tracked": false
+    },
+    {
+      "path": "trials/horizon-k2/action_traces.jsonl",
+      "bytes": 9503,
+      "sha256": "ae13e4de4d91bf9439848140b80c9292a1bb37127a6176a969d2bea98ea34f25",
+      "tracked": false
+    },
+    {
+      "path": "trials/horizon-k2/activations.jsonl",
+      "bytes": 478,
+      "sha256": "f1d9b44b5ac89147aa25012dc344ec2d48bbcf7a7ab43badd2d0b1421207bffd",
+      "tracked": false
+    },
+    {
+      "path": "trials/horizon-k2/decisions.jsonl",
+      "bytes": 104341,
+      "sha256": "ce1ad9becdfd8f2170e6342557618c42ecec08c8db5a818de726b779ff666bb1",
+      "tracked": false
+    },
+    {
+      "path": "trials/horizon-k2/engine_report.json",
+      "bytes": 11337,
+      "sha256": "65e16be95847e8f163a53b93dff0828408dba7b8e6897aa01bcee2b705ae5654",
+      "tracked": false
+    },
+    {
+      "path": "trials/horizon-k2/event_traces.jsonl",
+      "bytes": 13287,
+      "sha256": "c77532dc9cb172c49e46fabc5066564ca8c68579e321d19f425b30c3ac642cef",
+      "tracked": false
+    },
+    {
+      "path": "trials/horizon-k2/events.jsonl",
+      "bytes": 3306,
+      "sha256": "3e14a2d695e27696c0d4ba156041e9cc4e35d030dd92c559b88db9c2e0bb5642",
+      "tracked": false
+    },
+    {
+      "path": "trials/horizon-k2/final_state.json",
+      "bytes": 3117,
+      "sha256": "872903f91989ced2622d59c6743fff4dabac6b25c3c9c6afae3e63ca8c6f6024",
+      "tracked": false
+    },
+    {
+      "path": "trials/horizon-k2/initial_knowledge.jsonl",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "tracked": false
+    },
+    {
+      "path": "trials/horizon-k2/initial_state.json",
+      "bytes": 3117,
+      "sha256": "872903f91989ced2622d59c6743fff4dabac6b25c3c9c6afae3e63ca8c6f6024",
+      "tracked": false
+    },
+    {
+      "path": "trials/horizon-k2/knowledge.jsonl",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "tracked": false
+    },
+    {
+      "path": "trials/horizon-k2/manifest.json",
+      "bytes": 4751,
+      "sha256": "0b3055b12d86d3db0adb3315d6452b3dddaff723da0d8fdffd03cdd596655a1a",
+      "tracked": false
+    },
+    {
+      "path": "trials/horizon-k2/metrics.json",
+      "bytes": 233,
+      "sha256": "62d30c43032310f5467b7a90cd4a236749558d1d5f9d6e17e65901eca8b2a168",
+      "tracked": false
+    },
+    {
+      "path": "trials/horizon-k2/observation_attempts.jsonl",
+      "bytes": 436,
+      "sha256": "9bd72cb47498bb98b82f9ecce580fbadbfd8dc4b15a48910d9467f717fcf2588",
+      "tracked": false
+    },
+    {
+      "path": "trials/horizon-k2/observations.jsonl",
+      "bytes": 6904,
+      "sha256": "d160744dc590afe3feeb47b47451130567b6a6ce0e7795fa078860718260793c",
+      "tracked": false
+    },
+    {
+      "path": "trials/horizon-k2/replay_input.json",
+      "bytes": 2364,
+      "sha256": "bb8ceb20a78b2806c3c2aa74e732ec662352321fc950ca8fde5bd1c164ea5bdc",
+      "tracked": false
+    },
+    {
+      "path": "trials/horizon-k2/system_event_outcomes.jsonl",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "tracked": false
+    },
+    {
+      "path": "trials/horizon-k3/action_requests.jsonl",
+      "bytes": 2229,
+      "sha256": "26c42289f7560a7462a96ee596fde32645f3fe8d0eeb08873105f9b0b1c626d2",
+      "tracked": false
+    },
+    {
+      "path": "trials/horizon-k3/action_results.jsonl",
+      "bytes": 4707,
+      "sha256": "49a721053e72edad58f7ed8c8ff7e35a0940e5bf49f851e2423df009935d6f3a",
+      "tracked": false
+    },
+    {
+      "path": "trials/horizon-k3/action_traces.jsonl",
+      "bytes": 9503,
+      "sha256": "ae13e4de4d91bf9439848140b80c9292a1bb37127a6176a969d2bea98ea34f25",
+      "tracked": false
+    },
+    {
+      "path": "trials/horizon-k3/activations.jsonl",
+      "bytes": 478,
+      "sha256": "f1d9b44b5ac89147aa25012dc344ec2d48bbcf7a7ab43badd2d0b1421207bffd",
+      "tracked": false
+    },
+    {
+      "path": "trials/horizon-k3/decisions.jsonl",
+      "bytes": 121229,
+      "sha256": "62bbcd35e9b3bcc82e509dbb6b201f90f1932446cb7b2d6389542e10afab454c",
+      "tracked": false
+    },
+    {
+      "path": "trials/horizon-k3/engine_report.json",
+      "bytes": 11337,
+      "sha256": "65e16be95847e8f163a53b93dff0828408dba7b8e6897aa01bcee2b705ae5654",
+      "tracked": false
+    },
+    {
+      "path": "trials/horizon-k3/event_traces.jsonl",
+      "bytes": 13287,
+      "sha256": "c77532dc9cb172c49e46fabc5066564ca8c68579e321d19f425b30c3ac642cef",
+      "tracked": false
+    },
+    {
+      "path": "trials/horizon-k3/events.jsonl",
+      "bytes": 3306,
+      "sha256": "3e14a2d695e27696c0d4ba156041e9cc4e35d030dd92c559b88db9c2e0bb5642",
+      "tracked": false
+    },
+    {
+      "path": "trials/horizon-k3/final_state.json",
+      "bytes": 3117,
+      "sha256": "872903f91989ced2622d59c6743fff4dabac6b25c3c9c6afae3e63ca8c6f6024",
+      "tracked": false
+    },
+    {
+      "path": "trials/horizon-k3/initial_knowledge.jsonl",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "tracked": false
+    },
+    {
+      "path": "trials/horizon-k3/initial_state.json",
+      "bytes": 3117,
+      "sha256": "872903f91989ced2622d59c6743fff4dabac6b25c3c9c6afae3e63ca8c6f6024",
+      "tracked": false
+    },
+    {
+      "path": "trials/horizon-k3/knowledge.jsonl",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "tracked": false
+    },
+    {
+      "path": "trials/horizon-k3/manifest.json",
+      "bytes": 4736,
+      "sha256": "552dedfacb5ba2c61c4984b5b99ee8d0d4d399060f4351ccd46481aee2cb74a3",
+      "tracked": false
+    },
+    {
+      "path": "trials/horizon-k3/metrics.json",
+      "bytes": 233,
+      "sha256": "62d30c43032310f5467b7a90cd4a236749558d1d5f9d6e17e65901eca8b2a168",
+      "tracked": false
+    },
+    {
+      "path": "trials/horizon-k3/observation_attempts.jsonl",
+      "bytes": 436,
+      "sha256": "9bd72cb47498bb98b82f9ecce580fbadbfd8dc4b15a48910d9467f717fcf2588",
+      "tracked": false
+    },
+    {
+      "path": "trials/horizon-k3/observations.jsonl",
+      "bytes": 6904,
+      "sha256": "d160744dc590afe3feeb47b47451130567b6a6ce0e7795fa078860718260793c",
+      "tracked": false
+    },
+    {
+      "path": "trials/horizon-k3/replay_input.json",
+      "bytes": 2364,
+      "sha256": "bb8ceb20a78b2806c3c2aa74e732ec662352321fc950ca8fde5bd1c164ea5bdc",
+      "tracked": false
+    },
+    {
+      "path": "trials/horizon-k3/system_event_outcomes.jsonl",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "tracked": false
+    },
+    {
+      "path": "trials/horizon-none/action_requests.jsonl",
+      "bytes": 2229,
+      "sha256": "26c42289f7560a7462a96ee596fde32645f3fe8d0eeb08873105f9b0b1c626d2",
+      "tracked": false
+    },
+    {
+      "path": "trials/horizon-none/action_results.jsonl",
+      "bytes": 4707,
+      "sha256": "49a721053e72edad58f7ed8c8ff7e35a0940e5bf49f851e2423df009935d6f3a",
+      "tracked": false
+    },
+    {
+      "path": "trials/horizon-none/action_traces.jsonl",
+      "bytes": 9503,
+      "sha256": "ae13e4de4d91bf9439848140b80c9292a1bb37127a6176a969d2bea98ea34f25",
+      "tracked": false
+    },
+    {
+      "path": "trials/horizon-none/activations.jsonl",
+      "bytes": 478,
+      "sha256": "f1d9b44b5ac89147aa25012dc344ec2d48bbcf7a7ab43badd2d0b1421207bffd",
+      "tracked": false
+    },
+    {
+      "path": "trials/horizon-none/decisions.jsonl",
+      "bytes": 57286,
+      "sha256": "488dc35875d1dd70dab2c444fe82b8640a541d7b5c293476f6f626744de771c2",
+      "tracked": false
+    },
+    {
+      "path": "trials/horizon-none/engine_report.json",
+      "bytes": 11337,
+      "sha256": "65e16be95847e8f163a53b93dff0828408dba7b8e6897aa01bcee2b705ae5654",
+      "tracked": false
+    },
+    {
+      "path": "trials/horizon-none/event_traces.jsonl",
+      "bytes": 13287,
+      "sha256": "c77532dc9cb172c49e46fabc5066564ca8c68579e321d19f425b30c3ac642cef",
+      "tracked": false
+    },
+    {
+      "path": "trials/horizon-none/events.jsonl",
+      "bytes": 3306,
+      "sha256": "3e14a2d695e27696c0d4ba156041e9cc4e35d030dd92c559b88db9c2e0bb5642",
+      "tracked": false
+    },
+    {
+      "path": "trials/horizon-none/final_state.json",
+      "bytes": 3117,
+      "sha256": "872903f91989ced2622d59c6743fff4dabac6b25c3c9c6afae3e63ca8c6f6024",
+      "tracked": false
+    },
+    {
+      "path": "trials/horizon-none/initial_knowledge.jsonl",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "tracked": false
+    },
+    {
+      "path": "trials/horizon-none/initial_state.json",
+      "bytes": 3117,
+      "sha256": "872903f91989ced2622d59c6743fff4dabac6b25c3c9c6afae3e63ca8c6f6024",
+      "tracked": false
+    },
+    {
+      "path": "trials/horizon-none/knowledge.jsonl",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "tracked": false
+    },
+    {
+      "path": "trials/horizon-none/manifest.json",
+      "bytes": 4732,
+      "sha256": "71ad391d9eb66527e85cbdf8367406571beb269c697e881ac2416722a20e4c5f",
+      "tracked": false
+    },
+    {
+      "path": "trials/horizon-none/metrics.json",
+      "bytes": 233,
+      "sha256": "62d30c43032310f5467b7a90cd4a236749558d1d5f9d6e17e65901eca8b2a168",
+      "tracked": false
+    },
+    {
+      "path": "trials/horizon-none/observation_attempts.jsonl",
+      "bytes": 436,
+      "sha256": "9bd72cb47498bb98b82f9ecce580fbadbfd8dc4b15a48910d9467f717fcf2588",
+      "tracked": false
+    },
+    {
+      "path": "trials/horizon-none/observations.jsonl",
+      "bytes": 6904,
+      "sha256": "d160744dc590afe3feeb47b47451130567b6a6ce0e7795fa078860718260793c",
+      "tracked": false
+    },
+    {
+      "path": "trials/horizon-none/replay_input.json",
+      "bytes": 2364,
+      "sha256": "bb8ceb20a78b2806c3c2aa74e732ec662352321fc950ca8fde5bd1c164ea5bdc",
+      "tracked": false
+    },
+    {
+      "path": "trials/horizon-none/system_event_outcomes.jsonl",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "tracked": false
+    },
+    {
+      "path": "trials/horizon-repeat/action_requests.jsonl",
+      "bytes": 2870,
+      "sha256": "bf907dbe1e9a617a6d5243c6f5208d9a2977804499121eb2021cbf2a5b85b50d",
+      "tracked": false
+    },
+    {
+      "path": "trials/horizon-repeat/action_results.jsonl",
+      "bytes": 6067,
+      "sha256": "ea2ea2ea903856fffcf30f832fb361f00e1f90f9b3e6cc91cd4dbd5c15e4a4b2",
+      "tracked": false
+    },
+    {
+      "path": "trials/horizon-repeat/action_traces.jsonl",
+      "bytes": 12240,
+      "sha256": "52c551489ea25f326af44551da9a7796a48894323c6587c997cb000c1f47510f",
+      "tracked": false
+    },
+    {
+      "path": "trials/horizon-repeat/activations.jsonl",
+      "bytes": 616,
+      "sha256": "a7dfc6d40105fc6660375e2e516871ff0dfd9f34492a723f6557020d6bd1b2ae",
+      "tracked": false
+    },
+    {
+      "path": "trials/horizon-repeat/decisions.jsonl",
+      "bytes": 162897,
+      "sha256": "53230f51562ce8af48459e22881a54ad28323b430dc7101bf7acd2de8171449b",
+      "tracked": false
+    },
+    {
+      "path": "trials/horizon-repeat/engine_report.json",
+      "bytes": 13795,
+      "sha256": "b589128be0a2d65222e1a554f3972965ffaa9bc59453ff8cc3d0bc8688a9e714",
+      "tracked": false
+    },
+    {
+      "path": "trials/horizon-repeat/event_traces.jsonl",
+      "bytes": 17032,
+      "sha256": "da289643f574de93c0cacfc3d22b6fce16e966c9b8a775c10961782f303edcb4",
+      "tracked": false
+    },
+    {
+      "path": "trials/horizon-repeat/events.jsonl",
+      "bytes": 4404,
+      "sha256": "bcb7445c66fe44ebf1adb221167ea9a667118656e91eb5142aa2ba7b90e64bd5",
+      "tracked": false
+    },
+    {
+      "path": "trials/horizon-repeat/final_state.json",
+      "bytes": 3117,
+      "sha256": "872903f91989ced2622d59c6743fff4dabac6b25c3c9c6afae3e63ca8c6f6024",
+      "tracked": false
+    },
+    {
+      "path": "trials/horizon-repeat/initial_knowledge.jsonl",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "tracked": false
+    },
+    {
+      "path": "trials/horizon-repeat/initial_state.json",
+      "bytes": 3117,
+      "sha256": "872903f91989ced2622d59c6743fff4dabac6b25c3c9c6afae3e63ca8c6f6024",
+      "tracked": false
+    },
+    {
+      "path": "trials/horizon-repeat/knowledge.jsonl",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "tracked": false
+    },
+    {
+      "path": "trials/horizon-repeat/manifest.json",
+      "bytes": 4751,
+      "sha256": "8551d5fd44c37012001aedb0040828b2015ddd56e00dd482d9ce0331e696d38b",
+      "tracked": false
+    },
+    {
+      "path": "trials/horizon-repeat/metrics.json",
+      "bytes": 234,
+      "sha256": "294039f4f9ce607f2460999dc476ecdf33d737594dba01ac4984ff64f443aea5",
+      "tracked": false
+    },
+    {
+      "path": "trials/horizon-repeat/observation_attempts.jsonl",
+      "bytes": 562,
+      "sha256": "acb540f69258688a74252f7958c38ae744be67a722d94f36b8247a060445e430",
+      "tracked": false
+    },
+    {
+      "path": "trials/horizon-repeat/observations.jsonl",
+      "bytes": 8816,
+      "sha256": "b8655f9c0b755fa51b86bbbdd222d637ce36491c4976866503e0589a26cab8ff",
+      "tracked": false
+    },
+    {
+      "path": "trials/horizon-repeat/replay_input.json",
+      "bytes": 3005,
+      "sha256": "d4bf56847006b956c0bf9aac2159a13aa8ad49e5f101255a2fcd779470dd5a34",
+      "tracked": false
+    },
+    {
+      "path": "trials/horizon-repeat/system_event_outcomes.jsonl",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "tracked": false
+    },
+    {
+      "path": "trials/window-k1/action_requests.jsonl",
+      "bytes": 7068,
+      "sha256": "7ddd0305465061ae5d8010056a14a6a2fa30990bf1f03e78e72d3a86cc72ee51",
+      "tracked": false
+    },
+    {
+      "path": "trials/window-k1/action_results.jsonl",
+      "bytes": 13449,
+      "sha256": "8e2e5cb0ee5f33683604095e43eadfa62d4c08dfd254704b230cfb54f4f17417",
+      "tracked": false
+    },
+    {
+      "path": "trials/window-k1/action_traces.jsonl",
+      "bytes": 28401,
+      "sha256": "b71fde8794d6d0639aeb0e4bad55c0aa9ca29137c9fed52111eacf5c9fbe8605",
+      "tracked": false
+    },
+    {
+      "path": "trials/window-k1/activations.jsonl",
+      "bytes": 7003,
+      "sha256": "f4f83e6e87182dbd26b9be22381372192a59ec09e9343e9c6f0cdd071b73841c",
+      "tracked": false
+    },
+    {
+      "path": "trials/window-k1/decisions.jsonl",
+      "bytes": 272553,
+      "sha256": "37460b024fa0bbe2c2ab684f66f3b648f868d77d3dd773c4d35f5c14f6b55b7a",
+      "tracked": false
+    },
+    {
+      "path": "trials/window-k1/engine_report.json",
+      "bytes": 104286,
+      "sha256": "09cc716f37a9f487dcc944866ae6ddb570f98025f66a420af24845542cc0fd8a",
+      "tracked": false
+    },
+    {
+      "path": "trials/window-k1/event_traces.jsonl",
+      "bytes": 51473,
+      "sha256": "495b703712e0468958acf3310a5ac1be5145b408535bbb5b8afc7c30c1bdb971",
+      "tracked": false
+    },
+    {
+      "path": "trials/window-k1/events.jsonl",
+      "bytes": 69838,
+      "sha256": "5ecb6bb03adf3e0baf698cbb619a329131de5966e4c6550b05c1fcdb5557feb3",
+      "tracked": false
+    },
+    {
+      "path": "trials/window-k1/final_state.json",
+      "bytes": 3716,
+      "sha256": "9bc5931dc1d354284dbcbad867c95af2cab465aae3401221634c4e62f1ef04d1",
+      "tracked": false
+    },
+    {
+      "path": "trials/window-k1/initial_knowledge.jsonl",
+      "bytes": 2116,
+      "sha256": "25db0e968f8534f6f8b7618db05659820fb50aec7878997d512476f7d0423773",
+      "tracked": false
+    },
+    {
+      "path": "trials/window-k1/initial_state.json",
+      "bytes": 3694,
+      "sha256": "4631da1d65574983257cd8192b1db08d7336788fe9551b4ef568764931e5c23f",
+      "tracked": false
+    },
+    {
+      "path": "trials/window-k1/knowledge.jsonl",
+      "bytes": 3426,
+      "sha256": "1052402e0e604051bdf972868f30462d0fe64bce780aa230016bc5710024fde4",
+      "tracked": false
+    },
+    {
+      "path": "trials/window-k1/manifest.json",
+      "bytes": 4893,
+      "sha256": "db2dfd141e3f47241838a16732d17b714eb3280a30e4a8c41a21d1e589130cbf",
+      "tracked": false
+    },
+    {
+      "path": "trials/window-k1/metrics.json",
+      "bytes": 3496,
+      "sha256": "d8cf4c2de45120b69e6ea0d365e1157bb89b9f706b2e2d469a29335062b73b55",
+      "tracked": false
+    },
+    {
+      "path": "trials/window-k1/observation_attempts.jsonl",
+      "bytes": 1367,
+      "sha256": "89c7ff7febd0d5d851d4d7d028dc267fc0995a23d8379bc04eebb85f7c446bd9",
+      "tracked": false
+    },
+    {
+      "path": "trials/window-k1/observations.jsonl",
+      "bytes": 71721,
+      "sha256": "aabe0bdcbd7734cf8ff70650840409971ce1af6aa71b3ad21590258bda2f1b8d",
+      "tracked": false
+    },
+    {
+      "path": "trials/window-k1/replay_input.json",
+      "bytes": 10012,
+      "sha256": "49dc17cd3b976d0bd267fb5a2ff3d0f3925a8af81aa1be2f6eb244eaee708dcc",
+      "tracked": false
+    },
+    {
+      "path": "trials/window-k1/system_event_outcomes.jsonl",
+      "bytes": 17077,
+      "sha256": "d8dafd814ccac06011c02c16563250dbf4245306a810dd77ed53873b7e0e7976",
+      "tracked": false
+    },
+    {
+      "path": "trials/window-k2/action_requests.jsonl",
+      "bytes": 7068,
+      "sha256": "af82d2382d2cafb30fd525aac7e47a976192503880c89db16a6698a57cef8f68",
+      "tracked": false
+    },
+    {
+      "path": "trials/window-k2/action_results.jsonl",
+      "bytes": 13449,
+      "sha256": "02ff5c3769c2fe91b09941cf0dea49e201036bcdc57d333180f9f358a084ea55",
+      "tracked": false
+    },
+    {
+      "path": "trials/window-k2/action_traces.jsonl",
+      "bytes": 28401,
+      "sha256": "d07c3d2cc99b4f4f71e5744d863b82dc22ed262362f9d6e5772a8d4945ba3e02",
+      "tracked": false
+    },
+    {
+      "path": "trials/window-k2/activations.jsonl",
+      "bytes": 7003,
+      "sha256": "a153d398258fd73adf85394045135b15a462b0108d2f71f2bfb6cebdcfb89f55",
+      "tracked": false
+    },
+    {
+      "path": "trials/window-k2/decisions.jsonl",
+      "bytes": 367711,
+      "sha256": "3b66e6d01f8fbc9d82cbde0e34c22ed6bb324207b27c273ff1661c87db0bd7c5",
+      "tracked": false
+    },
+    {
+      "path": "trials/window-k2/engine_report.json",
+      "bytes": 104286,
+      "sha256": "bb873452acbe034eb1e9f4e42a90821a81c8c5a9b7d5544210f86a6c390b027f",
+      "tracked": false
+    },
+    {
+      "path": "trials/window-k2/event_traces.jsonl",
+      "bytes": 51473,
+      "sha256": "b50ac827832f942557053b8d3db010d00c6c3f9a6a7e6295da93ce91ee197fa9",
+      "tracked": false
+    },
+    {
+      "path": "trials/window-k2/events.jsonl",
+      "bytes": 69838,
+      "sha256": "f72e5bb42de248d6d1d24555210462597be2951ad0fb74adb2c2f83ee3f78c41",
+      "tracked": false
+    },
+    {
+      "path": "trials/window-k2/final_state.json",
+      "bytes": 3716,
+      "sha256": "9bc5931dc1d354284dbcbad867c95af2cab465aae3401221634c4e62f1ef04d1",
+      "tracked": false
+    },
+    {
+      "path": "trials/window-k2/initial_knowledge.jsonl",
+      "bytes": 2116,
+      "sha256": "ef0711cc3faa31bc7c631c53b8026662c4411fa923092b26ecdf9970b8a29251",
+      "tracked": false
+    },
+    {
+      "path": "trials/window-k2/initial_state.json",
+      "bytes": 3694,
+      "sha256": "4631da1d65574983257cd8192b1db08d7336788fe9551b4ef568764931e5c23f",
+      "tracked": false
+    },
+    {
+      "path": "trials/window-k2/knowledge.jsonl",
+      "bytes": 3426,
+      "sha256": "89426c9cd7f8e5df84cf755604b13b0883661c23e121ab306572eccc541cb595",
+      "tracked": false
+    },
+    {
+      "path": "trials/window-k2/manifest.json",
+      "bytes": 4909,
+      "sha256": "1b3f12076696603ab6e43c05749dc14d97496abe069a2f467ad65f1574807a8f",
+      "tracked": false
+    },
+    {
+      "path": "trials/window-k2/metrics.json",
+      "bytes": 3496,
+      "sha256": "e7a2563fc6a637c175940ff0769cd981be93375dd8587e76dadcfbbef677040b",
+      "tracked": false
+    },
+    {
+      "path": "trials/window-k2/observation_attempts.jsonl",
+      "bytes": 1367,
+      "sha256": "89c7ff7febd0d5d851d4d7d028dc267fc0995a23d8379bc04eebb85f7c446bd9",
+      "tracked": false
+    },
+    {
+      "path": "trials/window-k2/observations.jsonl",
+      "bytes": 71721,
+      "sha256": "9957ffc86a2da497427270ec12a75ba786fc747ceec6214d9676ae87abea6bf1",
+      "tracked": false
+    },
+    {
+      "path": "trials/window-k2/replay_input.json",
+      "bytes": 10012,
+      "sha256": "0686388d6dbd7e85f51655b959061fb865aec2d0ef6f3b0ea4e991c8761b84bc",
+      "tracked": false
+    },
+    {
+      "path": "trials/window-k2/system_event_outcomes.jsonl",
+      "bytes": 17077,
+      "sha256": "28405878c261bb5c12d1d02225c1db01d5cd6226a2e88fb35096519e96cf76f2",
+      "tracked": false
+    },
+    {
+      "path": "trials/window-k3/action_requests.jsonl",
+      "bytes": 7068,
+      "sha256": "28c43940d2bdf7b6cb745384f194cd64c5b495779e655296d3734ce2220d4c96",
+      "tracked": false
+    },
+    {
+      "path": "trials/window-k3/action_results.jsonl",
+      "bytes": 13449,
+      "sha256": "b3fa5a25e27fad4e07f10c9701f05663bf053a6d7b4319094aa08f783f8c4273",
+      "tracked": false
+    },
+    {
+      "path": "trials/window-k3/action_traces.jsonl",
+      "bytes": 28401,
+      "sha256": "ad2bd620c989535c66f34d92a85808f5d3529c9e2db4bde834558579801089ae",
+      "tracked": false
+    },
+    {
+      "path": "trials/window-k3/activations.jsonl",
+      "bytes": 7003,
+      "sha256": "68d01bfa57276e1854e1ffd9f8f5a8b81dc26867982651fcc01e0fcba7fa3293",
+      "tracked": false
+    },
+    {
+      "path": "trials/window-k3/decisions.jsonl",
+      "bytes": 452172,
+      "sha256": "77ec9b0ea6b963c3b05e488a8d9e08f1aa05493973c32b6867b5056e7ad52d17",
+      "tracked": false
+    },
+    {
+      "path": "trials/window-k3/engine_report.json",
+      "bytes": 104286,
+      "sha256": "6fb70f68c477ed1b58664ec221d6deed4817c7e9284cf81a890b0ab66ea493a3",
+      "tracked": false
+    },
+    {
+      "path": "trials/window-k3/event_traces.jsonl",
+      "bytes": 51473,
+      "sha256": "a4b19ebccfc2cb292244abf4440697b7f6c367a9b37a8b7152273797afea5846",
+      "tracked": false
+    },
+    {
+      "path": "trials/window-k3/events.jsonl",
+      "bytes": 69838,
+      "sha256": "d5406b49c0d99ef1b522e228b435c6156e622acbcf78cb0e15450c7e044926cf",
+      "tracked": false
+    },
+    {
+      "path": "trials/window-k3/final_state.json",
+      "bytes": 3716,
+      "sha256": "9bc5931dc1d354284dbcbad867c95af2cab465aae3401221634c4e62f1ef04d1",
+      "tracked": false
+    },
+    {
+      "path": "trials/window-k3/initial_knowledge.jsonl",
+      "bytes": 2116,
+      "sha256": "a7faf4e51a4dd9d53f8ac51b54605cbebca4c6600601e2af52c675e5eda6c67d",
+      "tracked": false
+    },
+    {
+      "path": "trials/window-k3/initial_state.json",
+      "bytes": 3694,
+      "sha256": "4631da1d65574983257cd8192b1db08d7336788fe9551b4ef568764931e5c23f",
+      "tracked": false
+    },
+    {
+      "path": "trials/window-k3/knowledge.jsonl",
+      "bytes": 3426,
+      "sha256": "c8c1526b47c6358dc8c49bfe3aca8edd276d0f175964b37bc67b3a07fedeb28b",
+      "tracked": false
+    },
+    {
+      "path": "trials/window-k3/manifest.json",
+      "bytes": 4908,
+      "sha256": "c553ede13f4f5f4b9dd3dba4b1a300a64768481eaf9aee5751f7d4312167ec51",
+      "tracked": false
+    },
+    {
+      "path": "trials/window-k3/metrics.json",
+      "bytes": 3512,
+      "sha256": "38d5d6e0f193f939e0f367e6b038184b86211169c990892f11ddbce90d111745",
+      "tracked": false
+    },
+    {
+      "path": "trials/window-k3/observation_attempts.jsonl",
+      "bytes": 1367,
+      "sha256": "89c7ff7febd0d5d851d4d7d028dc267fc0995a23d8379bc04eebb85f7c446bd9",
+      "tracked": false
+    },
+    {
+      "path": "trials/window-k3/observations.jsonl",
+      "bytes": 71721,
+      "sha256": "6ade69217b3b5e7dff20c0d0261a937b2164461820ebb5d47bbdd9656a048ceb",
+      "tracked": false
+    },
+    {
+      "path": "trials/window-k3/replay_input.json",
+      "bytes": 10012,
+      "sha256": "385a240f9798e413fa9c4edfabe843e279daaa91ae8ee07132e7eacf234808c9",
+      "tracked": false
+    },
+    {
+      "path": "trials/window-k3/system_event_outcomes.jsonl",
+      "bytes": 17077,
+      "sha256": "b2846195ebf045e40c722d206053f25310641c306f575e3fc47c6c110318079d",
+      "tracked": false
+    },
+    {
+      "path": "trials/window-none/action_requests.jsonl",
+      "bytes": 7210,
+      "sha256": "25b99ca200c6e5ffcf3a9fcad124fddfbc4f069200a08968d4a64d13c46e6d11",
+      "tracked": false
+    },
+    {
+      "path": "trials/window-none/action_results.jsonl",
+      "bytes": 13723,
+      "sha256": "eb47f65d34fe423a01237b5f55d82a7902d8023425e52b39905e98f1b333f424",
+      "tracked": false
+    },
+    {
+      "path": "trials/window-none/action_traces.jsonl",
+      "bytes": 28905,
+      "sha256": "48e09df7e69598b1dff4fc060f5fa6ed4e51c98ee76f6a4c881feba7f30b0fa0",
+      "tracked": false
+    },
+    {
+      "path": "trials/window-none/activations.jsonl",
+      "bytes": 7111,
+      "sha256": "b8a86b384350886ada4b5cf8c7af7824a949c88586a2ce55d6fdf6dca530d5eb",
+      "tracked": false
+    },
+    {
+      "path": "trials/window-none/decisions.jsonl",
+      "bytes": 167557,
+      "sha256": "155f604ed124a9157e08bc9e28b9b785062f6189c552d626d0abff8f952ed151",
+      "tracked": false
+    },
+    {
+      "path": "trials/window-none/engine_report.json",
+      "bytes": 106744,
+      "sha256": "e93a31c17e0c926a427a69decf2540a869a2f7c2208bd4d7768b7f7c85c19d53",
+      "tracked": false
+    },
+    {
+      "path": "trials/window-none/event_traces.jsonl",
+      "bytes": 52021,
+      "sha256": "d8eb9c105e6a73c5734e99708663caa13c91b886da0d16d879fdef255bb7261c",
+      "tracked": false
+    },
+    {
+      "path": "trials/window-none/events.jsonl",
+      "bytes": 71480,
+      "sha256": "8a9d9f2e42e216e86187ece3c44f69831f81e72784e9d1152a85d5398af5ef60",
+      "tracked": false
+    },
+    {
+      "path": "trials/window-none/final_state.json",
+      "bytes": 3716,
+      "sha256": "9bc5931dc1d354284dbcbad867c95af2cab465aae3401221634c4e62f1ef04d1",
+      "tracked": false
+    },
+    {
+      "path": "trials/window-none/initial_knowledge.jsonl",
+      "bytes": 2140,
+      "sha256": "eae0e9a9ade75b3cd6f5179d85a1cd287513bcd254dcd21da9a6f1ee400e8cb3",
+      "tracked": false
+    },
+    {
+      "path": "trials/window-none/initial_state.json",
+      "bytes": 3694,
+      "sha256": "4631da1d65574983257cd8192b1db08d7336788fe9551b4ef568764931e5c23f",
+      "tracked": false
+    },
+    {
+      "path": "trials/window-none/knowledge.jsonl",
+      "bytes": 3474,
+      "sha256": "2f58ac2db6f5740870b8dc68adac406ba966a467ae5c196155a0c547b3054bc9",
+      "tracked": false
+    },
+    {
+      "path": "trials/window-none/manifest.json",
+      "bytes": 4880,
+      "sha256": "47868fef5fc597fa993d17b0e5a872fff4b201709bbea5f5ce9e32e1037198bd",
+      "tracked": false
+    },
+    {
+      "path": "trials/window-none/metrics.json",
+      "bytes": 3545,
+      "sha256": "a669459cb6a6fe1bd474bf9ec29dadde8c7255502d199014183a7563e596d12c",
+      "tracked": false
+    },
+    {
+      "path": "trials/window-none/observation_attempts.jsonl",
+      "bytes": 1367,
+      "sha256": "b57ce388255843d2eb70685b4f0f040467759cf60bb4761796715052d7ee1bb6",
+      "tracked": false
+    },
+    {
+      "path": "trials/window-none/observations.jsonl",
+      "bytes": 72335,
+      "sha256": "13f5e01f6575b52e7e6f3cc21c05629426576e12d2f9e59063eb2178f90047d9",
+      "tracked": false
+    },
+    {
+      "path": "trials/window-none/replay_input.json",
+      "bytes": 10154,
+      "sha256": "4bc079a051d4b39c37f5cd41c059a3f80569bc7d002c6b35cdb737f60fa8560f",
+      "tracked": false
+    },
+    {
+      "path": "trials/window-none/system_event_outcomes.jsonl",
+      "bytes": 17619,
+      "sha256": "6d7e78722f875c5d41d19792125be7b64bff3d19e4c0b1ad26a9b9f63ac57ff0",
+      "tracked": false
+    }
+  ],
+  "excluded": [
+    ".git (private local metadata archive)",
+    "rebuildable virtualenvs and caches",
+    "backup output directory"
+  ],
+  "secret_review": "Detected literals were manually verified as synthetic test fixtures; no live credential found. Known environment credential values checked without printing or persisting values."
+}

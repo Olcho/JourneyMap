@@ -1,0 +1,668 @@
+{
+  "source_label": "broken",
+  "source_path": "C:\\Users\\USER\\Documents\\JourneyMap-broken-20260911",
+  "date_kst": "2026-10-17",
+  "archive": {
+    "file": "broken-files.zip",
+    "files": 108,
+    "original_bytes": 651384,
+    "zip_bytes": 168509,
+    "sha256": "2034360d55a50540ef386199ec8768122b8bbca10490ba03dd119b539e96716b"
+  },
+  "files": [
+    {
+      "path": ".github/workflows/ci.yml",
+      "bytes": 586,
+      "sha256": "bdfd27c06829aa59169727af8b692975a8d1a95c4509e74388f26ccfc41351aa",
+      "tracked": false
+    },
+    {
+      "path": ".gitignore",
+      "bytes": 200,
+      "sha256": "ba4223e492991a39df343defbc982d4a5053f0a4a166e45d56603738f8ed18eb",
+      "tracked": false
+    },
+    {
+      "path": "AGENTS.md",
+      "bytes": 2045,
+      "sha256": "821c90cf8a661c9023077644662064c765da22909b7d3b2d650ff16fbf667786",
+      "tracked": false
+    },
+    {
+      "path": "README.md",
+      "bytes": 6151,
+      "sha256": "98cdf2d403354f57a2a68729ab32ac0e81356036a38f475b4e92c762d89a0013",
+      "tracked": false
+    },
+    {
+      "path": "docs/API.md",
+      "bytes": 39383,
+      "sha256": "6ec3939d29ef10853897736105e735582d46667a7c700e49c344318ec4cef2e3",
+      "tracked": false
+    },
+    {
+      "path": "docs/ARCHITECTURE.md",
+      "bytes": 35378,
+      "sha256": "5e3cf7fa6f41800928980bfe45e65dc3a64a35f7515902613034cb67cbdf2504",
+      "tracked": false
+    },
+    {
+      "path": "docs/ERD.md",
+      "bytes": 22848,
+      "sha256": "3c9883ddd7f38042258629102bdb293bda6560cfeea174ec9a64f8d32d9bf5e9",
+      "tracked": false
+    },
+    {
+      "path": "docs/JOURNEYMAP_0.1_SPEC.md",
+      "bytes": 13806,
+      "sha256": "6af2e4a6958b1d9096b15cda3199657695e38b36d7732e8a1b819dbe3e68e6bc",
+      "tracked": false
+    },
+    {
+      "path": "docs/RESEARCH_REFERENCES.md",
+      "bytes": 3851,
+      "sha256": "fdd0696e507e1f5e6c0439c4a0531461a2db96a5f2be5ddb6c0cf6ba61f3ed7f",
+      "tracked": false
+    },
+    {
+      "path": "docs/ROADMAP.md",
+      "bytes": 10358,
+      "sha256": "197f58dc67b99c3bf3744d73e9c70a2f562af0545f01f25b06d49d7f09745528",
+      "tracked": false
+    },
+    {
+      "path": "docs/TEST_STRATEGY.md",
+      "bytes": 22114,
+      "sha256": "e287aca71c3eed881c84d516569fd212d597a29fffbf3d16b24a902c900bf18d",
+      "tracked": false
+    },
+    {
+      "path": "pyproject.toml",
+      "bytes": 763,
+      "sha256": "1c38b2f07f389813d4700b59f5c90238380d382967137caa45b42e5b428ab6fb",
+      "tracked": false
+    },
+    {
+      "path": "src/journeymap/__init__.py",
+      "bytes": 76,
+      "sha256": "7c8d6d6805e61a3a93682570897263d5f9cdc11ff5d7f1ad8a403acdf7a4cbdb",
+      "tracked": false
+    },
+    {
+      "path": "src/journeymap/adapters/__init__.py",
+      "bytes": 148,
+      "sha256": "c10194c82a8f1d238499e507d2c5c74d92e615c30be2e68efef68a9a86a607e7",
+      "tracked": false
+    },
+    {
+      "path": "src/journeymap/adapters/human.py",
+      "bytes": 709,
+      "sha256": "1a39d9b1f9c0d5c642e180ecc14bcb06bdfd4720edd747f5727f6f7b6d1b8509",
+      "tracked": false
+    },
+    {
+      "path": "src/journeymap/adapters/memory.py",
+      "bytes": 1476,
+      "sha256": "a3f59763b57f3fe8c9ce2adf7199d823fc747cca88df15717a898d0f73193d8c",
+      "tracked": false
+    },
+    {
+      "path": "src/journeymap/adapters/provider.py",
+      "bytes": 1679,
+      "sha256": "5be65d860354182deccdd2cb48b42b9f0ab79ed5bbd23d91c5c36c7ee6983eff",
+      "tracked": false
+    },
+    {
+      "path": "src/journeymap/adapters/scripted.py",
+      "bytes": 2788,
+      "sha256": "03cc8ebf288e31c4c32b6a1416d2378b27352fc63a986ba67a2b30101b4b39c4",
+      "tracked": false
+    },
+    {
+      "path": "src/journeymap/adapters/social_npc.py",
+      "bytes": 4654,
+      "sha256": "121c42fdc77097907c98e652301a6647c6c9d757dfd2a987e77860f9f7e9ac6f",
+      "tracked": false
+    },
+    {
+      "path": "src/journeymap/adapters/sqlite.py",
+      "bytes": 935,
+      "sha256": "f402669a65def659efecc5d397efeafa026308b17c8aa6eeb7e876f84c0e5e5e",
+      "tracked": false
+    },
+    {
+      "path": "src/journeymap/application/__init__.py",
+      "bytes": 74,
+      "sha256": "83aa1d01bfbfdd489fcb2b30ba0144744d0a9d6177e2a43a832640da3d834820",
+      "tracked": false
+    },
+    {
+      "path": "src/journeymap/application/contracts.py",
+      "bytes": 3215,
+      "sha256": "22f8b8edf5d80cc7ea1017b60ee723352d8a98850202e20df26f963754960e18",
+      "tracked": false
+    },
+    {
+      "path": "src/journeymap/application/observations.py",
+      "bytes": 3928,
+      "sha256": "b1dceaeb061e90c151756a95dcdc6a876832c6195d1fd5f7dadf435b21545948",
+      "tracked": false
+    },
+    {
+      "path": "src/journeymap/application/perception.py",
+      "bytes": 1695,
+      "sha256": "9024dd2694041e6d1fa8afe998c1ff184de08da3a682eb12cd20c6d1a07b2840",
+      "tracked": false
+    },
+    {
+      "path": "src/journeymap/application/reasons.py",
+      "bytes": 2653,
+      "sha256": "300d48e1f8a7af034d6a9edbdb3af6fb97085d077caf693ca9fb2cc46d40ad16",
+      "tracked": false
+    },
+    {
+      "path": "src/journeymap/application/research.py",
+      "bytes": 2434,
+      "sha256": "a67bcb43c34e80c5a469de2f88095e1e02afa2d3ab0d4c8f56242ce3a6420d09",
+      "tracked": false
+    },
+    {
+      "path": "src/journeymap/application/session.py",
+      "bytes": 14938,
+      "sha256": "94063cb6b720ba4447a201c190c90b80a2a3220f7c0b8960fdf9fe1d17251d90",
+      "tracked": false
+    },
+    {
+      "path": "src/journeymap/application/social.py",
+      "bytes": 2864,
+      "sha256": "0a91ddcbb2db531112815862366d3c4ee69a21af19186deecde4e3bff6c8240a",
+      "tracked": false
+    },
+    {
+      "path": "src/journeymap/application/turns.py",
+      "bytes": 2563,
+      "sha256": "3708d0ee8ca9d26a9453cadf821a92dcb9bdb88972633f22ef5d63a379b0e931",
+      "tracked": false
+    },
+    {
+      "path": "src/journeymap/bootstrap.py",
+      "bytes": 9834,
+      "sha256": "e267d4ffeb8c919de3a7e7ca88299dfbeb768e9e41416a672c5862247a2d3c7a",
+      "tracked": false
+    },
+    {
+      "path": "src/journeymap/core/__init__.py",
+      "bytes": 2548,
+      "sha256": "f3e80ab7ac9d03aea8e02d66fe8ba7deea91bda9083c383d6432fa1687435675",
+      "tracked": false
+    },
+    {
+      "path": "src/journeymap/core/actions.py",
+      "bytes": 1766,
+      "sha256": "ed265630bc5ca8dd6f7f1b99b59fb522e9f2704a6139d077e32e1ee7ea500f2c",
+      "tracked": false
+    },
+    {
+      "path": "src/journeymap/core/canonical.py",
+      "bytes": 2552,
+      "sha256": "ba810108f3150c6b113c16559b846e95679f00a013f3d0f08805d0cbfff913af",
+      "tracked": false
+    },
+    {
+      "path": "src/journeymap/core/controller.py",
+      "bytes": 1512,
+      "sha256": "2dc2e2d980be26f057de5b0fe6b59de46facdaec80a83535fcfd576d3ea4aa68",
+      "tracked": false
+    },
+    {
+      "path": "src/journeymap/core/entities.py",
+      "bytes": 1601,
+      "sha256": "4d0f848d11b88b1bd37309c7157522888bcc5bfd195f938dbc18415e03d37d79",
+      "tracked": false
+    },
+    {
+      "path": "src/journeymap/core/events.py",
+      "bytes": 4889,
+      "sha256": "601828d5b1175092ae337385c26012315785849dad1d469875da3ed8b2aca663",
+      "tracked": false
+    },
+    {
+      "path": "src/journeymap/core/handlers.py",
+      "bytes": 9090,
+      "sha256": "00791567f40ec6eb57284b47ac5149fd695a5a8b28fabb55e003d334347abd03",
+      "tracked": false
+    },
+    {
+      "path": "src/journeymap/core/kernel.py",
+      "bytes": 14874,
+      "sha256": "dc07c9c6d19533755c60f8c27e43372214e6e6b39f6cc72f796cec55cf300d80",
+      "tracked": false
+    },
+    {
+      "path": "src/journeymap/core/modules.py",
+      "bytes": 3248,
+      "sha256": "a5e54c3da3a659e2cb910953f4e5f3310178a70c60cf611165bf1f4394d06ce1",
+      "tracked": false
+    },
+    {
+      "path": "src/journeymap/core/observations.py",
+      "bytes": 4755,
+      "sha256": "6ee79863385cd50ea86f7e2d46c858c05bf7088af11694d6e36f1efe95681827",
+      "tracked": false
+    },
+    {
+      "path": "src/journeymap/core/persistence.py",
+      "bytes": 531,
+      "sha256": "215a0e62b19d6598a0d6f693b451a11ec46470df0ef58b17386b361306bf4d4a",
+      "tracked": false
+    },
+    {
+      "path": "src/journeymap/core/replay.py",
+      "bytes": 2525,
+      "sha256": "f6cf0c0733ed3801f843eb9d5c0f7c7ddd2397ad6b53852a492a605da73f47f5",
+      "tracked": false
+    },
+    {
+      "path": "src/journeymap/core/run.py",
+      "bytes": 8256,
+      "sha256": "05bdc4ee619ae0e9c59d532cbeb091babe37a5feb4559727cf3c82246947d968",
+      "tracked": false
+    },
+    {
+      "path": "src/journeymap/core/scheduler.py",
+      "bytes": 4847,
+      "sha256": "c58acde50b98dff8c4d51843b08a7eb9f4cdb1535b74fe040b9ed08830ab08ca",
+      "tracked": false
+    },
+    {
+      "path": "src/journeymap/examples/__init__.py",
+      "bytes": 43,
+      "sha256": "3e6cdeb37334d026e03a47e83ce3cdb319a80a6a29bfcbf0cd363be021339197",
+      "tracked": false
+    },
+    {
+      "path": "src/journeymap/examples/alderwick.py",
+      "bytes": 1607,
+      "sha256": "d4dcc35fba29fb2d652013cbb9cce2dd34e1170fb5254382c7920cc86c790567",
+      "tracked": false
+    },
+    {
+      "path": "src/journeymap/examples/alderwick_resources.py",
+      "bytes": 2761,
+      "sha256": "890c047b0023c5323082ceaa4b4979f2b515f1a35c9e4700f6e36c28dac14539",
+      "tracked": false
+    },
+    {
+      "path": "src/journeymap/examples/alderwick_social.py",
+      "bytes": 2754,
+      "sha256": "ee2ac42b2f0ca2fb85ff46a6d1825f6be90ae83ef28fb5434b67ee185938879c",
+      "tracked": false
+    },
+    {
+      "path": "src/journeymap/modules/__init__.py",
+      "bytes": 73,
+      "sha256": "2f17442920de7d6c2d3710c52cae3aa33b8835dd931bb05432711c3e43042240",
+      "tracked": false
+    },
+    {
+      "path": "src/journeymap/modules/inventory/__init__.py",
+      "bytes": 269,
+      "sha256": "58606b4f08adf69da3f72489f35592dd2e70e04417d7abad1b54f05f7043b1a2",
+      "tracked": false
+    },
+    {
+      "path": "src/journeymap/modules/inventory/models.py",
+      "bytes": 3422,
+      "sha256": "873f5e99920740ce40c5453cac5747a28f4803e6a18709ef89ef53f6e9caa488",
+      "tracked": false
+    },
+    {
+      "path": "src/journeymap/modules/inventory/perception.py",
+      "bytes": 328,
+      "sha256": "c930a68183fe0f54cc382332d9d3e6407eac257698594007bd71695b209888be",
+      "tracked": false
+    },
+    {
+      "path": "src/journeymap/modules/inventory/transitions.py",
+      "bytes": 1565,
+      "sha256": "9c7a985b4520fb2b018bd368585f35339b418efb22d913a62864418cb1998f10",
+      "tracked": false
+    },
+    {
+      "path": "src/journeymap/modules/knowledge/__init__.py",
+      "bytes": 570,
+      "sha256": "dd9ccfa9bd057c6d3e06d7167ba641963d7c9ba496e260665147b477b9a23c00",
+      "tracked": false
+    },
+    {
+      "path": "src/journeymap/modules/knowledge/projection.py",
+      "bytes": 4140,
+      "sha256": "05075740ac41a552c1bad828b5c3b0968c30d7b978a4a82b19134445d2ca14f5",
+      "tracked": false
+    },
+    {
+      "path": "src/journeymap/modules/knowledge/records.py",
+      "bytes": 6212,
+      "sha256": "5f9aa5e4bee0f6b8b95b3873aa1a39778e6572ce5625f666881ec445399252d2",
+      "tracked": false
+    },
+    {
+      "path": "src/journeymap/modules/movement/__init__.py",
+      "bytes": 693,
+      "sha256": "59fcff1ef3066ba5566d35e2317205127fbe88809fd7452a930c17bc88994cf0",
+      "tracked": false
+    },
+    {
+      "path": "src/journeymap/modules/movement/handlers.py",
+      "bytes": 4740,
+      "sha256": "ffeca029ac537b4cfbdd94c3e0eda21810d018c5b0dd63c66f9caf8f25a2ad83",
+      "tracked": false
+    },
+    {
+      "path": "src/journeymap/modules/movement/models.py",
+      "bytes": 3432,
+      "sha256": "3e4ed42e37713f3593ba935320e653ca10fa8c39a924c4af228a2f6311bb2c61",
+      "tracked": false
+    },
+    {
+      "path": "src/journeymap/modules/movement/perception.py",
+      "bytes": 1343,
+      "sha256": "b32d93d32793a07cf1f94c95e3551a16c3952ba6dc1c31208fd82d8d17d41591",
+      "tracked": false
+    },
+    {
+      "path": "src/journeymap/modules/movement/transitions.py",
+      "bytes": 2018,
+      "sha256": "316892971920d1ba5fb05b6ac1d3e50ea2ac488c8cc0c005f06f956f0427b64f",
+      "tracked": false
+    },
+    {
+      "path": "src/journeymap/modules/social/__init__.py",
+      "bytes": 628,
+      "sha256": "3274921c2ea5450e727491d5c6d2f2dce2899ed30b2468c54d5b78d6b07d44c6",
+      "tracked": false
+    },
+    {
+      "path": "src/journeymap/modules/social/contracts.py",
+      "bytes": 2693,
+      "sha256": "b66e6ca4adfdd1390b988de74df59974ea270d50c74a2f79378cdc6258553bad",
+      "tracked": false
+    },
+    {
+      "path": "src/journeymap/modules/social/handlers.py",
+      "bytes": 3097,
+      "sha256": "929ba6ee91faf4d84dbb3177b93d9b0abdea765380f22767ad2c12a67b44df08",
+      "tracked": false
+    },
+    {
+      "path": "src/journeymap/modules/social/knowledge.py",
+      "bytes": 1658,
+      "sha256": "b512b3045f3a6f1134beb90af1ff3730dad006bfcfd31befea0882309bc32062",
+      "tracked": false
+    },
+    {
+      "path": "src/journeymap/modules/social/perception.py",
+      "bytes": 2137,
+      "sha256": "adc893f053f248dc67184114294e5b4e59bb9e52351d355ad66796d1c27f9fd2",
+      "tracked": false
+    },
+    {
+      "path": "src/journeymap/modules/survival/__init__.py",
+      "bytes": 775,
+      "sha256": "21bb2eb12ee44ea62fe2398c0d547e72add01d7365d4f40444c104adffdf07c6",
+      "tracked": false
+    },
+    {
+      "path": "src/journeymap/modules/survival/handlers.py",
+      "bytes": 6851,
+      "sha256": "b79c63703e8293ae5d73d62d9b90a6c6e9c240f5dfac6c1cf3058ce6660e3eef",
+      "tracked": false
+    },
+    {
+      "path": "src/journeymap/modules/survival/models.py",
+      "bytes": 3526,
+      "sha256": "2136dd3431a0ca2f66caea944bb4ced70ba36e872f06244827d6eb12731b49c0",
+      "tracked": false
+    },
+    {
+      "path": "src/journeymap/modules/survival/perception.py",
+      "bytes": 316,
+      "sha256": "848d1653313f545ca470b4b30103197e2be7a86c151dfbbb082398cd9b6e0e20",
+      "tracked": false
+    },
+    {
+      "path": "src/journeymap/modules/trade/__init__.py",
+      "bytes": 501,
+      "sha256": "3cfb662386ced5f6b8e997a5f81d5764f42080ef09df022ef803804a47aa4d46",
+      "tracked": false
+    },
+    {
+      "path": "src/journeymap/modules/trade/handlers.py",
+      "bytes": 5238,
+      "sha256": "0f9454112403669d54390246ad53eac6d6106ef04c23ec79699fd020bb998a74",
+      "tracked": false
+    },
+    {
+      "path": "src/journeymap/modules/trade/models.py",
+      "bytes": 4568,
+      "sha256": "3b6836640eb672d4fadb02aafb978b045cb0009d2100aa39480ba309f3ede2a5",
+      "tracked": false
+    },
+    {
+      "path": "src/journeymap/modules/trade/perception.py",
+      "bytes": 1510,
+      "sha256": "22dd3926d53afc179e9da9a9011754bc57ee33bfef7fd052c6530f960a62fd83",
+      "tracked": false
+    },
+    {
+      "path": "src/journeymap/scenarios/__init__.py",
+      "bytes": 79,
+      "sha256": "959931ac234f7cfe203ba3734217ff1f662f355ca9968e45fbd4173065c71a7f",
+      "tracked": false
+    },
+    {
+      "path": "src/journeymap/scenarios/alderwick/__init__.py",
+      "bytes": 572,
+      "sha256": "6c8d16a3e99682ed4812e7f34799bf38520b59ac2ff3fbe23d6aad0445eb4e58",
+      "tracked": false
+    },
+    {
+      "path": "src/journeymap/scenarios/alderwick/bridge.py",
+      "bytes": 3701,
+      "sha256": "b1c44d4c1036fceb040827305b70831c23b27d84c37eb19a4193a3bb476558aa",
+      "tracked": false
+    },
+    {
+      "path": "src/journeymap/scenarios/alderwick/contributors.py",
+      "bytes": 320,
+      "sha256": "4cf59c048bbd09ad8e919bc7a296ffe220e683cc0b87af474eb5b46992ba8f20",
+      "tracked": false
+    },
+    {
+      "path": "src/journeymap/scenarios/alderwick/fixture.py",
+      "bytes": 2804,
+      "sha256": "8d5cddc5d7bffd5597adf93a9f84d19ef2f62ccba304518b43757a9facca0cf1",
+      "tracked": false
+    },
+    {
+      "path": "src/journeymap/scenarios/alderwick/knowledge.py",
+      "bytes": 2868,
+      "sha256": "868deabc0a2bc785a7150f6f2bf4f784c844f74f553c261e563abce9d27e86c0",
+      "tracked": false
+    },
+    {
+      "path": "src/journeymap/scenarios/alderwick/resource_contributors.py",
+      "bytes": 570,
+      "sha256": "e612d95b17344e32752bf16f455c36011417aa6f12a9711e2b866e5ee2dcd998",
+      "tracked": false
+    },
+    {
+      "path": "src/journeymap/scenarios/alderwick/resources.py",
+      "bytes": 2181,
+      "sha256": "d046600297bfebae25f5be39b28735e1355e6d4a6dc617ba3df25e34b4385b43",
+      "tracked": false
+    },
+    {
+      "path": "src/journeymap/scenarios/alderwick/social.py",
+      "bytes": 1579,
+      "sha256": "0cafee1f3ffeef8d2e40f3f13bda15d0ea0378245564b73a1f725cb8404e0cb8",
+      "tracked": false
+    },
+    {
+      "path": "tests/test_alderwick.py",
+      "bytes": 14636,
+      "sha256": "11d6730ac71f27bdf4355ca6502fb842f53fd2e9121cef53cca081f5fa3d0f20",
+      "tracked": false
+    },
+    {
+      "path": "tests/test_alderwick_failures.py",
+      "bytes": 10096,
+      "sha256": "7937765eddf7c3bd51d87d8fa3f66cc9ccab886b6adeec40411d9f5ac8a12d44",
+      "tracked": false
+    },
+    {
+      "path": "tests/test_architecture.py",
+      "bytes": 6078,
+      "sha256": "c64cffa32fc550679919c42b8c12b8a7045d4f22c65f88cc113054891401622c",
+      "tracked": false
+    },
+    {
+      "path": "tests/test_boot.py",
+      "bytes": 756,
+      "sha256": "0b4a40061d3b2859a32924d221143a2c2f83974e804594ca86e149edd8d72f6b",
+      "tracked": false
+    },
+    {
+      "path": "tests/test_game_and_research.py",
+      "bytes": 32124,
+      "sha256": "d49f5fe16d3d7dba3e47adc2af2d82ec242259e9d2e9e30610f90e739b9ef98c",
+      "tracked": false
+    },
+    {
+      "path": "tests/test_knowledge.py",
+      "bytes": 4590,
+      "sha256": "7aec9f8accdd3e189fce6076316fe7cdb25fac362c8b035d504c4f6279f254b9",
+      "tracked": false
+    },
+    {
+      "path": "tests/test_knowledge_projection.py",
+      "bytes": 7676,
+      "sha256": "ac1e204b83f0dee873b3b261bf612a334491b442ed696660436f40a01a3be0c4",
+      "tracked": false
+    },
+    {
+      "path": "tests/test_m7_boundaries.py",
+      "bytes": 4932,
+      "sha256": "add4e6a322f9585ff6cdc15a852e4612b4f0b013dda07ca5ac4332e2cba4ed99",
+      "tracked": false
+    },
+    {
+      "path": "tests/test_m7_contracts.py",
+      "bytes": 12788,
+      "sha256": "48beda9f68f15ac4e3fca3f8b54ebea7832a906d358cc49867ae508287039ddf",
+      "tracked": false
+    },
+    {
+      "path": "tests/test_m7_idempotency.py",
+      "bytes": 11057,
+      "sha256": "6f328ac6f51056d4e4b756879c8803a7415e9b9b4968289e479bee94bec7c107",
+      "tracked": false
+    },
+    {
+      "path": "tests/test_m7_observations.py",
+      "bytes": 9473,
+      "sha256": "9e53e6d25f2aee8d2ef063ac5af8afa26c2c0aaba523816412a77a5eeb68056a",
+      "tracked": false
+    },
+    {
+      "path": "tests/test_module_registry.py",
+      "bytes": 1859,
+      "sha256": "0858f1d452e259e81ee9f24dc71374a1beae74c2370cb29d10472d1373747b6d",
+      "tracked": false
+    },
+    {
+      "path": "tests/test_movement.py",
+      "bytes": 26526,
+      "sha256": "ed1e0f91c37438c611bf61b1cbe43cd2a2c4c2ddd9583dd2e0149282c83c10be",
+      "tracked": false
+    },
+    {
+      "path": "tests/test_observations.py",
+      "bytes": 7500,
+      "sha256": "d911be33fc2c112fdb782e50cd178f4287892e80839909ad3f013a776aab5401",
+      "tracked": false
+    },
+    {
+      "path": "tests/test_resource_architecture.py",
+      "bytes": 3045,
+      "sha256": "f46ce3e571eef311cb23d42a594713b5ec3b7de34ed8d746d1520d062f878ad8",
+      "tracked": false
+    },
+    {
+      "path": "tests/test_resource_failures.py",
+      "bytes": 10407,
+      "sha256": "7fb993369968c6015a9c1ef0b07b3eb825ef930766e78537474ccd56f51d96a8",
+      "tracked": false
+    },
+    {
+      "path": "tests/test_resource_integration.py",
+      "bytes": 17031,
+      "sha256": "67cc0ea32a4dc54a01216db5338ac462b0115c520856eb9406fcbe7ca383107d",
+      "tracked": false
+    },
+    {
+      "path": "tests/test_resources.py",
+      "bytes": 18126,
+      "sha256": "0255c854d2c5a20ba0d3148d044e1c66c3743db1e2c81525ce5d19b100c4528e",
+      "tracked": false
+    },
+    {
+      "path": "tests/test_run_determinism.py",
+      "bytes": 3044,
+      "sha256": "76e1c49746d7a001daf5e045094532f587ff8b50242242e8b700a06455519c35",
+      "tracked": false
+    },
+    {
+      "path": "tests/test_scheduler_and_events.py",
+      "bytes": 5316,
+      "sha256": "2067cd043902627a4646e9a87b64563eebec705045bfc69d1330e932a6de2a8b",
+      "tracked": false
+    },
+    {
+      "path": "tests/test_social.py",
+      "bytes": 10181,
+      "sha256": "6f571b07721f935bc5c771991799354f9d1c0072bb4ec3b8230dedc8d7b903f4",
+      "tracked": false
+    },
+    {
+      "path": "tests/test_social_boundaries.py",
+      "bytes": 13526,
+      "sha256": "23c3adb080618a3daf62a94597a1dc9f81a4814e0437a8780f1ad04397547c0c",
+      "tracked": false
+    },
+    {
+      "path": "tests/test_social_information.py",
+      "bytes": 20678,
+      "sha256": "cd2503cf37fb21761334d3b62b58725aa621c2f4837cb7d9cf71b2a318a88580",
+      "tracked": false
+    },
+    {
+      "path": "tests/test_timed_actions.py",
+      "bytes": 16618,
+      "sha256": "627b05edb51b613a00171ebe5fc9963b7d16725f467f9d6f5d82bf6592011b92",
+      "tracked": false
+    },
+    {
+      "path": "tests/test_transitions_and_replay.py",
+      "bytes": 22039,
+      "sha256": "f2b521c05b4480d0ba1c5871b42a8b67a8a7e2693388432b7574f2daab700f29",
+      "tracked": false
+    }
+  ],
+  "excluded": [
+    ".git (private local metadata archive)",
+    "rebuildable virtualenvs and caches",
+    "backup output directory"
+  ],
+  "secret_review": "Detected literals were manually verified as synthetic test fixtures; no live credential found. Known environment credential values checked without printing or persisting values."
+}
