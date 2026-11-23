@@ -5,7 +5,7 @@
 
 ## Checkout과 변경 범위
 
-- 저장소: `C:\Users\user\Documents\JourneyMap`
+- 저장소: `C:\Users\<user>\Documents\JourneyMap`
 - remote: `https://github.com/Olcho/JourneyMap.git`
 - 최초 branch: `codex/memory-horizon-readiness-audit`
 - 최초 HEAD: `57ff9c301167338da142aab253d0af77db786603`; 미커밋 변경 없음.
@@ -85,7 +85,7 @@ refusal/incomplete, provider/transport 예외, 준비/평가 관찰 오류와 �
 번들 **Python 3.12.14**, 기존 `.venv/Lib/site-packages`, `src` PYTHONPATH를 사용했다.
 
 ```powershell
-$journeyPython = 'C:\Users\user\.cache\codex-runtimes\codex-primary-runtime\dependencies\python\python.exe'
+$journeyPython = 'C:\Users\<user>\.cache\codex-runtimes\codex-primary-runtime\dependencies\python\python.exe'
 $env:PYTHONPATH = "$PWD\src;$PWD\.venv\Lib\site-packages"
 & $journeyPython -m pytest -q --basetemp trials/experiment03-verification-20261004/final-pytest -o cache_dir=trials/experiment03-verification-20261004/pytest-cache
 & $journeyPython -m ruff check .

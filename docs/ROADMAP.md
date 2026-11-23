@@ -1,5 +1,17 @@
 # Roadmap
 
+2026-11-24 [소스 계보와 오프라인 재현](RESEARCH_SOURCE_SYNC_2026-11-24.md)에 E03·E04 연구 엔진과
+[Actual](../actual/README.md)의 런타임·테스트 경계를 기록했다. 2026-11-23 완료된
+[MemoryReplica v1](MEMORYREPLICA_RESULTS_2026-11-23.md)은 고정된 두 평가 120세계·600실행을 다룬다.
+아래의 날짜별 기록은 해당 시점의 scope와 gate를 설명한다.
+
+2026-10-06 [수령처 연속 행동](EXPERIMENT03_PICKUP_SEQUENTIAL.md)을 별도 프로토콜로 구현합니다.
+첫 행동과 최종 회복·비용을 분리한 mock/독립 audit gate이며 실제 다회 호출 승인은 다음 단계입니다.
+
+2026-10-05 별도 작업 브랜치에서 수령처 진단의 [실제 LLM 연결 준비](EXPERIMENT03_LIVE_PREPARATION.md)를
+추가했습니다. 최종 모델·예산 동결과 명시적 승인 후 service smoke는 남아 있습니다.
+오프라인 correctness 완료가 연구 타당성이나 실제 LLM 효과를 입증하지는 않습니다.
+
 2026-10-04 작업 브랜치에서 Experiment 03의 코드 기준선, 수령처 안내 진단 및 Full prefix
 정보충분 대조조건을 별도 offline protocol/evaluator로 구현했다.
 [범위와 실행법](EXPERIMENT03_BASELINE_DIAGNOSTIC.md),
@@ -27,7 +39,7 @@ Semantic Decision Context v2 hardening
         ↓
 Live Pilot Preflight
         ↓
-[현재] Distinct Places construct validity 재검토
+Distinct Places construct validity 재검토
         ↓
 actual behavioral pilot 실행 여부와 최종 study 설정 결정
         ↓
@@ -40,7 +52,7 @@ Information change / replanning experiment 설계 및 검증
 - 별도 live protocol/audit, 12-allocation cohort, Horizon wire schema, fresh runtime ownership, recording mock transport, journal/audit 경계를 포함한 [Live Pilot Preflight](MEMORY_HORIZON_LIVE_PREFLIGHT.md)도 완료되어 main에 반영됐다.
 - 실제 Memory Horizon LLM behavioral pilot은 아직 실행하지 않았다.
 - 현재는 Distinct Places가 과거 경험 활용과 행동 연속성을 충분히 측정하는지 construct validity를 검토 중이다.
-- 두 번째 핵심 연구 축인 정보 변화와 재계획 실험은 아직 설계 단계다.
+- 두 번째 연구 축은 [E04 구현 및 제한 검증](EXPERIMENT04_OFFLINE.md)으로 이어졌다.
 
 마일스톤은 의존성 순서다. 다음 단계의 기능을 앞당겨 넣지 않으며, 각 단계는 자동화된 exit criteria를 만족한 뒤 종료한다. 특히 LLM 통합은 결정적 엔진과 정보 경계 검증 이후에만 진행한다.
 
@@ -212,7 +224,7 @@ M8 구현과 첫 공식 live trial을 완료했다. OpenAI Responses adapter(표
 
 ### 두 번째 연구 축 — Information Change / Replanning
 
-학교 연구과제의 두 번째 핵심 축은 기존 정보와 실제 환경이 달라진 뒤 Agent가 새 정보를 획득하고 기존 계획을 수정하는 과정이다. 현재는 설계 단계이며, 단순 obstacle avoidance가 아니라 최소한 다음 실패 지점을 구분할 수 있는 통제 시나리오를 목표로 한다.
+두 번째 연구 축은 기존 정보와 실제 환경이 달라진 뒤 Agent가 새 정보를 획득하고 기존 계획을 수정하는 과정이다. E04의 통제 시나리오는 다음 지점을 구분한다.
 
 ```text
 A. 필요한 새 정보를 획득하지 못함
@@ -226,3 +238,11 @@ D. 적절하게 계획을 수정했으나 Engine 결과가 달랐음
 Selective Memory, importance/scoring, forgetting/decay, reflection, memory graph, reinforcement learning은 현재 첫 두 실험의 선행조건이 아니다. 실제 결과가 단순 recency와 현재 Knowledge 구조의 한계를 보여줄 때 별도 연구 질문으로 승격한다.
 
 weather, combat, economy, employment, law, politics, religion, magic은 현재 연구 결과가 필요성을 입증한 뒤 별도 제안으로 검토한다. microservices, 외부 broker, full ECS/event sourcing도 실제 규모와 병목의 근거 없이는 도입하지 않는다.
+
+## Experiment 04 offline 검토 (2026-10-08)
+
+공식 변경 정보 이후 첫 이동의 적절성과 후속 회복을 분리하는 오프라인 구현·독립 audit를 추가했다. 실제 API, 모델/예산/본실험 표본 수 동결, 기억 선택/Reflection과 mirror 장소명 fixture는 이 완료 범위에 없다. [구현 계약](EXPERIMENT04_OFFLINE.md), [완료 보고서](EXPERIMENT04_OFFLINE_REPORT_2026-10-08.md).
+
+## MemoryReplica stable B follow-up (2026-10-30)
+
+E04를 재사용하는 별도 MemoryReplica 오프라인 통합을 추가했습니다. 같은 A/tick13 준비 경험에서 초기 입력 근거의 B 경로 비용은 recent3=8/full=4이며 none은 완전 경로 근거가 없습니다. none도 S 재방문으로 4tick 도달할 수 있습니다. 이는 첫 안정 환경의 과제 관련성·프로그램 correctness 사례입니다. 실제 LLM 효과, 실패/갱신 과제, 두 번째 지도와 장소명 치환은 남은 연구 범위입니다. 기존 live/F1/운영 검토 gate를 재시작하지 않습니다. [계약](MEMORYREPLICA_OFFLINE.md).

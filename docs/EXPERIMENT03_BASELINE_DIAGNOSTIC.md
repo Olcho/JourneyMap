@@ -216,7 +216,7 @@ python -m journeymap.examples.pickup_cue --replay trials/pickup-example
 번들 Python 3.12.14와 기존 개발 패키지를 사용했다. 같은 환경의 명령은 다음과 같다.
 
 ```powershell
-$journeyPython = 'C:\Users\user\.cache\codex-runtimes\codex-primary-runtime\dependencies\python\python.exe'
+$journeyPython = 'C:\Users\<user>\.cache\codex-runtimes\codex-primary-runtime\dependencies\python\python.exe'
 $env:PYTHONPATH = "$PWD\src;$PWD\.venv\Lib\site-packages"
 & $journeyPython -m journeymap.examples.pickup_cue --matrix --output trials/my-new-pickup-matrix
 & $journeyPython -m pytest -o cache_dir=trials/my-new-cache --basetemp trials/my-new-test-temp

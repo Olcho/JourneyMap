@@ -1,5 +1,19 @@
 # ERD and Persistence Model
 
+연속 진단은 별도 plan identity와 CASE_START/PREPARED 및 단계 INTENT/RESPONSE/STEP_RESULT,
+CASE_END export hash를 사용합니다. 첫 점수와 최종 점수·실제 비용을 별도로 보존하며
+미완료 prefix도 이전 검증 단계와 미시도 조합을 유지합니다. [계약](EXPERIMENT03_PICKUP_SEQUENTIAL.md).
+
+수령처 계획/실행/export/audit v2는 planned mode를 plan digest와 묶습니다. journal/export의 mode는
+해당 계획과 같아야 하며 새 provenance는 모델 입력으로 보내지 않습니다. v1 파일을 변환하거나 덮어쓰지 않습니다.
+
+수령처 live 준비의 연구 파일은 동결 `plan.json`, hash-chain `attempts.jsonl`, allocation별
+`aNNN.json`입니다. 기존 AttemptJournal의 exclusive append/flush/fsync를 재사용합니다.
+INTENT에 준비 경험·입력·전체 UTF-8 body를, RESPONSE에 안전한 raw 응답을, RESULT에 export hash를
+연결합니다. 기록 실패는 가능한 경우 별도 `recording-failure.json`에도 보존합니다.
+이는 새 canonical 상태나 재개 기능이 아닙니다. [정확한 상태·audit 계약](EXPERIMENT03_LIVE_PREPARATION.md)을
+참고해 주세요.
+
 Experiment 03 수령처 진단은 초기 world의 scenario-owned `pickup_cue.pickup_location`과
 독립 `pickup-cue-offline-record-1` 연구 snapshot을 추가한다. 안내는 빈 Knowledge에
 저장하지 않으며 raw 경험과 model-visible projection은 분리한다. DB migration은 없다.
@@ -324,3 +338,11 @@ Observation content budget은 65,536 canonical UTF-8 bytes이며 초과 시 reco
 새 canonical table, DB migration, resume schema는 없다. 실험 계층은 immutable `Record` 안에 trial manifest, decision/activation provenance와 기존 Observation/ActionTrace/ActionResult/Event/Knowledge snapshots를 저장한다. decision의 raw model output→parsed wire→decoded DecisionCandidate→bound ActionRequest를 별도 필드로 연결한다. authority fields의 소유자는 trusted Controller/application이며 모델 후보는 두 intent fields뿐이다.
 
 run_id/trial_id와 decision/activation sequence, observation_id, request_id, ActionTrace attempt sequence가 join key다. schedule/initial world/initial knowledge/config identity와 최종 ReplayReport를 함께 export하므로 engine replay 및 Event-prefix Knowledge 재구성을 지원한다. Python/R/Pandas가 읽을 JSON/JSONL file schema와 immutable/export-failure 의미는 [M8 프로토콜 5절](M8_EXPERIMENT.md#5-researchexport-v1)이 기준이다. secret/credential은 어떤 record도 소유하지 않는다.
+
+## Experiment 04 기록 관계
+
+정상 initial export의 run/record/response digest가 새 분기 parent provenance와 연결된다. 분기는 새 Observation과 ActionRequest, receipt, closed experience를 실제 application에서 생성한다. AUTHORED_INITIAL 지도, OFFICIAL_NOTICE, DIRECT_OBSERVATION은 각 source_ref/learned_at을 유지하며 semantic wire에서 식별자만 제거한다. 미래 knowledge를 초기 ledger에 넣지 않는다. [계약](EXPERIMENT04_OFFLINE.md).
+
+## MemoryReplica research-only records (2026-10-30)
+
+MemoryReplica는 새 canonical 상태/테이블/운영 DB를 추가하지 않습니다. 전용 오프라인 JSON에 현재 source hash/import root, 공통 world/experience/context digest, 실제 전달한 요청/원문, recall 및 별도 current-world 비교, parser 상태, Engine receipt와 행동 종료를 보존합니다. supported input graph 및 truth optimum은 연구 출력에만 저장합니다. 기존 raw/승인/실험 기록은 소급 변경하지 않습니다. [기록 의미](MEMORYREPLICA_OFFLINE.md).

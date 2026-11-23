@@ -1,5 +1,14 @@
 # JourneyMap
 
+이 저장소는 E03·E04 연구 엔진과 별도 [Actual 런타임](actual/README.md)을 제공합니다.
+[오프라인 재현과 소스 계보](docs/RESEARCH_SOURCE_SYNC_2026-11-24.md)에서 설치, 검증, 동결 입력의 출처를 확인할 수 있습니다.
+[MemoryReplica v1 결과](docs/MEMORYREPLICA_RESULTS_2026-11-23.md)는 2026년 11월 23일 완료된
+120세계·5정책·600실행의 기록입니다.
+
+수령처 안내 [연속 행동 진단](docs/EXPERIMENT03_PICKUP_SEQUENTIAL.md)은 별도 프로토콜로
+첫 실제 도착 점수와 6회 이내 최종 도착·회복·추가 행동/tick 비용을 구분합니다.
+이번 확장은 오프라인 구현 검증이며 기존 one-shot 및 실제 40회 결과는 그대로 보존합니다.
+
 JourneyMap은 지속형 가상환경에서 단일 LLM Agent가 제한된 관찰, 지식, 과거 경험을 바탕으로 어떻게 판단하고 행동하며, 환경 변화 뒤 계획을 어떻게 수정하는지 통제된 조건에서 관찰하기 위한 deterministic simulation research platform이다.
 
 현재 실험 세계는 작은 중세 정착지 **Alderwick**를 사용한다. 세계의 실제 상태와 Agent가 아는 정보는 분리되며, LLM은 세계 관리자나 판정자가 아니라 한 Actor의 교체 가능한 Controller다. LLM은 자신에게 허용된 `Decision Context`를 보고 구조화된 `ActionRequest`를 제안하고, 실제 canonical 상태 변화는 Engine이 검증하고 처리한다.
@@ -66,7 +75,7 @@ Retrieved Event Memory ───────────┘                    W
 
 두 번째 연구 축은 Agent가 기존에 알고 있던 정보와 실제 환경이 달라졌을 때, 새로운 정보를 획득하고 이후 행동에 반영해 기존 계획을 수정하는지 관찰하는 것이다.
 
-이 실험은 현재 설계 단계이며 아직 구현 완료 상태가 아니다. 단순 obstacle avoidance가 아니라 다음을 구분할 수 있는 통제 시나리오를 목표로 한다.
+[E04](docs/EXPERIMENT04_OFFLINE.md)는 공식 경로 변경, 출처 기반 정보 획득, 변경 후 후속 행동을 통제 시나리오에서 구분한다.
 
 ```text
 A. 필요한 새 정보를 획득하지 못함
@@ -84,6 +93,16 @@ Provider-free replay/입력 재구성/audit를 제공하며 기존 방문 지표
 실행 증거는 [2026-10-04 검증 기록](docs/EXPERIMENT03_OFFLINE_REPORT_2026-10-04.md)을 따른다.
 fixture 결과는 실제 LLM 효과의 증거가 아니다.
 
+수령처 진단 전용 실제 LLM 연결 준비 경로를 추가했습니다. 계획 동결, 명시적 live gate,
+HTTP body 기록, 중단 journal과 Provider 없는 audit를 오프라인으로 검증합니다.
+[연결 준비 계약·실행 명령](docs/EXPERIMENT03_LIVE_PREPARATION.md)과
+[2026-10-05 완료 보고](docs/EXPERIMENT03_LIVE_PREPARATION_REPORT_2026-10-05.md)를 참고해 주세요.
+실제 API 실행과 최종 모델·예산 확정은 아직 하지 않았습니다.
+
+검토 F1의 응답 없는 mock 실패 기록 재분류 문제를 수정했습니다. 계획 v2는 실행 mode를 digest에
+묶고 runner/journal/export를 대조합니다. v1 원본은 읽기 전용으로 보존하며 v2 mode 보증으로
+승격하지 않습니다. [수정 검증 보고](docs/EXPERIMENT03_LIVE_MODE_FIX_REPORT_2026-10-05.md)를 참고해 주세요.
+
 M0부터 M8까지 deterministic research baseline을 구축한 뒤 Event Memory 연구 계층을 추가했다.
 
 | 단계 | 상태 | 의미 |
@@ -94,12 +113,14 @@ M0부터 M8까지 deterministic research baseline을 구축한 뒤 Event Memory 
 | Experiment 02 Recency Window | 완료 | Recency `k=1/2/3` retrieval correctness와 backward compatibility |
 | Experiment 03 Memory Horizon v2 | 완료 | semantic Decision Context로 progress/provenance cue를 model-visible input에서 제거 |
 | Live Pilot Preflight | 완료 | 별도 live protocol/audit, 12-allocation cohort, Horizon wire schema, fresh runtime ownership, recording mock transport, journal/audit 경계 |
-| Actual Memory Horizon behavioral pilot | 미실행 | 연구 타당성과 최종 study 설정 검토 후 사용자 명시 승인 필요 |
-| Information change / replanning experiment | 설계 중 | 두 번째 핵심 연구 축, 아직 구현 완료 아님 |
+| Distinct Places 본 평가 | 별도 연구 gate | 수령처 one-shot 및 연속 행동 진단은 별도 과제 |
+| E04 Information Change / Replanning | 구현 및 제한 검증 | fake·recording mock, 저장 결과 감사, 승인된 제한 smoke·pilot 기록 |
+| Actual | Phase 4.4 및 후속 | 다중 에이전트 생활 시뮬레이션, 정산·재생·continuation |
+| MemoryReplica v1 | 완료 | 동결된 두 평가와 오프라인 실행·채점 코드 |
 
 중요하게, **기술적 preflight 완료와 behavioral effect 입증은 다른 상태**다.
 
-현재 Live Pilot Preflight는 recording mock만 사용하는 기술 검증이다. 실제 network/API 호출, real OpenAI Provider, live-capable CLI, automatic resume는 포함하지 않는다. 자세한 범위는 [Memory Horizon Live Pilot Preflight](docs/MEMORY_HORIZON_LIVE_PREFLIGHT.md)를 따른다.
+기존 Memory Horizon Live Pilot Preflight는 recording mock만 사용하는 기술 검증이다. 해당 경로에는 실제 network/API 호출, real OpenAI Provider, live-capable CLI, automatic resume는 포함하지 않는다. 자세한 범위는 [Memory Horizon Live Pilot Preflight](docs/MEMORY_HORIZON_LIVE_PREFLIGHT.md)를 따른다.
 
 과거 M8 공식 trial은 별도 historical evidence로 보존한다. 당시 raw artifact와 historical protocol을 현재 실험 의미에 맞춰 소급 변경하지 않는다.
 
@@ -124,7 +145,7 @@ M0부터 M8까지 deterministic research baseline을 구축한 뒤 Event Memory 
 - [연구 참고 문헌](docs/RESEARCH_REFERENCES.md): 선행 연구와 적용 질문
 - [Codex 및 AI 작업 지침](AGENTS.md): repository 작업 전에 지켜야 할 규칙
 
-구현 여부의 최종 기준은 GitHub `main`이다. 연구 질문과 실험 해석 범위는 코드 상태와 분리해 관리하며, 결과가 없는 상태에서 예상 효과를 실제 결과처럼 기록하지 않는다.
+과거 보고서는 해당 시점의 구현과 실행 프로토콜을 기록한다. 최신 설치 및 검증 범위는 [오프라인 재현과 소스 계보](docs/RESEARCH_SOURCE_SYNC_2026-11-24.md)를 따른다.
 
 ## 개발 환경
 
@@ -133,8 +154,8 @@ M0부터 M8까지 deterministic research baseline을 구축한 뒤 Event Memory 
 ```text
 python -m pip install -e ".[dev]"
 python --version
-ruff check .
-ruff format --check .
+ruff check src tests
+ruff format --check src tests
 mypy
 pytest
 git diff --check
@@ -172,3 +193,33 @@ python -m journeymap.examples.alderwick_llm --audit trials/offline-example
 ```
 
 `trials/`는 로컬 연구 산출물이며 Git에서 제외한다. 실제 외부 LLM/API 호출은 실험 조건과 기록 방식을 먼저 동결하고 사용자 명시 승인을 받은 경우에만 수행한다.
+
+## Experiment 04 오프라인 검토
+
+공식 경로 변경 정보 실험의 독립 시나리오·첫 이동 기준선·전체 경험 실행기와 무호출 재구성 audit를 추가했다. [구현 계약](docs/EXPERIMENT04_OFFLINE.md)과 [완료 보고서](docs/EXPERIMENT04_OFFLINE_REPORT_2026-10-08.md)를 참조한다. fake correctness 단계이며 기존 03 결과와 합산하지 않는다.
+
+## Experiment 04 목표 계약 보완 (2026-10-09)
+
+후속 tick 3 이후에는 받은 정보에 따른 남은 이동 시간 최소화를 명시하는 v2 profile/protocol을 적용한다. 초기 선택은 기존 도착 목표를 유지한다. 실제 세계의 시간 최적 첫 이동과 최종 도착은 별도 지표다. v1 원본의 감사 가능성은 유지한다. [수정·검증 보고](docs/EXPERIMENT04_GOAL_REVIEW_REPORT_2026-10-09.md).
+
+## Experiment 04 live 준비 gate (2026-10-09)
+
+[E04 live 준비 계약](docs/EXPERIMENT04_LIVE_PREPARATION.md)은 v2와 기존 원본을 유지하면서
+별도 E04 Responses wire, 6prefix 균형 순서와 사전 입력 경계 검사, 비용 예약, 원문 재생 audit를 제공한다.
+이번 단계는 오프라인 mock 구현 검증이다. 실제 API 0회, 키 조회 없음. USD10은 PROPOSED다.
+모델별 tokenizer 및 schema overhead의 신뢰 가능한 사전 상한 근거가 없어 live는 DRAFT이며
+수동 READY 변경/승인 JSON으로 우회할 수 없다. 기존 offline 실행기와 감사 계약은 유지한다.
+
+
+E04 live 준비 후속 수정(2026-10-09): count 전용 protocol v2와 tick-3 두 코드 기준선을 오프라인 검증한다. 기본 live 후보는 count 요금 UNKNOWN / 서비스 UNVERIFIED / DRAFT·UNAUTHORIZED다. [후속 계약](docs/EXPERIMENT04_LIVE_PREPARATION.md) 및 [완료 보고서](docs/EXPERIMENT04_LIVE_FINDINGS_REPORT_2026-10-09.md)를 참조한다.
+
+
+E04 제한된 smoke 준비(2026-10-10): 명시적 `--smoke-count-fee-unknown` 옵션은 v3 `SMOKE_COUNT_FEE_UNKNOWN_V1` 계획을 만든다. 계수 1·생성 1·HTTP 2의 별도 smoke에 한하며, 계수 요금 UNKNOWN과 총액 상한 미확정은 유지한다. 준비된 후보와 PENDING 승인안은 실제 발송 승인이 아니다. 기본 v2/pilot의 확정 계수 단가 요구는 유지한다. [계약](docs/EXPERIMENT04_LIVE_PREPARATION.md) 및 [완료 보고서](docs/EXPERIMENT04_LIMITED_SMOKE_REPORT_2026-10-10.md).
+
+E04 별도 제한 pilot v4 준비(2026-10-10): `PILOT_COUNT_FEE_UNKNOWN_V1`은 새 초기6회와 생성114/count114/network228에 한정한다. 실제 v3 smoke와 전체 source·입력·후속 의미 호환성을 검증하고 서비스 증거/가격UNKNOWN/최종승인PENDING을 분리한다. 생성 예약 USD8.03472는 총액 상한이 아니다. 준비는 실제 호출 승인이 아니다. [계약](docs/EXPERIMENT04_LIMITED_PILOT_PREPARATION.md).
+## MemoryReplica stable B offline integration (2026-10-30)
+
+현재 E04 runtime에 별도 MemoryReplica 입력·재구성/행동 runner와 안정 환경 B 과제를 추가했습니다.
+초기 지도는 모든 기억 조건에서 제외하며, 준비 세계·경험을 고정하고 none/recent3/full만 비교합니다.
+[계약과 실행](docs/MEMORYREPLICA_OFFLINE.md), [검증 결과](docs/MEMORYREPLICA_REPORT_2026-10-30.md)를 따릅니다.
+이는 입력 근거와 scripted Engine correctness 검증이며 실제 LLM 행동 효과의 증거가 아닙니다.

@@ -1,0 +1,426 @@
+# Test Strategy
+
+## Probe 후속 정책 v3 gate
+
+CP-R1의 `tests/test_probe_snapshot_corpus.py`는 새 source에서 생성한 정상 모의 자료로
+import-only와 claim/예약/시도/응답/정산/종료 prefix를 검사한다. ATTEMPTED snapshot의
+fixtures 삭제·반복 수 999·단가 0 변조를 기존 승인/hash chain 그대로 각각 거부하고,
+내용 digest도 다시 계산한 변조 역시 정규 corpus와 다르면 거부한다. 완성 report의 검증도 유지한다.
+수정 전 7d462f3e 자료는 동결 runtime으로만 감사하고 source mismatch를 수정 증거로 삼지 않는다.
+
+`tests/test_probe_continuation.py`는 [후속 회계 정책](PROBE_CONTINUATION_POLICY.md)의
+전체 이력 인수, 일치하는 동결 runtime 감사, 고정 기기/경로/최신 기준점, 결합 승인/ID 소비,
+최대 72회 Ledger와 한도+1, 두 프로세스 경합, claim/예약/응답/정산 전후 실패를 검사한다.
+실제 socket/DNS/HTTPS/credential을 차단하고 임시 모의 DB와 명시적 가짜 승인만 사용한다.
+기존 HTTP 통합 테스트는 새 v3 admission을 거치며 PE-R1/진단/회계 assertion을 유지한다.
+정상·1/17/72번째 실패·저장 중단의 snapshot/report를 새 프로세스로 재계산한다.
+portable audit와 운영 자격 검사는 구분하며 운영 DB bootstrap/키 조회/실제 호출은 하지 않는다.
+관련 probe/Responses/output budget/paid/audit 회귀만 수행하고 전체 pytest나 F1 재현은 추가하지 않는다.
+
+## Probe execution v1 gate
+
+2026-10-26 v2는 아래 v1 불변식에 진단 결합 검증을 추가한다. tests/test_probe_diagnostics.py는
+단계·예외 allowlist, 비밀 문자열/예외 이름·args·partial 비노출, reseal 후 진단 누락·변조·교차 대입·모순 거부,
+진단 저장 실패 전후 OPEN 유지와 후속 전송 차단을 검사한다. tests/test_probe_budget_review.py는
+실제 Ledger의 72슬롯/비용/입력/출력/예약 경계를 명시적 합성 usage로 검증한다.
+새 프로세스에서 72슬롯 정상 모의 report 및 서로 다른 위치의 실패 report를 감사한다.
+기존 실제 v1 report는 변경 전 동결 source에서만 별도 프로세스로 감사하고 원본 hash를 대조한다.
+검증 범위는 probe/Responses/output budget/paid/audit 관련 테스트다. 전체 프로젝트 회귀나 F1 재현 반복은
+이번 국소 변경의 필수 근거가 아니며 별도로 추가하지 않는다. Core/생활 도메인/prompt/평가 코드는 바꾸지 않는다.
+
+- 승인 없는 키/연결/registry 접근과 합성 승인의 실제 경로 진입을 차단한다.
+- 본문/순서/계획/소스 결합, run 및 승인 ID 단일 소비, 중단 뒤 재호출 차단을 검증한다.
+- 실패 usage, 미확정 예약, timeout 후 비용 회수와 예산 종료의 전체 분모를 검증한다.
+- raw 삭제, 정산 변조, 재봉인, snapshot 불일치를 거부하고 새 프로세스 data-only 감사를 수행한다.
+- PE-R1은 메모리 바이트 스트림 위의 표준 HTTPResponse로 정상 Content-Length/chunked/
+  close-delimited와 짧은 Content-Length, chunk 중간 EOF, 종료 chunk 누락 및 잘못된 chunk 크기를
+  검사한다. 불완전 수신은 1회 전송 뒤 UNCERTAIN, 예약 유지, 비용 null, 엔진 미전달이며
+  별도 프로세스 감사에서도 동일해야 한다. 완전한 늦은 응답의 usage 정산도 유지한다.
+- 모의 HTTP만 사용하며 실제 토큰 절감이나 생활 완주 증거로 해석하지 않는다.
+- 기존 F1 조사는 재개하지 않는다. 상세는 [계약](PROBE_EXECUTION.md)을 따른다.
+
+## Actual 오프라인 추론 비교 도구
+
+tests/test_life_reasoning_probe.py는 기존 High 요청과의 정확한 동일성, effort 단독 변경,
+프롬프트 단독 변경, 원격 private/future 정보 비노출, 누락/중복/변조 응답 거부,
+실패 usage 포함 및 추론 중복 과금 방지, 완료 시각 경계, 실제 엔진의 성공/거부/완료 실패/
+horizon 미완료, data-only 재평가 동일성을 검사한다. 모의 결과로 토큰 절감이나 생활 완주를
+주장하지 않는다. [범위](LIFE_REASONING_PROBE.md)를 따른다. 기존 F1 재현 검사는 추가하지 않는다.
+
+2026-10-19 데스크톱 반영 검증은 output_budget/Responses/paid/audit 관련 테스트와
+정적 검사로 한정한다. checkpoint F1은 조사 종료·미재현·원인 미확정·기존 수정 필요
+판정을 유지하며 전체/단독 재현 검사를 반복하지 않는다.
+[실제 반영과 검증 기록](PHASE4_4_DESKTOP_INTEGRATION_2026-10-19.md)을 따른다.
+
+## Phase 4.4 출력 예산 gate
+
+test_life_output_budget.py는 생활 전용 8,192 wire, 기존 연구 4,096 상한 유지,
+old binding 사전 거부, 누적/예약 경계, 정상/INCOMPLETE/예약 초과의 합성 usage와 replay를 검증한다.
+기존 paid snapshot/삭제/회계/READY/timeout 회귀를 유지한다. 실제 4,096 report는
+동결 백업 소스에서 무재호출 replay하고 새 소스에서는 mismatch 거부를 확인한다.
+[계약과 과거 재생 경로](PHASE4_4_OUTPUT_BUDGET.md)를 따른다.
+
+## Phase4.3.2 응답 보관·상태 gate
+
+test_paid_audit_response.py는 timeout/late 원문 삭제, READY 원문 삭제와 PENDING/미기록 ERROR
+변형 네 개를 memory/새 CLI에서 거부한다. refusal/incomplete의 PENDING 변조도 거부한다.
+owner 미회수 성공 전달은 raw 없이 통과해야 한다. 기존 15가지 snapshot과 삭제/회계/reseal
+검증을 유지한다. replay 중 Provider/key/socket/DNS는 차단한다.
+[계약과 한계](PHASE4_3_2_RESPONSE_AUDIT.md)를 따른다.
+
+## Phase4.3.1 감사 완전성
+
+test_paid_audit.py는 다섯 삭제/회계 반례, reseal 후 누락·여분·중복·completion 삭제,
+15가지 정상/READY/미전송/오류/unknown/late snapshot과 새 프로세스 CLI를 검증한다.
+모든 replay에서 Provider/key/socket/DNS를 막으며 비용 unknown을 known으로 승격하지 않는다.
+[계약과 한계](PHASE4_3_1_AUDIT.md)를 따른다.
+
+## Phase 4.3 paid path offline gate
+
+test_paid_life.py는 real key/socket/DNS를 막고 합성 승인·가짜 HTTPS로 승인 부재/결합/재사용,
+FULL journal의 전송 전후 장애, 비용 불확정/한도/secret echo, timeout과 late 회계 회수,
+정상12/24/171/3와 Provider 무재호출 memory/data-only replay를 검증한다.
+실제 키/API·청구서·서버 schema 수락·물리 전원 장애의 증거가 아니다.
+[현재 계약](PHASE4_3_PAID_PATH.md)을 따른다.
+
+## Phase 4.2 연결 사전 검증
+
+tests/test_life_responses.py는 socket/DNS/key 조회를 차단하고 pinned 생활 wire, 응답 분류,
+usage 정수/부분집합/합, reasoning 중복 과금 방지, 전송 전 예약과 누적 한도·불확정 정지를
+검증한다. 모의 bridge의 24시간 엔진 결과/replay를 기존 정상 혼합 실행과 비교한다.
+이 기록은 모델 성과·실제 과금·서버 schema 수락의 증거가 아니다.
+[계약과 승인 경계](PHASE4_2_LIVE_PREFLIGHT.md)를 따른다.
+
+## Phase 4.1 오류 경계
+
+tests/test_life_error_boundaries.py는 3,001바이트 deep JSON의 raw/상태 일관성/조회·정지·복원·replay,
+주입 clock/gate로 마감 전·정각·후 완료/늦은 poll, empty 정각 poll, timeout 후 late 원문/저장,
+다른 wallclock origin의 checkpoint 동일성을 검사한다. 기존 Phase 4 timeout 검사는 같은 기대값을
+clock 주입으로 유지한다. 실제 sleep으로 시간 경계를 맞추지 않는다.
+기존 전체 회귀/정상 mixed와 RULE 여섯 조건/새 process 복원/지도 JS 보존도 확인한다.
+
+## 본체 Phase 4 gate
+
+tests/test_life_llm.py는 실제 Provider→candidate→bound application→engine 생활 흐름,
+대체 후보의 실제 효과, malformed/권한/정보 경계, 지연·정지·late/timeout,
+한도/반복 엔진 실패와 무fallback, outgoing body/schema, mixed pending 새 process 복원,
+READY 무재호출 저장과 응답 replay/변조를 검사한다. socket/DNS/실제 key 읽기를 차단한다.
+기존 1,208개를 유지하고 전원 규칙 여섯 조건/저장 회귀를 함께 검사한다.
+브라우저의 방향별 지도 세 경우와 대기·정지·저장 확인은 별도 UI 증거다.
+
+## 본체 Phase 3 gate
+
+tests/test_life_checkpoint.py는 진행 중 MOVE/WORK/REST의 새 프로세스 직접 복원,
+전체 상태·입력·정책·회계 기록 동일성, 실행/예약/replay 없는 hydration,
+재시도 무효과/ID 충돌, RNG/queue/policy/Observation/cache cursor,
+배속/조회 무영향, 인물 정보 경계, horizon, 손상 거부와 atomic write 실패를 확인한다.
+로컬 HTTP UI는 실제 브라우저에서 별도 확인하며 offline correctness test와 구분한다.
+Phase 1/2와 기존 연구 전체 pytest/Ruff/strict mypy gate를 유지한다.
+
+## 본체 Phase 2 life-loop-1 gate
+
+tests/test_life.py는 실제 concurrent handler/commit 경로의 5명/168시간 자율 실행과
+개인별 반복 작업/급여/구매/소비/휴식, 통화/원료/식량 회계, 마지막 자원/자리 경쟁,
+작업 중·완료 tick의 원료/임금/계약/위치/욕구 변화 원자성, 중복 요청, transit 노동/휴식/욕구,
+20tick 이후 갱신/관찰 횟수 독립성/동시각 REST·WORK, 원격 private/폐쇄 반례를 확인한다.
+stockout/no-money의 실제 정책 대응과 no-materials/no-wages의 미해결 위험도 보존한다.
+같은 seed/config의 정책 재실행·분할 진행과 engine replay, effect-free attempts까지 포함한
+live-input replay를 구분해 검사한다. 기존 테스트의 기대값은 변경하지 않는다.
+최종 전체 offline pytest/Ruff check/format/strict mypy/diff gate와
+HEAD+patch+신규 소스로 검토 ZIP 재구성을 확인한다. 영속 복원/LLM 효과/장기 지속 가능성의 증거는 아니다.
+
+## 본체 Phase 1 concurrent-v1 gate
+
+tests/test_concurrent.py는 실제 기존 module handler/commit 경로에서 접수 후 tick 0,
+tick 1의 두 pending 이동, tick 2 동시 도착, 중간/동시각 폐쇄와 독립 peer 성공,
+busy·retry·binding·ID conflict, 구매 보존/완료 재검증/반복 동률 순환, 이동 중
+거래·ASK·REQUEST·INFORM 시작/완료 차단, bridge witness/local actor/remote 정보 경계를 검증한다.
+유한 idle/실패/영시간 활성화, 실제 autonomous patrol, split runner/advance equality,
+중간 in-flight frame replay, RNG rollback/replay, post-commit delivery와 재진입도 검사한다.
+네트워크는 새 검사에서 차단한다. 기존 테스트 기대값은 변경하지 않는다.
+저장·복원은 미구현이며 [checkpoint gate](PHASE1_CONCURRENT_RUNTIME.md)를 통과했다고 쓰지 않는다.
+전체 오프라인 pytest와 Ruff check/format, strict mypy, diff check가 최종 gate다.
+결과는 correctness 증거이며 연구 construct validity/LLM 행동 효과의 증거가 아니다.
+
+## Memory Horizon offline preparation gate
+
+`tests/test_memory_horizon.py` verifies the separate empty-schedule composition,
+four-condition input equality, no visit/receipt leakage, E1–E4 memory horizons,
+six target permutations, completion/repetition distinction, failed attempt versus
+submission counts, fixed-horizon termination, versioned offline fixture behavior,
+historical prompt bytes/defaults, export/replay/audit and resealed corruption.
+All network access is forbidden in these tests. Existing tests remain intact.
+See [protocol and remaining historical gate](MEMORY_HORIZON_OFFLINE.md).
+This preparation does not close Phase 2A or certify actual historical raw artifacts.
+
+[V2 gate](MEMORY_HORIZON_V2.md) adds independent semantic-shape expectations,
+recursive provenance key/value exclusion, repeated Square canonical UTF-8 equality,
+condition equality, selected experience ordering, raw archive preservation and
+projection detachment, resealed input/prompt tamper rejection, unit WAIT safety,
+cursor fixture isolation, and version-specific v1 audit/export compatibility.
+Historical M8/Phase 1 prompt hashes and schema 1/2/Recency regressions remain gates.
+
+2026-09-17 v2 gate: **1029 passed (1007 existing + 22 new)** in 116.99s,
+Python 3.12.10; Ruff check/format (135 files), mypy (120 files), diff check passed.
+Horizon has 96 cases; six existing test functions (14 cases) were adapted to v2.
+Existing six Horizon v1 and four Recency exports retain INCLUDED/original audit
+versions and all 180 raw file hashes. No live/API call, commit, push or PR.
+
+2026-09-15: **1007 passed (933 existing + 74 new)** in 97.97s, Python 3.12.10.
+Ruff check/format (134 files), mypy (120 files), and diff check passed.
+Six final offline exports reached tick 24 with replay equality, INCLUDED audit,
+stored inclusion equality and unchanged file hashes across reads. Existing four
+window exports also retained replay/audit and byte hashes. Actual official raw
+artifacts remain absent; no real API call or behavioral performance claim.
+
+## Recency window correctness gate
+
+[Recency window 계약](EVENT_MEMORY_RECENCY_WINDOW.md)의 k=1/2/3에 대해 warm-up,
+chronological rolling replacement, self/future/actor/run 격리, Provider/parser no-slot,
+REJECTED slot, same-tick retry lineage, IDs/count/serialized UTF-8 bytes를 검증한다.
+새 protocol의 full 24-tick trial/replay/audit와 Phase 1 k=1 제한을 함께 검사한다.
+기존 894개 테스트를 보존하며 실제 API는 호출하지 않는다.
+
+2026-09-15 gate: **933 passed (894 + 39)**, Ruff check/format(126 files),
+strict mypy(113 files), diff check 통과. k1/k2/k3 및 No Memory CLI는 tick 24,
+COMPLETED/HORIZON, replay=true, audit INCLUDED다. pytest cache 권한 경고 1건이
+있었으며 테스트 실패는 없다. 현재 checkout에 historical raw가 없어 schema 1/2
+fixture 호환성과 각 17개 파일 hash 불변만 검증했다. 실제 원본 재검증은 남아 있다.
+
+## Event Memory Phase 1 correctness gate
+
+`test_event_memory.py`는 deterministic fake Provider의 `[] → [E1] → [E2]`, 동일 초기
+실행의 trace equality, self-memory 배제, immutable snapshot, actor/run 격리, chronological
+ordering을 검사한다. Provider/identity/parser/refusal/incomplete failure의 research 보존과
+no-trace, 동일 tick retry lineage, 실제 REJECTED/다리 붕괴 FAILED, post-commit receipt 부재,
+invalid Controller output, horizon no-submit을 별도로 검증한다. NoMemory/Recency full 24h,
+policy/IDs/count/serialized bytes/prompt hash와 export 재구성, 재봉인한 corruption 거부,
+Provider-free replay/audit를 포함한다. 기존 823개 gate는 삭제하거나 완화하지 않는다.
+Phase 1 protocol과 correctness 판정 범위는 [계약](EVENT_MEMORY_PHASE1.md)을 따른다.
+
+2026-09-14 최종 offline gate: **879 passed in 47.86s** (기존 823 + 신규 56),
+Ruff check 통과, format 125 files, strict mypy 113 source files 통과, diff check 통과.
+실행 환경은 Python 3.12.14 번들 + 기존 `.venv/Lib/site-packages`이며 pytest/cache는
+새 `trials/pytest-event-full2`와 `trials/pytest-cache`를 사용했다. 실제 API는 호출하지 않았다.
+
+2026-09-15 최종 review gate: **894 passed in 47.66s** (위 879 + receipt/audit 회귀 15),
+Ruff check/format(125 files), strict mypy(113 source files), diff check 통과. direct receipt
+ingestion은 필수 engine-submitted 확인과 public receipt 타입/진단/status 검증을 거친다.
+NoMemory/Recency offline trial과 schema 1/2 replay를 다시 확인했고 historical 각 17개
+파일 hash는 불변이다. schema 1 audit의 NEW_PROVENANCE_REQUIRED는 기존 정책대로 유지한다.
+
+Pre-Experiment Hardening 최종 offline gate: **823 passed in 48.65s** (Python 3.12.14). M8 기준 770개 테스트를 그대로 유지하고 `test_pre_experiment_hardening.py`에 53개 회귀를 추가했다. Ruff check/format(120 files), strict mypy(109 source files), git diff --check와 fake full trial/replay/독립 audit, corrupted-copy rejection 및 historical 17개 raw 파일 hash 불변을 확인했다. 실제 network/API는 호출하지 않았다. 아래 M8 절과 [실험 프로토콜](M8_EXPERIMENT.md)을 함께 따른다.
+
+## 1. 목적
+
+JourneyMap의 최우선 품질은 기능 수가 아니라 정보·권한 경계, 원자성, 결정론과 연구 추적성이다. 테스트 pyramid는 Python 3.12와 pytest의 빠른 unit/property test를 기반으로 module contract와 작은 통합 시나리오를 더하며 Ruff와 mypy를 M0 품질 gate로 사용한다.
+
+## M8 adapter/first-trial gate
+
+`test_m8_llm.py`는 8종 exact payload, missing/extra/bool/version/authority injection, malformed/duplicate/nonfinite/invalid UTF-8 JSON, provider/parser 예외, memory 출처/ordering, prompt leak, response duplication와 application exact retry, credential non-persistence를 검증한다. HTTP는 MagicMock으로 고정 destination/body, schema/medium config, refusal/incomplete/error/timeout을 검사하며 실제 API를 호출하지 않는다.
+
+`test_m8_experiment.py`는 full fake 24h, recorded engine inputs만의 replay, 반복 engine artifacts, export byte determinism/integrity/쓰기 실패, immutable records, call/decision/wall/연속 실패 bounds, horizon no-clipping, Observation overflow/no-truncation을 검증한다. 기존 20-tick assertion만 새 24h protocol에 맞췄고 실패/불변식 검사를 삭제하지 않았다.
+
+`test_m8_revision.py`의 27개는 모든 action의 trusted binding, REQUEST arbitrary JSON codec와 malformed subobject 거부, OpenAI strict schema subset, 별도 M8 schedule/M6 보존, M7 public receipt만의 actor scope, 새 response의 동일 intent, refusal/incomplete no-submit, requested alias/returned identity 분리를 검증한다.
+
+`test_pre_experiment_hardening.py`의 53개는 package/engine/runtime/config provenance, LF/CRLF 및 UTF-8 ordering의 stable source identity, fake relabel 금지, response mismatch의 raw 보존/no-submit/no-world-mutation, 같은 alias의 날짜형 snapshot과 다른 identity 구분, completion/inclusion 분리, 모델 실패와 transport 실패 구분을 검증한다. 실제 traversal cost 1/3/25와 handler duration 7, tick 23의 start-invalid MOVE REJECTED를 검사한다. export 재감사는 hash를 다시 계산한 뒤에도 trace/result/Observation/activation/prompt/config 누락·모순, stored inclusion 조작, replay/final report 불일치와 필수 파일 누락을 검출해야 한다. CI에서는 로컬 raw trial 없이 synthetic schema v1/engine 0.0.0 fixture와 새 0.1.0 replay를 항상 검증한다. 실제 official artifact가 있는 로컬에서는 기존 17개 파일의 golden digest/byte 검사도 추가한다. 모든 replay는 Controller/Provider의 생성·호출을 금지한 상태로 실행하고 기존 17개 raw 파일의 byte/hash 불변을 확인한다. fixture/mocked HTTP만 사용하며 Event Memory 구현은 포함하지 않는다.
+
+Ruff check/format, strict mypy, 전체 pytest 및 git diff --check를 실행한다. 이번 Windows 환경의 `.venv` Python 링크가 끊어져 Python 3.12.14 번들 런타임과 기존 dev packages를 사용했다. 오래된 temp/cache ACL 때문에 pytest 임시 파일은 새 `trials/pytest-*` 경로와 `cache_dir=trials/pytest-cache`를 사용한다. 테스트 실패를 skip/xfail로 숨기지 않는다. 정상 개발 환경은 README의 Python 3.12 venv 명령을 사용한다.
+
+## 2. Release-gating 핵심 테스트
+
+### P0 — Knowledge Leak Test
+
+- 같은 World Truth에서 위치·시야·지식이 다른 actor들의 Observation을 생성한다.
+- 각 Observation에 허용된 perceived/known fact만 존재함을 확인한다.
+- East Bridge 붕괴 예약, 다른 actor의 Knowledge, 숨은 entity/component와 debug field가 노출되지 않음을 검사한다.
+- contributor를 새로 등록해도 raw World Truth 접근 없이 동작하는지 contract test로 강제한다.
+
+### P0 — Authority Test
+
+- LLM/Scripted Controller의 자연어, 위조 actor ID, system event 형태의 payload, 임의 world mutation field, 존재하지 않는 action type을 제출한다.
+- ActionRequest는 등록된 Action Handler만, ScheduledEvent/World Event는 별도 System/Event Handler만 받을 수 있으며 두 경로 모두 공통 mutation 경계 밖에서 canonical state를 변경할 수 없음을 확인한다.
+- Controller가 scheduler나 System/Event Handler를 호출할 수 없음을 확인한다.
+- system event 실행 전후로 agent ActionRequest 수와 행동 통계가 증가하지 않음을 확인한다.
+- Controller object graph/credential로 Research/Debug interface에 접근할 수 없음을 architecture/integration test로 검증한다.
+
+### P0 — Replay Test
+
+- initial canonical snapshot, versioned scenario schedule, run manifest, seed와 기록된 ActionRequest stream을 두 번 실행한다.
+- 각 step의 ActionResult, Event envelope ordering, canonical state digest와 최종 snapshot이 동일해야 한다.
+- LLM 호출은 replay하지 않고 기록된 ActionRequest를 입력으로 사용한다.
+
+### P0 — Deterministic Event Ordering Test
+
+- 동일 simulation time/priority에 여러 scheduled item, 파생 Event와 subscriber를 구성한다.
+- 프로세스 재시작, 등록 순서 변화와 반복 실행에서도 정의된 ordering key에 따른 같은 순서를 확인한다.
+- hash-map iteration이나 wall clock이 결과에 섞이면 실패하게 한다.
+
+### P0 — Invalid Action Atomicity
+
+- route 불통, 자원 부족, 과거 Observation의 belief와 현재 truth 불일치, 잘못된 payload 등 각 실패 지점에서 action을 실행한다. 과거 Observation 자체를 만료로 거부하지 않는다.
+- 시작 거부는 제출 tick까지의 독립 system 진행 이후를 기준으로 action mutation이 없음을 검사한다. 완료 FAILED는 elapsed time/system commit을 유지하고 action 성공 mutation은 없어야 한다. Controller preflight 실패는 kernel 진입 자체가 없음을 검사한다.
+
+### P0 — Module Dependency Validation
+
+- 누락 dependency, 중복 module/action registration, 순환 dependency, 호환되지 않는 version으로 부팅을 시도한다.
+- simulation 시작 전에 명확하고 결정적인 오류로 거부되어야 한다.
+
+### P0 — Alderwick Bridge Integration Test
+
+1. 붕괴 예약은 World Truth/Observation/Knowledge에 나타나지 않는다.
+2. 통제 시각까지 진행하면 ScheduledEvent가 별도 System/Event Handler에서 처리되고 bridge/route 상태와 `BridgeCollapsed` Event가 원자적으로 바뀐다. ActionRequest는 생성되지 않는다.
+3. 현장 목격자만 직접 KnowledgeRecord를 얻고 원격 actor는 얻지 않는다.
+4. 아직 모르는 actor가 관찰 가능한 위치에 도착하면 ActorMoved를 trigger로 직접 지식을 얻는다. 앞선 BridgeCollapsed와 Event 순서로 value의 근거를 추적한다.
+5. 목격·나중 발견의 runtime Knowledge가 다음 GamePort.observe()의 actor-owned known section에 반영된다. trusted perception을 통과한 현재 bridge 정보와 Knowledge는 별도 record다.
+6. 붕괴 route MOVE는 기존 ROUTE_IMPASSABLE로 거부되고 부분 mutation이 없다. 이동 중/동일 완료 tick 붕괴는 M2 FAILED semantics를 따른다.
+7. 실제 GamePort.observe → ScriptedController.decide → submit 루프를 실행한다. Controller에는 Observation 외 world/research/scheduler capability가 없다.
+8. 기존 ActionRequest-only ReplayHarness로 결과/Event/order/time/world/digest가 같고, Event-only Knowledge 재구성도 같다. fresh live run의 Observation/요청/지식 순서도 비교한다.
+9. commit 전 실패의 원자성, commit 후 delivery 실패에서의 재구성, repeated read/rebuild와 duplicate acquisition 방지를 검증한다.
+
+**M5 extension — 구현 완료:** 목격자의 INFORM 뒤에만 수신자가 출처 있는 간접 지식을 얻는다. 별도 `social=True` composition으로 ASK→NPC INFORM→다음 Observation/행동, REQUEST 전달, conflicting history, 다단계 provenance, engine replay와 fresh-run determinism을 검증한다. M4 기본 fixture와 모든 기존 테스트는 그대로 유지한다.
+
+## 3. 계층별 테스트
+
+### Unit/property
+
+- seeded RNG sequence, clock arithmetic와 scheduler ordering
+- action schema parsing과 domain validation
+- perception predicates와 Knowledge supersession/source rules
+- canonical serialization 및 state digest
+- movement/trade/inventory/survival invariants
+
+Property 예: 음수 inventory 불가, 실패한 transfer의 양쪽 balance 불변, 임의 insertion order에서도 event order 불변, 어떤 actor Observation에도 권한 밖 fact가 없음.
+
+### Module contract
+
+모든 Module에 공통 fixture를 적용한다.
+
+- metadata와 dependency 선언 가능
+- action type/version과 system event type/version 충돌 없음
+- handler validation 단계에 mutation 없음
+- Event subscriber와 ObservationContributor에 stable ordering key 존재
+- module-owned state를 다른 module이 직접 쓰지 않음
+
+### Integration
+
+- simulation loop 전체와 persistence transaction
+- movement → perception → knowledge
+- social `INFORM` → source-aware knowledge
+- BUY/CONSUME의 cross-module 원자성
+- Controller parsing failure/fallback과 no-mutation
+
+### Research record validation
+
+- actor 경로의 Observation → ActionRequest → ActionResult → Event chain과 system 경로의 ScheduledEvent/World Event → handler outcome → Event chain을 각각 ID로 탐색 가능
+- 거부된 action도 보존
+- schema/engine/module/prompt/model metadata 완전성
+- secret/credential과 허용되지 않은 World Truth가 ControllerInvocation에 없음
+
+## 4. 결정론 test harness
+
+- 테스트에서 wall clock과 OS randomness를 금지하고 clock/RNG를 주입한다.
+- snapshot fixture, scenario schedule과 ActionRequest stream을 version control한다.
+- expected Event sequence와 canonical digest를 golden artifact로 사용할 때 schema/version을 함께 저장한다.
+- 순서 민감성을 찾기 위해 module 등록 순서와 내부 입력 순서를 교란하되 기대 결과는 동일하게 유지한다.
+- 실패 보고서는 최초 divergence의 action sequence, event sequence와 state path를 보여준다.
+
+## 5. LLM 평가 경계
+
+엔진 CI는 외부 LLM에 의존하지 않는다. ScriptedController fixture로 모든 engine invariant를 검증한다. LLM 실험은 model/provider/prompt/parameters/Observation/raw response/ActionRequest를 기록하고, 성공률·행동 분포·정보 활용·규칙 위반률 등을 반복 trial에서 비교한다. 모델 응답의 byte equality를 테스트 기준으로 삼지 않는다.
+
+## 6. Milestone별 gate
+
+- **M0:** 빈 module registry로 in-process kernel boot/close, SQLite adapter 수명주기, module dependency 검증, Core dependency rule, pytest/Ruff/mypy 실행
+- **M1:** logical clock 역행 거부, SplitMix64 고정 sequence/draw count/64-bit seed normalization, canonical serialization/digest와 unsupported value 거부, scheduler `(due_time, priority, insertion_sequence)`, EventBus stable subscriber ordering/synchronous dispatch/commit 후 실패 의미, action/system handler 분리와 필수 opaque Observation reference, 실패 resolution의 state/clock/RNG/Event/identity/scheduler 무변경, versioned schedule + recorded ActionRequest replay의 동일 handler result/deterministic ID/Event ordering/final digest
+- **M2:** 최소 Entity identity와 movement 소유권, Location/단방향 Route/ActorPosition, MOVE/WAIT v1 payload, 존재·연결·통행·양의 정수 비용 검증, 시작 거부 시 state digest/clock/RNG/ID/scheduler/domain Event 불변, duration 중/동일 완료 tick system ordering, 완료 조건 실패 시 경과 시간/system commit 유지와 action 성공 mutation/Event 미생성, 성공·REJECTED·FAILED를 섞은 replay 결과/ID/Event/digest 동일, timed context 격리·재진입 금지·중간 system 오류의 M1 의미 유지
+- **M3:** actor별 allowlist perception, hidden truth/다른 actor knowledge/future schedule의 비노출과 반사실적 변경에 대한 Observation 불변성, contributor 전체 key 정렬/입출력 격리/invalid 출력 원자성, immutable Observation ID/digest/history, 명시적 source/상충/정정 계보/UNKNOWN knowledge, bound Game capability/위조 권한 차단/제한된 receipt, Research trace와 ActionRequest-only replay 동등성
+- **M4:** 위 Alderwick Bridge Integration의 직접 관찰/Controller/engine replay/Knowledge reconstruction 항목 전체. M5 INFORM extension 제외
+- **M5:** social v1 schema/range/time, live claim authority, target-scoped perception, NPC ASK→INFORM, source chain/conflict, failure recovery, Event-prefix reconstruction과 replay
+- **M6:** 생존·inventory·trade와 자원 보존/cross-module 원자성
+- **M7:** strict v1 contract/conformance, live idempotency/error retry, Observation 65,536-byte budget/order/redaction, malformed output no-mutation, Provider/Memory dependency boundary
+- **M8:** 엔진 gate 전부 + LLM 기록 완전성 + 24시간 smoke experiment
+
+M2 자동화는 `tests/test_movement.py`, `tests/test_timed_actions.py`, `tests/test_architecture.py`에 있다. 폐쇄는 test-only system handler로 표현하며 Alderwick/bridge 시나리오는 만들지 않는다. 원자성은 제출 tick까지 독립적인 세계 진행 이후 action 시작 상태를 기준으로 검사한다. 완료 tick에서 폐쇄/재개, 유효한 비용 변경, endpoint 변경, actor/position/location 변경도 검증한다.
+
+M2 감사 테스트는 제출 tick 이후 거부 상태를 독립적으로 진행한 control kernel과 비교한다. start validation, timing 계산, completion validation, resolve, pre-commit state/Event 직렬화에 예외를 주입하여 state/digest/clock/RNG/ID/scheduler/Event 보존과 이후 중복 소비가 없음을 검사한다. non-timed/timed action의 commit 후 subscriber 실패도 비교한다. 완료 tick의 여러 system event가 포함된 mixed replay는 ReplayReport뿐 아니라 kernel의 전체 RngSnapshot도 비교한다. self-route와 임의 entity_type은 현재 계약의 허용 사례로 검사한다.
+
+M3 자동화는 `tests/test_observations.py`, `tests/test_knowledge.py`, `tests/test_game_and_research.py`와 확장한 architecture test에 있다. fixture는 hidden entity/route, legitimate self/location/position record 내부 secret, private knowledge, future ScheduledEvent와 debug seed/RNG를 의도적으로 포함한다. 허용된 전체 content와 context shape를 비교하고 hidden truth/다른 actor 지식/schedule 변경에도 자기 Observation이 동일함을 검사한다. contributor를 모든 등록 순열로 실행하고 context/출력/전달 record의 nested mutation, invalid canonical output, 재진입과 sequence 소비를 검증한다.
+
+Authority gate는 GamePort의 공개 API가 observe/submit뿐인지, 다른 actor selector나 kernel/Research/system capability가 없는지 검사한다. unknown/타 actor/타 run Observation, 위조 actor/run, 임의 미래 제출 tick을 kernel 진입 전에 거부하고 trace를 보존한다. system 형태 payload와 임의 set_values는 actor schema 밖에서 mutation 권한을 얻지 못한다. engine defect와 post-commit delivery 실패는 Controller에 debug 문자열을 노출하지 않고 연구 trace에 실제 result 유무를 보존한다. 이는 trusted Python capability 테스트이며 악성 Python sandbox 검증이 아니다.
+
+M3 통합 replay는 live Observation에 기반한 timed MOVE 실패와 WAIT 요청을 기록하고, application/Observation stream 없이 기존 ReplayHarness로 동일 result/Event/order/time/digest를 얻는다. 기존 148개 M0/M1/M2 테스트의 입력·기대 의미를 유지한다. 지식 runtime update, 목격 projection, Social 전파와 Alderwick integration은 이후 milestone의 gate이며 M3 테스트 통과로 구현되었다고 보지 않는다.
+
+M3 adversarial audit는 mutable request identity/correlation의 trace 및 transition alias 오염과 등록된 handler 내부 registry 오류의 UNKNOWN_ACTION 오분류를 회귀 테스트로 차단한다. non-finite 값과 순환 payload는 INVALID_REQUEST로 거부한다. 첫 contributor 성공 후 다음 contributor 예외, 비정상 entity/position/location, actor 교차 관찰 sequence, due-now observation의 무진행, boundary 거부 후 sequence, 과거 Observation 재사용과 미래 제출 tick 권한을 검사한다. system publication 실패는 이전 동일 request ID의 성공 result를 현재 시도에 잘못 연결하지 않아야 하며 이미 commit된 system Event를 재실행하지 않아야 한다. 최종 milestone 판정은 전체 pytest/Ruff/format/mypy 및 diff gate 이후에만 내린다.
+
+M4 자동화는 `tests/test_alderwick.py`(8개 integration 사례), `tests/test_alderwick_failures.py`(18개), `tests/test_knowledge_projection.py`(18개) 및 architecture 추가 2개다. 기존 225개 테스트의 의미를 유지하여 전체 271개다. failure injection은 bridge/route/cost/endpoint/witness/payload/resolve/Event 직렬화 실패에서 clock/RNG/sequence/schedule/world/Event를 비교한다. 첫 route candidate를 만든 뒤 두 번째 route 검증 실패도 포함한다. BridgeCollapsed 및 ActorMoved delivery 실패 후 Research와 다음 Observation에 committed Knowledge가 남는지 확인한다.
+
+projection 테스트는 초기 상충 기록 보존, deterministic ID/source, 동일 history 재구성, 재방문 dedup, 입력·출력 alias 분리, event prefix의 비소급성, 정렬된 당시 witness, 잘못된 run/order/gap/duplicate/provenance/version을 검사한다. projection 예외 뒤에도 world는 유지되고 다음 정상 observe가 첫 성공 sequence를 사용한다. M4는 intact→collapsed의 한 번 전이를 검증하며 수리/재붕괴, social transfer나 영속 resume를 검증한 것으로 보지 않는다.
+
+## 7. M5 자동화와 감사 범위
+
+- `tests/test_social.py`: ASK/INFORM/REQUEST 각각의 정확한 v1 schema, target/self/entity/position/location/range, 추가 field와 wrong version, 고정 1 tick, 완료 시 actor/target/location 변화. 실패 전후 state/digest/time/RNG/sequence/schedule/Event를 비교한다. kernel-only INFORM은 trusted raw claim reference를 사용하며 live ownership 검증을 주장하지 않는다.
+- `tests/test_social_information.py`: live unknown/foreign/다른 actor/target/future/unobserved record 참조 거부, 실제 Observation 내용 변조·누락 반례, reply topic/양쪽 actor/Observation scope, ASK/REQUEST의 비자동 실행, unrelated actor 비노출, Hugh→Thomas→Marta 전달과 stale claim 재전달, 상충 보존, malformed social provenance와 Event-prefix ordering, delivery 실패 복구.
+- `tests/test_social_boundaries.py`: 같은 tick의 observe 이후 acquisition 거부, live 시작·완료 실패의 receiver 무획득과 mixed replay, raw Event log를 제거한 contributor 입력, projection/claim 읽기 실패 후 trace와 Observation sequence, detached 출력, ordered rule 입력 격리, NPC import와 ReplayInput schema 경계, 비활성 social composition의 거부.
+
+실제 비LLM loop는 Hugh MOVE/Thomas ASK/Hugh INFORM/Thomas WAIT/Hugh WAIT를 실행한다. tick 3 목격 기록, tick 6 질문, tick 7 전달, Thomas의 초기 intact와 간접 collapsed 기록, 미응답→응답 완료 전이와 다음 행동을 확인한다. 두 fresh live run의 Observation/ActionTrace/Events/Knowledge를 비교하고 ReplayHarness는 recorded requests만으로 별도 두 번 실행한다. ActionResults/system outcomes/order/final world/digest/time/RNG와 replay 후 동일 초기 지식에서 재구성한 history를 비교한다.
+
+권한 거부는 kernel input에 포함되지 않는 ActionTrace다. kernel canonical REJECTED/FAILED는 replay stream에 포함한다. claim ownership/Observation 검증은 live application의 책임이며 replay kernel의 privileged path를 hostile input validator로 간주하지 않는다. replay 후 source-prefix 검증은 Observation 검증의 대체가 아니다.
+
+M5 gate: 기존 271개를 삭제·완화하지 않은 전체 **383 passed**. Python 3.12.10, Ruff check/format, strict mypy, diff 검사를 함께 실행한다. 이 count는 M5 종료 시점 기준이며 M6+ 개발 시 갱신한다. projection에서 발생한 ActionValidationError도 actor payload 거부로 오분류하지 않고 authority read 실패로 추적한다. 자동 belief winner·confidence·trust·LLM·일반 행동 framework·영속 resume·M7 retry/idempotency는 검사하거나 구현한 것으로 보지 않는다.
+
+## 8. M6 resource gate와 adversarial audit
+
+- `tests/test_resources.py`: ItemDefinition/quantity, SurvivalState, Wallet/Offer의 엄격한 type/range/identity/중복 검증. 없는 entry=0/없는 owner 오류, detached transfer와 currency 보존, multi-quantity/zero-price BUY, 소비 sink와 clamp, REST 실제 duration, system-only pressure 진행을 검사한다. BUY/CONSUME/REST의 시작·완료 entity/position/state/stock/funds/offer 오류와 정확한 payload를 parameterize한다.
+- `tests/test_resource_failures.py`: inventory candidate 후 trade 실패, buyer 후보 이후 invalid seller wallet, invalid seller stock, transfer 후보 후 예외, decrement 이후 survival 실패, survival 후보 이후 예외, resolve 및 state/Event serialization 실패를 주입한다. 같은 tick의 SurvivalTick 및 RNG를 소비하는 unrelated system commit을 완료한 control kernel과 state/digest/time/전체 RngSnapshot/transition·Event sequence/pending schedule/outcomes를 비교한다. 다음 정상 action의 결과와 ID까지 비교해 sequence/RNG의 부분 소비를 검출한다. system tick 실패의 schedule/time rollback과 반복 시도, live post-commit Event delivery 오류의 양쪽 module/성공 trace 보존도 검사한다.
+- `tests/test_resource_integration.py`: 실제 actor-bound GamePort에서 초기 자원 확인→WAIT→Bakery 이동→local offer 확인→BUY 2→CONSUME 1→REST 3을 실행한다. tick 10의 Stranger는 wallet 6/bread 1/hunger 30/fatigue 11이며 Edwin은 wallet 4/bread 3이다. ItemConsumed의 source request/수량/최신 hunger, ActorRested의 최신 fatigue, tick 3 bridge collapse와 Hugh direct Knowledge를 함께 확인한다. Observation 반복 읽기는 canonical mutation이 없다.
+- 같은 integration suite는 변경된 private seller wallet/stock, 타 actor survival, hidden 효과/metadata와 malformed remote offer가 자기 Observation에 들어오지 않는 counterfactual leak test를 포함한다. echo contributor로 필터링 시점을 확인하고, remote/inactive listing 제외와 active out-of-stock listing 공개 정책을 검사한다. generic/M4/M5의 resource 비노출, finite schedule horizon과 version mismatch, resource+social composition의 기존 INFORM provenance도 검사한다.
+- recorded ActionRequest-only ReplayHarness로 ActionResults, system outcomes, Events/order, final world/digest/time/RNG draw count를 비교한다. live 성공 run을 두 번 만들어 Observation/ActionTrace/Knowledge까지 비교하고 두 replay report도 비교한다. live REJECTED/elapsed-time FAILED와 성공을 섞은 요청 stream도 engine replay한다. Knowledge/Observation/resource output을 ReplayInput에 추가하지 않는다.
+- `tests/test_resource_architecture.py`: inventory의 역방향 의존 금지, survival/trade의 좁은 inventory helper 의존, trade→movement position query, module dependency 누락, Core resource-domain state 금지 및 safe contributor import를 검증한다. 기존 architecture suite가 Core/kernel, movement와 Controller capability 경계를 계속 검사한다.
+
+BUY는 item/currency 양쪽 합계 보존을 검사한다. CONSUME는 item total이 감소하는 의도된 sink이며 성공 Event quantity와의 일치가 gate다. REST/SurvivalTick은 inventory/currency를 바꾸지 않는다. 시스템이 action 완료 tick에 먼저 commit되므로 CONSUME/REST는 증가한 최신 pressure에 적용되어야 한다. 시작 snapshot을 덮어쓰면 이 테스트가 실패한다.
+
+검증 실패는 REJECTED/FAILED로, resolve/직렬화 defect는 기존 M1/M2 예외 경로로 구분한다. 후자의 kernel ActionResult 부재를 예상된 행동 거부로 위장하지 않는다. 이미 성공한 독립 system commit과 elapsed time을 action rollback 대상에 넣지 않는다. commit 뒤 subscriber 오류도 성공 상태를 rollback하지 않는다.
+
+M0–M5의 기존 383개 테스트는 삭제·완화 없이 유지한다. `.venv`의 Python version, Ruff check, Ruff format --check, strict mypy, 전체 pytest 및 git diff --check가 모두 통과해야 M6 exit를 확정한다. 이 gate는 finite 20-tick scenario와 minimum resource contract를 검증하며 장기 simulation, generic economy/effects, persistence resume 또는 M7 최종 idempotency/compatibility를 구현한 것으로 보지 않는다.
+
+M6 종료 gate: **543 passed**(기존 383 + resource 127/integration 9/failures 19/architecture 5), Python 3.12.10, Ruff `All checks passed!`, format `95 files already formatted`, strict mypy `Success: no issues found in 86 source files`, diff 검사 성공. 기존 테스트 파일은 변경하지 않았다.
+
+## 9. M7 contract gate와 pre-M7 policy 전환
+
+기존 543개 테스트는 삭제하지 않았다. 연구/안전 invariant 보존은 기존 assertion을 무조건 복제하는 의미가 아니다. M7이 명시적으로 대체하는 repeated-ID 실행 정책과 불완전한 Observation fixture만 아래처럼 최소 수정하고 별도 adversarial tests로 새 계약을 강화했다.
+
+| 기존 테스트 | 유지한 invariant | 최소 전환 |
+|---|---|---|
+| test_trace_request_payloads_are_detached_and_observation_reuse_is_not_expiry_policy | request/trace payload 격리, 과거 Observation 재사용, attempt sequence | 두 번째 실제 행동은 새 ID; repeated-ID 재실행 comment 제거 |
+| test_system_delivery_failure_does_not_attach_a_prior_action_result (이전 이름에 same_id 포함) | interrupted attempt에 이전 결과 오연결 금지, system commit 보존, 다음 행동 복구 | 두 번째/세 번째 실제 행동에 서로 다른 ID, 이름·ID 비교만 변경 |
+| test_late_contributor_failure_preserves_world_history_and_interleaved_sequences | Observation 오류 원자성, actor별 성공 sequence, 권한 거부, due-now 무진행 | denial 이후 정상 행동은 새 ID |
+| test_live_future_submission_cannot_advance_time_even_when_domain_would_reject | future tick 권한 거부, trusted kernel의 system-first 의미, 과거 Observation 정상 재사용 | 정상 current-tick 후속 행동은 새 ID |
+| test_controller_has_no_hidden_capability_and_uses_observation_content | Controller capability 제한, 보이는 bridge만으로 결정, 위조 actor/system 권한 거부 | 기존 bridge section 내용만 변경해 v1 identity 유지; 별개 system 위조에 새 ID |
+| test_all_ordering_key_parts_are_stable_across_registration_permutations | 정렬 key 세 요소 및 24개 등록 순열의 동일 결과 | priority만 다른 중복 visible identity 대신 고유 contributor ID 사용 |
+
+supersede된 정책은 동일 ID를 서로 다른 정상 실행에 재사용하던 pre-M7 live 정책, 서로 다른 priority로 같은 visible contributor identity를 등록하던 정책, Controller가 identity 없는 수제 section을 해석하던 fixture다. past Observation/current submitted_at, M2 REJECTED/FAILED, M4 bridge Knowledge, M5 INFORM provenance/projection 읽기 복구, M6 원자성·자원 보존은 그대로다. BUY public diagnostic masking은 표시 경계 변경이며 kernel reason/도메인 판정 순서를 변경하지 않는다.
+
+신규 자동화:
+
+- `tests/test_m7_idempotency.py`: SUCCEEDED/REJECTED/FAILED exact retry, 모든 normalized envelope 필드 변경 conflict, 다른 actor port·독립 run scope, canonical key order와 payload alias, 확정 boundary denial, action/system delivery 오류 및 시작/resolve 예외. clock/state/digest/전체 RNG/transition sequence/Events/pending scheduler/system outcomes/action_results를 비교한다. BUY/CONSUME/REST delivery retry도 정상 control kernel의 양쪽 module commit과 일치해야 한다. mixed resolved action stream에서 retries/conflicts를 제외하고 두 번 engine replay한다.
+- `tests/test_m7_contracts.py`: 8종 exact payload/optional reply/nested REQUEST fixtures, missing/extra/type/bool/unknown-version, mutated NaN/Infinity/cycle/non-JSON/invalid UTF-8, ActionRequest와 receipt golden. Scripted/Human/SocialNpc를 같은 reusable suite로 binding/schema/입력 불변성/결정성/capability를 검사한다. None/dict/object/exception/잘못된 ActionRequest는 due-now system event가 있어도 kernel에 들어가지 않는다. Observation failure와 post-commit submission failure의 turn record도 구분한다.
+- `tests/test_m7_observations.py`: v1 공개 envelope/content/ordering/digest, exact UTF-8 boundary·1-byte 초과·multibyte·item 초과, 기본 65,536-byte 상한, duplicate visible identity, reader fail-closed, overflow 후 sequence 복구. 40/250-record knowledge와 40건의 큰 social REQUEST history에서 결정적 결과·overflow·전체 Research 보존을 검증한다.
+- `tests/test_m7_boundaries.py`: Core/Module에서 adapters/LLM SDK import 금지, Human/Provider/Memory의 좁은 의존성, fake Provider protocol/data validation, NoMemory와 same-actor ordered prior scope, private seller wallet/stock의 missing/invalid 상태가 동일 actor-visible fallback으로 처리됨을 검사한다.
+
+M0–M6의 기존 counterfactual leak tests는 raw World Truth/hidden schedule/debug/다른 actor Knowledge와 자원 변경이 actor Observation을 바꾸지 않아야 함을 계속 검증한다. M7의 byte cap은 이 positive projection을 대체하지 않는다. 임의 문자열 denylist나 Knowledge/social 원본 삭제로 테스트를 통과시키지 않는다.
+
+최종 gate는 프로젝트 `.venv` Python 3.12의 `python --version`, `ruff check .`, `ruff format --check .`, `mypy`, `pytest`, `git diff --check`, `git status`다. 2026-09-12 최종 M7 gate 통과: **656 passed in 2.71s (기존 543 + 신규 113)**. Python 3.12.10, Ruff `All checks passed!`, format `105 files already formatted`, mypy `Success: no issues found in 96 source files`, working diff 및 M6 base 대비 전체 diff 검사 통과. git HEAD는 사용자 WIP checkpoint 99a9ec1이며 최종 변경은 commit/push하지 않았다. kernel/ReplayInput schema 변경, 실제 LLM·24h 실행, crash-safe retry/resume, bounded Research memory를 완료했다고 주장하지 않는다.
+
+### M7 전체 변경 파일 (M6 base 대비)
+
+| 구분 | 파일 |
+|---|---|
+| 구현 | [src/journeymap/adapters/human.py](../src/journeymap/adapters/human.py)<br>[src/journeymap/adapters/memory.py](../src/journeymap/adapters/memory.py)<br>[src/journeymap/adapters/provider.py](../src/journeymap/adapters/provider.py)<br>[src/journeymap/adapters/scripted.py](../src/journeymap/adapters/scripted.py)<br>[src/journeymap/adapters/social_npc.py](../src/journeymap/adapters/social_npc.py)<br>[src/journeymap/application/contracts.py](../src/journeymap/application/contracts.py)<br>[src/journeymap/application/observations.py](../src/journeymap/application/observations.py)<br>[src/journeymap/application/reasons.py](../src/journeymap/application/reasons.py)<br>[src/journeymap/application/session.py](../src/journeymap/application/session.py)<br>[src/journeymap/application/turns.py](../src/journeymap/application/turns.py)<br>[src/journeymap/core/actions.py](../src/journeymap/core/actions.py)<br>[src/journeymap/core/observations.py](../src/journeymap/core/observations.py)<br>[src/journeymap/modules/movement/handlers.py](../src/journeymap/modules/movement/handlers.py)<br>[src/journeymap/modules/survival/handlers.py](../src/journeymap/modules/survival/handlers.py)<br>[src/journeymap/modules/trade/handlers.py](../src/journeymap/modules/trade/handlers.py) |
+| 테스트 | [tests/test_alderwick.py](../tests/test_alderwick.py)<br>[tests/test_game_and_research.py](../tests/test_game_and_research.py)<br>[tests/test_m7_boundaries.py](../tests/test_m7_boundaries.py)<br>[tests/test_m7_contracts.py](../tests/test_m7_contracts.py)<br>[tests/test_m7_idempotency.py](../tests/test_m7_idempotency.py)<br>[tests/test_m7_observations.py](../tests/test_m7_observations.py)<br>[tests/test_observations.py](../tests/test_observations.py) |
+| 문서 | [README.md](../README.md)<br>[docs/API.md](../docs/API.md)<br>[docs/ARCHITECTURE.md](../docs/ARCHITECTURE.md)<br>[docs/ERD.md](../docs/ERD.md)<br>[docs/JOURNEYMAP_0.1_SPEC.md](../docs/JOURNEYMAP_0.1_SPEC.md)<br>[docs/ROADMAP.md](../docs/ROADMAP.md)<br>[docs/TEST_STRATEGY.md](../docs/TEST_STRATEGY.md) |
+
+
+## MemoryReplica dynamic Actual (2026-11-02)
+
+`test_memoryreplica_actual.py` exercises an explicitly synthetic authority after the existing B protocol completes 72 slots, then runs the dynamic research child under source/runtime binding. Coverage includes 4/8/5-tick paths, 24-tick/six-action/63-request limits, Engine rejection/recovery, response failures, global duplicate IDs, cache/usage uncertainty, RESPONSE/SETTLED storage failure with no further send/action, missing/old/stale/source/consumed approval rejection, real-transport denial for synthetic claims, separate-process paid-journal audit and rehashed semantic corruption. Synthetic fixture reset is restricted to pytest temp and is not an implementation reset API. Existing probe execution/continuation/diagnostic/corpus regressions are run separately; exact counts are in the completion artifact. No F1 reproduction or actual API call is performed.

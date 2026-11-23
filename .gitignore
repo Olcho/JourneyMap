@@ -31,6 +31,7 @@ runs/
 attempts.jsonl
 human-approval.json
 authorization.json
+/tests/fixtures/experiment04-pilot-baseline.json
 *.pem
 *.key
 *.zip
