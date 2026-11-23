@@ -7,6 +7,7 @@ import tomllib
 from dataclasses import replace
 from hashlib import sha256
 from pathlib import Path
+from subprocess import check_output
 from typing import cast
 
 import pytest
@@ -119,7 +120,9 @@ def test_legacy_raw_hash_and_working_identity_are_separate(tmp_path: Path) -> No
     source.write_bytes(b"x=2\n")
     assert code_identity(tmp_path)["working_source_sha256"] != unix["working_source_sha256"]
     actual = code_identity()
-    assert actual["git_commit"] and actual["git_source_tree"]
+    root = Path(__file__).resolve().parents[1]
+    tree = check_output(["git", "rev-parse", "HEAD:./src/journeymap"], cwd=root, text=True).strip()
+    assert actual["git_commit"] and actual["git_source_tree"] == tree
     assert type(actual["working_tree_dirty"]) is bool
 
 

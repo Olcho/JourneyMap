@@ -69,6 +69,6 @@ def code_identity(root: Path | None = None) -> JsonObject:
         "source_sha256": legacy_digest.hexdigest(),
         "source_identity_version": SOURCE_IDENTITY_VERSION,
         "source_scope": "src/journeymap/**/*.py+pyproject.toml",
-        "git_source_tree": git("rev-parse", "HEAD:src/journeymap"),
+        "git_source_tree": git("rev-parse", "HEAD:./src/journeymap"),
         "working_source_sha256": logical_source_sha256(sources),
     }
