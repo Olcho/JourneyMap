@@ -77,3 +77,4 @@
 /actual/src/journeymap/scenarios/life.py eol=lf
 /actual/pyproject.toml text eol=crlf
 /experiments/memoryreplica-v1/followup/protocol/prepared_requests.json text eol=crlf
+/experiments/memoryreplica-v1/results/*.csv text eol=crlf

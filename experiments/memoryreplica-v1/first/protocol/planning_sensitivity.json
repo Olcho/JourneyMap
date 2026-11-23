@@ -1,0 +1,26 @@
+{
+  "kind": "ASSUMPTION_BASED_NORMAL_APPROXIMATION_NOT_POWER_GUARANTEE",
+  "values": [
+    {
+      "n": 60,
+      "effect_assumption": 0.1,
+      "paired_sd_assumption": 0.15,
+      "normal_approx_power": 0.9993,
+      "normal_ci_halfwidth": 0.038
+    },
+    {
+      "n": 60,
+      "effect_assumption": 0.1,
+      "paired_sd_assumption": 0.25,
+      "normal_approx_power": 0.8725,
+      "normal_ci_halfwidth": 0.0633
+    },
+    {
+      "n": 60,
+      "effect_assumption": 0.1,
+      "paired_sd_assumption": 0.4,
+      "normal_approx_power": 0.4907,
+      "normal_ci_halfwidth": 0.1012
+    }
+  ]
+}

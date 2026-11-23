@@ -1,0 +1,44 @@
+{
+  "schema": "memoryreplica-protocol-freeze-1",
+  "date": "2026-11-06",
+  "status": "INPUTS_FIXED_NO_LLM_RESULTS",
+  "files": {
+    "MemoryReplica_Protocol_v1_2026-11-05.md": {
+      "sha256": "07811a6ed6ff06673d4261ed66869c8218e9826ea064aac33d9882af81decea1",
+      "bytes": 26563
+    },
+    "protocol.json": {
+      "sha256": "f178e623dba8e47fe436fb87c20e0cdf2de09add99b84bd611d45268d5a16101",
+      "bytes": 3112
+    },
+    "prompts.md": {
+      "sha256": "a84eb48b4121bbfc3c12383ba8dba44ab596db6e672be8c9a7cc02eeb8b9ea13",
+      "bytes": 3439
+    },
+    "validate_design.py": {
+      "sha256": "1e243ef78a05f48db18aebb223f29432e7e7295416045479ea5e6196e50ba426",
+      "bytes": 17939
+    },
+    "design_validation.json": {
+      "sha256": "ebfd0ea489187b4c56bb32292b6a4a495dd9b47735dd69bc9cff75af244037c3",
+      "bytes": 194632
+    },
+    "main_inputs.json": {
+      "sha256": "5dc40c4b9c58dd042f9499e914484fd7ec4e2dd7323f08c3416eee129a78c179",
+      "bytes": 1828121
+    },
+    "validation_summary.json": {
+      "sha256": "39170ea9f9ae39bf1ab10a51159f8e67664fce9650d05d5fa34e2e3a8ce4f92d",
+      "bytes": 3032
+    },
+    "planning_sensitivity.json": {
+      "sha256": "2ddfa60258f11c40dd7c439512fde971e062e5626ed2803cac046f72759587a0",
+      "bytes": 597
+    },
+    "README.md": {
+      "sha256": "dc13a23bbf7a2f81ec580497d501e07a675be8f50e0a9eaeaf15244cd8ce4c19",
+      "bytes": 1504
+    }
+  },
+  "timezone": "Asia/Seoul"
+}
