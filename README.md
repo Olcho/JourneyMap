@@ -43,6 +43,12 @@ Retrieved Event Memory ───────────┘                    W
 5. 같은 초기 상태, seed, recorded ActionRequest stream은 같은 Engine 결과와 Event 순서를 재현해야 한다.
 6. Research Archive와 Agent가 실제로 접근할 수 있는 정보 범위를 분리한다.
 
+## 최신 별도 연구 결과: MemoryReplica v1 (2026-11-23)
+
+2026년 11월 23일 완료 보고된 **MemoryReplica v1 평가 결과**는 [120개 세계, 600회 실행 결과 및 해석 한계](docs/MEMORYREPLICA_RESULTS_2026-11-23.md)에 기록했다. 성공 경험과 실패 경험을 함께 보존한 혼합 기억(M)과 결과와 관계없는 최근순 기억(R)의 평균 행동 효율 차이(M−R)는 **−0.0041**, 보고된 95% 구간은 **[−0.0583, +0.0488]**이다. 혼합 정책의 일관된 우위는 확인되지 않았다.
+
+**중요:** 위 결과는 완료된 별도 실험 계보의 저장 보고에 근거한 **결과 문서**이며, 이 GitHub `main` 브랜치에 최신 MemoryReplica 실행 코드, 동결 입력, 원본 응답 및 평가 DB가 모두 반영됐음을 뜻하지 않는다. 이 저장소의 기존 Memory Horizon / Distinct Places 기술적 preflight와 MemoryReplica 결과를 같은 실험으로 간주하지 않는다. 코드 동기화와 독립 재검증은 별도로 진행해야 한다.
+
 ## 현재 연구 질문
 
 현재 연구는 크게 두 단계로 진행한다.
