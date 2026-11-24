@@ -7,6 +7,7 @@ from pathlib import Path
 from typing import cast
 
 from journeymap.adapters.event_memory import RecencyEventMemory
+from journeymap.adapters.horizon_baseline import PreviousPlaceProvider
 from journeymap.adapters.llm import LLMController
 from journeymap.adapters.memory import NoMemory
 from journeymap.adapters.memory_horizon_prompt import PROFILE
@@ -74,7 +75,9 @@ def main() -> None:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--memory", choices=("no-memory", "recency-k1", "recency-k2", "recency-k3"))
     parser.add_argument(
-        "--fixture", choices=("complete", "repeat", "incomplete"), default="complete"
+        "--fixture",
+        choices=("complete", "repeat", "incomplete", "previous-place"),
+        default="complete",
     )
     parser.add_argument("--trial-id")
     parser.add_argument("--output", type=Path)
@@ -98,9 +101,13 @@ def main() -> None:
         "incomplete": ("inn", "bakery"),
     }
     memory = NoMemory() if args.memory == "no-memory" else RecencyEventMemory(int(args.memory[-1]))
+    if args.fixture == "previous-place" and args.memory != "recency-k1":
+        parser.error("previous-place reference requires --memory recency-k1")
     trial = run_trial(
         LLMController(
-            HorizonFakeProvider(plans[args.fixture]),
+            PreviousPlaceProvider()
+            if args.fixture == "previous-place"
+            else HorizonFakeProvider(plans[args.fixture]),
             model="memory-horizon-fixture-2",
             event_memory=memory,
             prompt_profile=PROFILE,

@@ -7,19 +7,35 @@ on:
 jobs:
   quality:
     runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        checkout: [".", "actual"]
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
         with:
           python-version: "3.12"
           cache: pip
+          cache-dependency-path: ${{ matrix.checkout }}/pyproject.toml
       - name: Install package and development tools
+        working-directory: ${{ matrix.checkout }}
         run: python -m pip install --upgrade pip && python -m pip install -e ".[dev]"
       - name: Ruff lint
-        run: ruff check .
+        working-directory: ${{ matrix.checkout }}
+        run: ruff check src tests
       - name: Ruff format
-        run: ruff format --check .
+        working-directory: ${{ matrix.checkout }}
+        run: ruff format --check src tests
       - name: Mypy
+        working-directory: ${{ matrix.checkout }}
         run: mypy
       - name: Pytest
+        working-directory: ${{ matrix.checkout }}
         run: pytest
+      - name: MemoryReplica v1 offline tests
+        if: matrix.checkout == '.'
+        env:
+          MR_V1_SOURCE_SRC: ${{ github.workspace }}/src
+          MR_V1_PROTOCOL_DIR: ${{ github.workspace }}/experiments/memoryreplica-v1/first/protocol
+          PYTHONPATH: ${{ github.workspace }}/experiments/memoryreplica-v1/first
+        run: python -X utf8 -m unittest discover -s experiments/memoryreplica-v1/tests -p test_v1.py

@@ -1,0 +1,26 @@
+{
+  "schema": "memoryreplica-protocol-freeze-1",
+  "batch_id": "followup-20261118",
+  "files": {
+    "prompts.md": {
+      "bytes": 3439,
+      "sha256": "a84eb48b4121bbfc3c12383ba8dba44ab596db6e672be8c9a7cc02eeb8b9ea13"
+    },
+    "protocol.json": {
+      "bytes": 3112,
+      "sha256": "f178e623dba8e47fe436fb87c20e0cdf2de09add99b84bd611d45268d5a16101"
+    },
+    "validate_design.py": {
+      "bytes": 17939,
+      "sha256": "1e243ef78a05f48db18aebb223f29432e7e7295416045479ea5e6196e50ba426"
+    },
+    "main_inputs.json": {
+      "bytes": 1813116,
+      "sha256": "4438fc7c1e744ccac47274b77051c50ae3fc6f190cd621eda5481316a17b71d9"
+    },
+    "analysis.json": {
+      "bytes": 1724,
+      "sha256": "289cd2aabdad04ba755ce4a5a501e47c6db0e6feaf6d2194c6be3d6df5f5ce0d"
+    }
+  }
+}

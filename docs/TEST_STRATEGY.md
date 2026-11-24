@@ -1,5 +1,39 @@
 # Test Strategy
 
+## 수령처 연속 행동 gate
+
+`test_pickup_sequential.py`는 첫 도착 즉시 중단, Well 재확인과 귀환의 기억 창,
+오답/WAIT/정상 거부 후 전개, 응답 실패 종료, 반복 cue/상충 cue, 첫 입력 0/2/4/6/8,
+cap/미완료 prefix/중간 오류의 첫 점수 보존, 재봉인 body/단계/cue/성공/비용/mode 거부를 검증합니다.
+40개 mock transport bytes와 새 세계·별도 Engine replay를 대조하며 fake HTTP는 단위 검증입니다.
+one-shot/역사적 audit는 그대로 유지하고 실제 원본 gate도 읽기 전용으로 재검증합니다.
+[계약](EXPERIMENT03_PICKUP_SEQUENTIAL.md). mock 결과를 LLM 효과로 해석하지 않습니다.
+
+## Experiment 03 수령처 live 준비 gate
+
+v2 mode 회귀는 원래 plan digest를 고정한 상태에서 timeout/transport/준비 실패/INTENT 중단의
+mock→live 재봉인을 거부해야 합니다. 실제 모델용 config의 mock 요청도 포함하며 정상 live 계획의
+fake HTTP infrastructure와 unknown 상태를 유지합니다. mode는 body에 넣지 않습니다. v1 원본의
+읽기 전용 결과는 새 보증으로 승격하지 않습니다. [수정 gate](EXPERIMENT03_LIVE_MODE_FIX_REPORT_2026-10-05.md)를
+참고해 주세요.
+
+`test_pickup_cue_live.py`는 socket과 실제 key 조회를 차단한 상태에서 40개 transport byte 비교,
+10쌍 무안내 동등성/10쌍 안내만의 차이, preflight 차단, 응답·실패 분류, fsync 실패 및 crash,
+재봉인 변조, Provider 없는 audit, named/detached provenance를 검증합니다.
+HTTP 경로 테스트의 credential은 명시적인 fake 문자열이며 연결 객체도 오프라인 double입니다.
+기존 전체 연구 불변식 및 historical regressions는 계속 release gate입니다.
+[연결 준비 계약](EXPERIMENT03_LIVE_PREPARATION.md),
+[이번 검증 결과](EXPERIMENT03_LIVE_PREPARATION_REPORT_2026-10-05.md)를 참고해 주세요.
+
+## Experiment 03 기준선·진단 gate
+
+`tests/test_pickup_cue.py`는 상태 없는 직전 장소 규칙의 수작업 기대표, 40개 조합의 cue
+포함표/current·전체 ProviderRequest 동등성, 실제 5-action prefix, one-shot 응답/제출,
+실패 분류와 불완전 evidence 제외, provider-free replay/관찰 재구성/평가 재계산,
+재봉인 변조와 case 누락·중복·오연결 거부를 검증한다. network socket은 차단한다.
+기존 테스트/지표/원본 schema는 유지한다. [계약](EXPERIMENT03_BASELINE_DIAGNOSTIC.md)과
+[실제 gate 결과](EXPERIMENT03_OFFLINE_REPORT_2026-10-04.md)를 참고한다.
+
 ## Memory Horizon offline preparation gate
 
 `tests/test_memory_horizon.py` verifies the separate empty-schedule composition,
@@ -277,3 +311,51 @@ M0–M6의 기존 counterfactual leak tests는 raw World Truth/hidden schedule/d
 | 구현 | [src/journeymap/adapters/human.py](../src/journeymap/adapters/human.py)<br>[src/journeymap/adapters/memory.py](../src/journeymap/adapters/memory.py)<br>[src/journeymap/adapters/provider.py](../src/journeymap/adapters/provider.py)<br>[src/journeymap/adapters/scripted.py](../src/journeymap/adapters/scripted.py)<br>[src/journeymap/adapters/social_npc.py](../src/journeymap/adapters/social_npc.py)<br>[src/journeymap/application/contracts.py](../src/journeymap/application/contracts.py)<br>[src/journeymap/application/observations.py](../src/journeymap/application/observations.py)<br>[src/journeymap/application/reasons.py](../src/journeymap/application/reasons.py)<br>[src/journeymap/application/session.py](../src/journeymap/application/session.py)<br>[src/journeymap/application/turns.py](../src/journeymap/application/turns.py)<br>[src/journeymap/core/actions.py](../src/journeymap/core/actions.py)<br>[src/journeymap/core/observations.py](../src/journeymap/core/observations.py)<br>[src/journeymap/modules/movement/handlers.py](../src/journeymap/modules/movement/handlers.py)<br>[src/journeymap/modules/survival/handlers.py](../src/journeymap/modules/survival/handlers.py)<br>[src/journeymap/modules/trade/handlers.py](../src/journeymap/modules/trade/handlers.py) |
 | 테스트 | [tests/test_alderwick.py](../tests/test_alderwick.py)<br>[tests/test_game_and_research.py](../tests/test_game_and_research.py)<br>[tests/test_m7_boundaries.py](../tests/test_m7_boundaries.py)<br>[tests/test_m7_contracts.py](../tests/test_m7_contracts.py)<br>[tests/test_m7_idempotency.py](../tests/test_m7_idempotency.py)<br>[tests/test_m7_observations.py](../tests/test_m7_observations.py)<br>[tests/test_observations.py](../tests/test_observations.py) |
 | 문서 | [README.md](../README.md)<br>[docs/API.md](../docs/API.md)<br>[docs/ARCHITECTURE.md](../docs/ARCHITECTURE.md)<br>[docs/ERD.md](../docs/ERD.md)<br>[docs/JOURNEYMAP_0.1_SPEC.md](../docs/JOURNEYMAP_0.1_SPEC.md)<br>[docs/ROADMAP.md](../docs/ROADMAP.md)<br>[docs/TEST_STRATEGY.md](../docs/TEST_STRATEGY.md) |
+
+## Experiment 04 offline 회귀
+
+`test_route_update.py`와 `test_route_update_audit.py`는 A/B 실제 초기 선택, 새 application 분기 및 경험 재구성, ①② 전체 wire 동일성/③ 통보 차이, 중첩 ID 반사실, 원격 은닉/현장 목격/다른 수신자, 정책과 truth 분리/동률, 첫 오답 보존/회복/실제 도착, 6회·24tick 경계, 응답·infrastructure·Engine FAILED·integrity·기록 실패와 분모를 검사한다. reseal한 journal/export metrics·receipt·Event·position·knowledge·experience·authority·wire/schema와 plan 변조도 Provider 없이 재구성하여 거부한다. 기존 03 구현과 원본을 해시 보존하고 전체 pytest/Ruff/strict mypy/diff gate를 실행한다. 로그와 실제 통과 수는 [완료 보고서](EXPERIMENT04_OFFLINE_REPORT_2026-10-08.md)에서 확인한다. fake 통과는 construct validity나 행동 효과의 증거가 아니다.
+
+## Experiment 04 목표 계약 보완 회귀 (2026-10-09)
+
+`test_route_update_goal.py`는 초기 목적 유지/후속 시간 최소화 범위, 모든 조건의 같은 목표·전체 wire, 열린 A의 6tick 도착 성공/시간 최적 첫 선택 false, v1 원본 wire와 8묶음의 정확한 재감사, v2 결합과 미지원·혼합 버전 거부를 검사한다. 기존 첫 점수/회복/한도 검사는 그대로 둔다. [수정 보고서](EXPERIMENT04_GOAL_REVIEW_REPORT_2026-10-09.md)의 실제 실행 로그와 정체/보존 gate를 구분해 확인한다. audit는 Session/metrics를 runner와 공유하는 재구성 검증이며 별도 평가 알고리즘 증명이나 source/runtime 대조가 아니다.
+
+## Experiment 04 live 준비 회귀
+
+`tests/test_route_update_live.py`는 HTTP/키 접근을 금지한 inert byte transport로 6개 순서의
+첫 입력 선검사, 초기 1회/독립 prefix replay, model/profile/schema/mode/승인/DRAFT gate,
+refusal/malformed/incomplete/token cap/transport/identity/usage/tier 오류, 기록 중단,
+입력·비용·114호출·6/24 경계, 도착 시 종료/첫 점수 유지, A/B/nullable 대응표와 raw 변조를 검증한다.
+검증 scripts는 기존 E04 v1/v2 원본 재감사·해시 및 E03를 포함한 전체 pytest/Ruff/strict mypy/diff를
+실행한다. mock 통과는 모델의 정보 활용이나 비용/tokenizer 실제 측정 증거가 아니다.
+readiness 및 남은 계수 근거는 [계약](EXPERIMENT04_LIVE_PREPARATION.md)에 명시한다.
+
+
+### E04 counted 후속 회귀 (2026-10-09)
+
+`test_route_update_counted.py`: 저장 Windows 경로의 resolve 금지, 이동한 사본 감사, native output mismatch 및 digest 변조, tick-3 A/B 두 기준선과 미시도 모델 응답 구분, 재봉인된 잘못된 정책 검출, 명시적 count projection, count의 음수/bool/object/oversize/한도/실패, count→generation wire 바인딩·1회 소비, count와 반환 usage 불일치, 승인 scope 분리, 모든 미승인 네트워크 차단, unknown 비용 예약 유지, 기록 실패 후 무재시도, 114+114 상한과 기존 6순서. mock 통과는 구현 correctness만 입증한다. 실제 count 서비스·fee·LLM 행동은 확인하지 않는다. Linux native 회귀는 이 Windows 환경에서 실행하지 못했으며 호스트 경로 해석 금지 및 원본 사본 재감사와 구분한다.
+
+
+### E04 smoke UNKNOWN 정책 회귀 (2026-10-10)
+
+`test_route_update_limited_smoke.py`는 null 비용 의미, mock 1/1/2, 실패·usage 불일치·단일 발송, count-only/pilot/상한/endpoint/model 변조, exact bool/int/null 승인 및 pending·미수용·과거 승인 거부, 승인 뒤 source 변경, wire 일회성 바인딩, recording 중단과 unknown 비용 유지, synthetic live-format witness의 가격·pilot 비승격, 저장 승인 누락 거부와 사본 감사/경로 resolve 금지를 검사한다. 실제 HTTP/키/socket은 차단하고 합성 승인/원문은 pytest 임시 디렉터리에만 둔다. 기존 43개 raw는 재생성 없이 저장 감사 결과와 한 번 대조한다. 최종 전체 pytest 한 번과 Ruff/format/strict mypy/diff gate를 수행한다. 합성 live-format 결과는 실제 서비스 증거가 아니다.
+
+## 2026-10-10 별도 제한 pilot 준비: v4
+
+명시적 `--pilot-count-fee-unknown`만 `PILOT_COUNT_FEE_UNKNOWN_V1`을 선택한다. v3 smoke 1/1/2와 기본 v2 가격 gate, 과거 원본 의미는 유지한다. 새 초기 시도 p001~p006과 기존 6가지 조건 순열, 각 분기 6회/24tick 및 engine seed42를 유지한다. 생성114/count114/network228은 시도 상한이고 성공 표본 수가 아니다. 기존 smoke 응답은 표본으로 재사용하지 않는다.
+
+생성 부분 조건부 예약 USD8.03472=114*0.07048만 기록한다. 계수 가격/상한/청구액은 UNKNOWN/null이고 전체 비용 상한=null, total_cost_bound_guaranteed=false다. 예약은 실패 뒤 환급해 호출 수를 늘리지 않는다. USD10 총액 보장이나 추가 실행 승인이 아니다.
+
+v4는 실제 v3 smoke witness와 이번 전환에 한정된 호환성 기록을 요구한다. 기록은 검증된 이전 ZIP/source 전체 inventory, 원래 witness bytes/digest, before/after 변경 목록과 hash, 보호 파일 전체 목록, 이전/현재 실제 smoke 및 A/B 후속 저장 응답 재생의 입력/wire/행동/평가를 묶는다. current preflight는 현재 전체 source/runtime를 별도로 검사한다. readonly audit는 저장 source·증거로 재구성하며 현재 Git/원본 Windows 경로/Provider/key/network에 의존하지 않는다. unsigned 내부 일관성으로 서비스 진위나 모든 프로그램 동등성을 증명하지 않는다.
+
+서비스 증거 RECORDED_ACTUAL_V3_SMOKE, 코드 호환성 VALIDATED_V3_TO_V4_UNSIGNED, count 가격 UNKNOWN, 최종 승인 PENDING_USER_APPROVAL을 분리한다. READY_FOR_REVIEW는 발송 허가가 아니다. 실제 발송에는 새 frozen plan과 exact HUMAN_APPROVED 승인이 별도로 필요하다. 이번 준비에서 실제 API 및 키 조회0회, 새 actual output/claim/승인 파일은 생성하지 않는다.
+
+정확한 계약은 [제한 pilot 준비](EXPERIMENT04_LIMITED_PILOT_PREPARATION.md)를 따른다. 과거 절의 미실행/미구현 상태는 당시 이력이며 소급 재작성하지 않는다.
+## MemoryReplica offline integration gate (2026-10-30)
+
+`test_memoryreplica*.py`는 ZIP의 31개 검사를 패키지 import/타입 계약에 맞춰 보존하고, 전체 canonical 초기 세계·경험 동일성, 초기 지도 전면 제외, 결정적 행동/Event 재실행, Engine 거부 후 회복, 미도달/fixture 소진 분리와 source/import 검사를 추가합니다. socket/credential 접근은 차단합니다. 기존 E03/E04 테스트 및 raw는 유지하고 pytest/Ruff/format/strict mypy/diff와 보존 hash를 검사합니다. fake/scripted 결과는 LLM 행동이나 construct validity 증거가 아닙니다. [실제 실행 결과](MEMORYREPLICA_REPORT_2026-10-30.md).
+
+
+## MemoryReplica dynamic Actual (2026-11-02)
+
+The MemoryReplica research suite now includes 17 saved-frame dynamic tests (78 MemoryReplica cases total). The CLI replays 18 normal/failure/partial-prefix cases and independently regenerates a next request. Actual-side tests cover the same SQLite authority after a completed synthetic B run, 9 dynamic cases, 63 requests, limits, duplicate IDs across cases, failed response/settlement writes, stale/source/approval/consumed-ID rejection, isolated audit and semantic tamper rejection. No network/key or operational DB is used. Counts and exact logs are recorded in the integration artifact; this does not claim a fresh complete repository regression or LLM behavioral evidence.

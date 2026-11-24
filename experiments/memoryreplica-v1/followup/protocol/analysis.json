@@ -1,0 +1,69 @@
+{
+  "source": "https://app.notion.com/p/40de2656dc2681b391f4c8f9fc3ef51c",
+  "primary": {
+    "contrast": "M_minus_R",
+    "metric": "E",
+    "scoring": "reach_goal_times_feasible_oracle_cost_divided_by_actual_positive_cost",
+    "practical_difference": 0.1
+  },
+  "secondary": {
+    "contrast": "S_minus_F",
+    "descriptive_only": true
+  },
+  "bootstrap": {
+    "algorithm": "memoryreplica_v1.analysis.paired_interval",
+    "unit": "paired world",
+    "strata": [
+      "ring",
+      "hub",
+      "bridge"
+    ],
+    "family_weights": {
+      "ring": 0.3333333333333333,
+      "hub": 0.3333333333333333,
+      "bridge": 0.3333333333333333
+    },
+    "replicates": 20000,
+    "seed": 20261105,
+    "percentiles": [
+      0.025,
+      0.975
+    ]
+  },
+  "original": {
+    "batch_id": "main-1001",
+    "worlds_per_family": 20,
+    "report_saved_estimate_unchanged": true
+  },
+  "followup": {
+    "batch_id": "followup-20261118",
+    "worlds_per_family": 20,
+    "episodes": 300
+  },
+  "pooled": {
+    "batch_ids": [
+      "main-1001",
+      "followup-20261118"
+    ],
+    "worlds_per_family": 40,
+    "preserve_batch_id": true,
+    "development_included": false,
+    "interpretation": "post-initial-result extension for estimation and description",
+    "interval_adjusted_for_extension_decision": false
+  },
+  "missing": {
+    "unresolved_scores": null,
+    "replace_worlds": false,
+    "impute_zero": false,
+    "report_missing_reasons_and_pair_counts": true,
+    "report_full_estimate_only_on_complete_data": true
+  },
+  "descriptive_metrics": [
+    "retention_loss",
+    "input_conditional_accuracy",
+    "reconstruction",
+    "provided_goal_path_connectivity",
+    "behavior"
+  ],
+  "stop_after_followup_episodes": 300
+}

@@ -1,5 +1,20 @@
 # Architecture
 
+연속 수령처 진단은 기존 trusted 준비 Session과 순수 validator/HTTP 전송만 재사용합니다.
+별도 profile/policy/metrics/plan/loop/audit에서 각 실제 관찰에 대한 결정을 기록하며,
+Provider에는 세계·archive·연구 target을 전달하지 않습니다. [계약](EXPERIMENT03_PICKUP_SEQUENTIAL.md).
+
+수령처 [연결 준비](EXPERIMENT03_LIVE_PREPARATION.md)는 trusted `PickupSession`의 실제 준비·평가
+orchestration과 world handle 없는 `PickupProvider`/HTTP transport를 분리합니다.
+Session의 요청 바인딩에는 기존 순수 parser와 실제 GamePort를 사용합니다. audit는 새 Session에서
+관찰과 body를 다시 만들고 별도 ReplayHarness로 Engine 결과를 비교하며 Provider를 만들지 않습니다.
+기존 Core, LLMController와 mock-only 실행기는 수정하지 않습니다.
+
+Experiment 03의 [수령처 진단](EXPERIMENT03_BASELINE_DIAGNOSTIC.md)은 별도 composition의
+scenario-owned notice를 trusted perception 뒤 contributor로 전달한다. 준비 orchestration은
+GamePort와 정식 archive를 사용하고 평가 Provider에는 렌더링된 semantic 입력만 준다.
+기존 Controller의 receipt guard와 Core/mutation boundary는 변경하지 않는다.
+
 Event Memory Phase 1은 adapter-owned immutable `EventTraceArchive`와 별도
 `EventMemoryPolicy`를 추가한다. trusted experiment orchestration만 engine 제출 여부를
 확인하고 공개 receipt를 ingestion하며, Controller/Provider에는 world/research capability를
@@ -300,3 +315,43 @@ ActionTrace에 engine_submitted/retry_of_attempt를 추가해 normalized live at
 `adapters.llm`은 prompt, raw/parsed decision snapshot과 trusted Observation binding을 소유한다. `decision_schema`는 strict wire 표현만, `openai_provider`는 고정 HTTPS transport만 소유한다. REQUEST의 object string codec은 adapter에서 종료되고 Core/domain에는 들어가지 않는다. `experiments.alderwick`만 application/GamePort/Research/kernel을 조합하고 actor activation, wall/simulation bounds, budget monitoring, export와 기존 ReplayHarness equality를 수행한다. Controller에는 이 capability들을 주입하지 않는다.
 
 bootstrap의 M8 opt-in은 scenario-owned local perception과 application-owned 자기 public receipt contributor를 등록한다. world의 local route/actor filtering은 contributor 전에 끝난다. `ObservationBudgetExceeded`는 trusted monitor용 byte 진단이며 public Game 오류 계약은 그대로다. provider exception/parse failure는 no-submit, engine/submission failure는 이미 발생한 commit 보존이다. 파일 write는 완료된 immutable trial을 입력으로 받으므로 canonical transaction/rollback과 연결되지 않는다. protocol/schema/승인 경계는 [M8 프로토콜](M8_EXPERIMENT.md)을 따른다.
+
+## Experiment 04 독립 경계
+
+`scenarios/route_update.py`가 18방향 그래프, 작성된 초기 Knowledge와 국소 관찰, 검증된 시스템 폐쇄/공식 통보를 소유한다. E04 전용 adapter/profile/policy와 session/metrics/audit가 지식 기반 첫 이동과 연구 truth 판정을 분리한다. 기존 application 권한·EventTraceArchive·Movement transaction을 유지하며 03 profile/session/metrics를 확장하지 않는다. [계약](EXPERIMENT04_OFFLINE.md).
+
+## Experiment 04 live 준비 경계
+
+E04 전용 HTTP adapter는 immutable JSON wire bytes만 받는다. trusted live Session은 기존
+관찰/archive/engine mutation boundary를 공유하며 별도 response provenance 검증을 한다.
+fake-only 응답 검증을 완화하지 않는다. runner는 세 새 application의 첫 입력을 모두 준비한 후
+균형 순서로 호출한다. 비용 ledger와 조건별 소프트웨어 기록은 모델 입력 밖에 있다.
+Provider 없는 audit는 같은 Session/metrics를 공유하는 새 application 재생이며 source/runtime
+비교는 외부 gate다. [live 준비 계약](EXPERIMENT04_LIVE_PREPARATION.md) 참조.
+
+
+### E04 계수와 행동의 경계 (2026-10-09)
+
+CountedSession은 이미 준비된 semantic input에서 tick-3 첫 이동 정책 두 개만 계산하고 export에 기록한다. 정책에는 World Truth/condition을 전달하지 않으며 모델 입력으로 돌려 넣지 않는다. count도 pending 관찰을 그대로 사용하며 두 번째 observe 및 세계 tick 진행을 하지 않는다. count와 generation ledger 예약은 분리하고 unknown charge를 해제하지 않는다. 새로운 결과는 responses execution/export/audit v2, 기존 v1 raw는 그대로 유지한다. readonly audit에서 output_path는 원본 provenance 문자열이며 실제 파일 접근은 caller bundle 아래에서만 수행한다. native 발송 전 source/plan/profile와 새 output 위치 gate는 유지된다.
+
+
+### E04 제한된 UNKNOWN 계수 비용 경계 (2026-10-10)
+
+실행/plan/export/audit v3는 한 번의 별도 smoke에만 UNKNOWN 계수 비용을 허용한다. 공용 CountedLedger/runner/auditor/CountedSession을 재사용하며 engine, 지도, Observation/경험, prompt/schema, 후속 목표, 정책 기준선, 파일럿 순서는 수정하지 않는다. count fee upper bound/charge estimate 및 combined bound는 null이고, Decimal 생성 예약·usage 소계만 금액으로 계산한다. UNKNOWN을 0 또는 mock fee로 바꾸지 않는다. 정확한 1/1/2 범위와 정책을 ledger 생성·예약과 계획·승인 gate에서 확인한다. 실제 송신은 승인 확인 뒤 current source/plan을 재검증하며, 읽기 전용 audit는 원래 provenance 경로 문자열을 유지하고 current Git/키/네트워크 없이 재생한다.
+
+## 2026-10-10 별도 제한 pilot 준비: v4
+
+명시적 `--pilot-count-fee-unknown`만 `PILOT_COUNT_FEE_UNKNOWN_V1`을 선택한다. v3 smoke 1/1/2와 기본 v2 가격 gate, 과거 원본 의미는 유지한다. 새 초기 시도 p001~p006과 기존 6가지 조건 순열, 각 분기 6회/24tick 및 engine seed42를 유지한다. 생성114/count114/network228은 시도 상한이고 성공 표본 수가 아니다. 기존 smoke 응답은 표본으로 재사용하지 않는다.
+
+생성 부분 조건부 예약 USD8.03472=114*0.07048만 기록한다. 계수 가격/상한/청구액은 UNKNOWN/null이고 전체 비용 상한=null, total_cost_bound_guaranteed=false다. 예약은 실패 뒤 환급해 호출 수를 늘리지 않는다. USD10 총액 보장이나 추가 실행 승인이 아니다.
+
+v4는 실제 v3 smoke witness와 이번 전환에 한정된 호환성 기록을 요구한다. 기록은 검증된 이전 ZIP/source 전체 inventory, 원래 witness bytes/digest, before/after 변경 목록과 hash, 보호 파일 전체 목록, 이전/현재 실제 smoke 및 A/B 후속 저장 응답 재생의 입력/wire/행동/평가를 묶는다. current preflight는 현재 전체 source/runtime를 별도로 검사한다. readonly audit는 저장 source·증거로 재구성하며 현재 Git/원본 Windows 경로/Provider/key/network에 의존하지 않는다. unsigned 내부 일관성으로 서비스 진위나 모든 프로그램 동등성을 증명하지 않는다.
+
+서비스 증거 RECORDED_ACTUAL_V3_SMOKE, 코드 호환성 VALIDATED_V3_TO_V4_UNSIGNED, count 가격 UNKNOWN, 최종 승인 PENDING_USER_APPROVAL을 분리한다. READY_FOR_REVIEW는 발송 허가가 아니다. 실제 발송에는 새 frozen plan과 exact HUMAN_APPROVED 승인이 별도로 필요하다. 이번 준비에서 실제 API 및 키 조회0회, 새 actual output/claim/승인 파일은 생성하지 않는다.
+
+정확한 계약은 [제한 pilot 준비](EXPERIMENT04_LIMITED_PILOT_PREPARATION.md)를 따른다. 과거 절의 미실행/미구현 상태는 당시 이력이며 소급 재작성하지 않는다.
+## MemoryReplica additive composition (2026-10-30)
+
+별도 adapter projection과 MemoryReplica 연구 runner는 기존 E04 Session/semantic allowlist/EventTraceArchive/GamePort를 조합합니다. Core/Module/scenario와 기존 E04 profile은 변경하지 않습니다. Provider에는 JSON 문자열만 전달하고 truth 기반 진단은 연구 출력에만 둡니다. CLI는 현재 source/import 경로와 실행 전후 source hash를 확인하며 과거 ZIP manifest를 현재 소스로 간주하지 않습니다. [계약](MEMORYREPLICA_OFFLINE.md).
+
+MemoryReplica는 `src/journeymap_memoryreplica` 독립 패키지로 기존 E04 source scope와 7개 변경 allowlist를 보존합니다. 기존 E04는 이 패키지를 import하지 않고, MemoryReplica 검증 기록은 두 패키지의 전체 소스를 포함합니다.

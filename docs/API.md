@@ -1,5 +1,25 @@
 # API Contracts
 
+연속 수령처 진단은 `pickup_sequential_plan.make_plan/validate_plan`,
+`pickup_sequential.execute`, `pickup_sequential_audit.audit_directory`와 별도 CLI입니다.
+기본은 mock이며 live 후보는 DRAFT입니다. [계약](EXPERIMENT03_PICKUP_SEQUENTIAL.md)의
+6회 단계 상한·전체 cap·새 승인 및 순차 중단 정책을 따릅니다.
+
+수령처 live 준비 계획 v2는 `make_plan(mode="recording-mock"|"live")`를 digest에 묶습니다.
+`validate_mode_config`는 key/source/network 없이 runner와 audit가 공유합니다. mode 불일치는 파일 생성
+전에 거부하고, 응답 없는 기록도 계획/journal/export mode를 대조합니다. v1 지원 한계는 전용 계약에 있습니다.
+
+수령처 진단 연결 준비 API는 별도 `pickup_cue_live_plan.make_plan/validate_plan`,
+`pickup_cue_live.execute`와 `pickup_cue_live_audit.audit_directory`입니다.
+`execute`의 기본값은 recording mock이며 live에는 동결 계획, 명시 옵션과 승인 digest가 필요합니다.
+Provider에는 request/config/byte transport만 전달합니다. [전용 계약](EXPERIMENT03_LIVE_PREPARATION.md)을
+참고해 주세요. 기존 fixture runner와 Memory Horizon mock-only gate는 그대로 유지합니다.
+
+Experiment 03의 추가 offline API는 `experiments.pickup_cue.run_case/run_matrix`,
+`export_case`와 별도 `pickup_cue_audit` reader/replay/audit다. runner는 concrete inert
+Fixture만 받으며 live Provider/transport는 받지 않는다. 기존 API/protocol 의미는 유지한다.
+입력·행동·실패·export 계약은 [진단 문서](EXPERIMENT03_BASELINE_DIAGNOSTIC.md)를 따른다.
+
 ## Memory Horizon offline opt-in
 
 `LLMController(..., event_memory=..., prompt_profile=PROFILE)` accepts a frozen
@@ -462,3 +482,44 @@ ReplayInput/ReplayHarness/ReplayReport와 kernel semantics는 M7에서 변경하
 Hardening 0.1.0의 Provider identity는 adapter의 `ProviderIdentity`가 소유한다. 기존 `run_trial(provider_name=..., provider_version=...)` 인수는 생략 가능하며, 제공하면 실제 adapter와 일치해야 한다. identity 없는 test double은 `fake/unversioned-fixture`다. response identity 모순은 raw output과 `PROVIDER_IDENTITY_MISMATCH`를 남기고 ActionRequest 생성을 차단한다. requested model과 반환 model은 별도 기록하며 OpenAI의 exact model 또는 같은 alias의 유효한 `-YYYY-MM-DD` suffix만 허용한다. 이미 날짜로 고정한 요청은 exact match만 허용한다.
 
 `assess_inclusion(data)`는 새 immutable trial의 data-quality 판정을 재계산한다. `audit_export(directory)`/CLI `--audit`는 저장 파일의 hash와 전체 record seal, trace/configuration 연결 및 실제 engine replay를 검사하고 stored/recomputed inclusion과 일치 여부를 반환한다. mismatch는 `STORED_INCLUSION_MISMATCH`이고 CLI 성공 exit code는 INCLUDED일 때만 0이다. schema v1은 `NEW_PROVENANCE_REQUIRED`로 strict inclusion에서 제외하지만 `--replay`는 기존 0.0.0 artifact를 변경 없이 재현한다. 상세 기준은 [M8 hardening 계약](M8_EXPERIMENT.md#8-pre-experiment-hardening--export-v2)을 따른다.
+
+## Experiment 04 offline API
+
+`journeymap.examples.route_update`는 `fake`, `audit`, `inspect`만 제공한다. `experiments.route_update.execute`는 구체적인 불변 fixture만 받고 새 출력 경로를 사용한다. `route_update_audit.audit_directory`는 Provider/키/네트워크 없이 전체 application을 재구성한다. 상세 wire·실패·분모 계약은 [Experiment 04](EXPERIMENT04_OFFLINE.md)를 참조한다.
+
+## Experiment 04 목표 계약 v2
+
+새 fake 실행은 protocol experiment04-offline-2/profile experiment04-route-change-decision-2/export-2를 생성한다. audit/inspect는 정확한 v1과 v2만 원래 profile로 재구성하고 미지원·혼합 버전은 성공으로 판정하지 않는다. source/runtime의 현재값 대조는 별도 gate이며 INCLUDED 자체의 보장은 아니다. [목표·버전·audit 범위](EXPERIMENT04_OFFLINE.md).
+
+## Experiment 04 Responses 준비 API
+
+`journeymap.examples.route_update_live`의 기본 준비 명령은 `plan/mock/audit/inspect`다.
+별도 `live/smoke` 경로는 exact source/profile/schema/config/plan/stage/call/budget/output 및
+사용자 승인과 검증된 계수 readiness를 필요로 한다. 현재 live READY는 발급하지 않는다.
+모델 입력은 기존 v2 semantic/profile뿐이며 source, 조건명, 비용, 순서표, 평가 정답은 전달하지 않는다.
+[계약과 명령](EXPERIMENT04_LIVE_PREPARATION.md)을 확인한다.
+
+
+### E04 counted protocol v2 (2026-10-09)
+
+`route_update_count.count_wire`는 생성 wire의 model/input/text/reasoning만 투영한다. `CountHTTPTransport`와 생성 transport는 endpoint·single-send 상태를 분리한다. `route_update_counted.execute`는 durable COUNT_INTENT/SEND/RESPONSE/RESULT 뒤에만 생성 예약·INTENT/SEND를 진행한다. 새 CLI는 counted v2를 만들며 audit는 legacy v1도 읽는다. count-only는 generation_cap=0이며 생성 승인으로 확대되지 않는다. `review-smoke`는 저장된 승인 live smoke raw를 무호출 재생한 unsigned witness만 만든다. 자세한 gate·향후 준비 명령은 E04 live 계약의 후속 수정 절을 따른다.
+
+
+### E04 제한 smoke 비용 정책 v3 (2026-10-10)
+
+`route_update_limited_smoke`는 `SMOKE_COUNT_FEE_UNKNOWN_V1`의 smoke/count-and-generate/prefix1/count1/generation1/network2 exact 계약과 PENDING 승인 템플릿을 소유한다. `make_plan(..., cost_policy=POLICY)` 또는 CLI `plan/mock --stage smoke --smoke-count-fee-unknown`으로만 v3를 선택한다. 기본 v2는 바뀌지 않는다. `--authorization-template NEW.json`은 plan에 한해 PENDING_USER_APPROVAL, accept_count_fee_unknown=false로 저장한다. 실제 live/smoke는 기존 frozen plan+별도 HUMAN_APPROVED gate를 사용한다. 공용 ledger/runner/audit/service replay를 재사용하고 v3 audit는 저장 live 승인도 검증한다. 정확한 명령과 비용 의미는 E04 준비 계약의 제한 smoke 절을 따른다.
+
+## 2026-10-10 별도 제한 pilot 준비: v4
+
+명시적 `--pilot-count-fee-unknown`만 `PILOT_COUNT_FEE_UNKNOWN_V1`을 선택한다. v3 smoke 1/1/2와 기본 v2 가격 gate, 과거 원본 의미는 유지한다. 새 초기 시도 p001~p006과 기존 6가지 조건 순열, 각 분기 6회/24tick 및 engine seed42를 유지한다. 생성114/count114/network228은 시도 상한이고 성공 표본 수가 아니다. 기존 smoke 응답은 표본으로 재사용하지 않는다.
+
+생성 부분 조건부 예약 USD8.03472=114*0.07048만 기록한다. 계수 가격/상한/청구액은 UNKNOWN/null이고 전체 비용 상한=null, total_cost_bound_guaranteed=false다. 예약은 실패 뒤 환급해 호출 수를 늘리지 않는다. USD10 총액 보장이나 추가 실행 승인이 아니다.
+
+v4는 실제 v3 smoke witness와 이번 전환에 한정된 호환성 기록을 요구한다. 기록은 검증된 이전 ZIP/source 전체 inventory, 원래 witness bytes/digest, before/after 변경 목록과 hash, 보호 파일 전체 목록, 이전/현재 실제 smoke 및 A/B 후속 저장 응답 재생의 입력/wire/행동/평가를 묶는다. current preflight는 현재 전체 source/runtime를 별도로 검사한다. readonly audit는 저장 source·증거로 재구성하며 현재 Git/원본 Windows 경로/Provider/key/network에 의존하지 않는다. unsigned 내부 일관성으로 서비스 진위나 모든 프로그램 동등성을 증명하지 않는다.
+
+서비스 증거 RECORDED_ACTUAL_V3_SMOKE, 코드 호환성 VALIDATED_V3_TO_V4_UNSIGNED, count 가격 UNKNOWN, 최종 승인 PENDING_USER_APPROVAL을 분리한다. READY_FOR_REVIEW는 발송 허가가 아니다. 실제 발송에는 새 frozen plan과 exact HUMAN_APPROVED 승인이 별도로 필요하다. 이번 준비에서 실제 API 및 키 조회0회, 새 actual output/claim/승인 파일은 생성하지 않는다.
+
+정확한 계약은 [제한 pilot 준비](EXPERIMENT04_LIMITED_PILOT_PREPARATION.md)를 따른다. 과거 절의 미실행/미구현 상태는 당시 이력이며 소급 재작성하지 않는다.
+## MemoryReplica additional offline API (2026-10-30)
+
+`journeymap_memoryreplica.projection.project_context`는 검증된 E04 semantic input을 현재 국소 관찰·새 갱신·선택된 경험으로 투영합니다. 초기 지도는 모든 조건에서 제외합니다. `journeymap_memoryreplica.paired.run_pair`는 독립적인 재구성/행동 요청을 같은 입력에서 먼저 고정하고, exact `OfflineReplies`만 허용합니다. 재구성 응답·점수·truth/최적 경로는 행동 입력에 전달하지 않습니다. 기존 E04 profile 및 GamePort 계약은 유지합니다. [상세 계약](MEMORYREPLICA_OFFLINE.md).
